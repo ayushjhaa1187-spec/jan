@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
@@ -19,10 +20,19 @@ app.use(cors());
 app.use(express.json());
 
 // Load Swagger document
-const swaggerDocument = YAML.load(path.join(__dirname, '../swagger.yaml'));
+try {
+    const swaggerDocument = YAML.load(path.join(__dirname, '../swagger.yaml'));
+    // Swagger UI Endpoint
+    app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
+} catch (error) {
+    console.warn('[Warning] Failed to load swagger.yaml. /api-docs will be unavailable.');
+}
 
-// Swagger UI Endpoint
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
+// Simple Request Logger
+app.use((req: express.Request, res: express.Response, next: express.NextFunction) => {
+    console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
+    next();
+});
 
 // API Routes
 app.use('/api/auth', authRoutes);
@@ -37,6 +47,14 @@ app.get('/api/health', (req, res) => {
     res.json({ status: 'OK', message: 'API is running' });
 });
 
+// 404 Handler for API
+app.use('/api', (req: express.Request, res: express.Response) => {
+    res.status(404).json({
+        error: 'NotFound',
+        message: `Route ${req.method} ${req.url} not found`
+    });
+});
+
 // Global Error Handler
 app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
     console.error(`[Error] ${err.name}: ${err.message}`);
@@ -48,8 +66,8 @@ app.use((err: any, req: express.Request, res: express.Response, next: express.Ne
     });
 });
 
-// Start the server only if not in test environment
-if (process.env.NODE_ENV !== 'test') {
+// Start the server only if not in test environment and not on Vercel
+if (process.env.NODE_ENV !== 'test' && !process.env.VERCEL) {
     app.listen(PORT, () => {
         console.log(`Server is running at http://localhost:${PORT}`);
         console.log(`Swagger docs available at http://localhost:${PORT}/api-docs`);

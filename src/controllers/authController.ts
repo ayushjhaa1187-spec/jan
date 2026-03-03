@@ -7,6 +7,7 @@ import { registerSchema, loginSchema } from '../utils/validation';
 const JWT_SECRET = process.env.JWT_SECRET || 'fallback_secret_for_development';
 
 export const register = async (req: Request, res: Response) => {
+    console.log(`[Auth] Registration attempt for email: ${req.body?.email}`);
     try {
         const validatedData = registerSchema.parse(req.body);
         const { email, password, name, role } = validatedData;
@@ -17,6 +18,7 @@ export const register = async (req: Request, res: Response) => {
         }
 
         const hashedPassword = await bcrypt.hash(password, 10);
+        console.log('[Auth] Password hashed successfully');
 
         const user = await prisma.user.create({
             data: {
@@ -40,8 +42,10 @@ export const register = async (req: Request, res: Response) => {
             { expiresIn: '1d' }
         );
 
+        console.log(`[Auth] User registered successfully: ${user.id}`);
         res.status(201).json({ user: { id: user.id, email: user.email, role: user.role, name: user.profile?.name }, token });
     } catch (error: any) {
+        console.error(`[Auth] Registration error: ${error.name} - ${error.message}`);
         if (error.name === 'ZodError') {
             return res.status(400).json({ errors: error.errors });
         }
@@ -50,6 +54,7 @@ export const register = async (req: Request, res: Response) => {
 };
 
 export const login = async (req: Request, res: Response) => {
+    console.log(`[Auth] Login attempt for email: ${req.body?.email}`);
     try {
         const validatedData = loginSchema.parse(req.body);
         const { email, password } = validatedData;
@@ -70,8 +75,10 @@ export const login = async (req: Request, res: Response) => {
             { expiresIn: '1d' }
         );
 
+        console.log(`[Auth] Login successful: ${user.id}`);
         res.json({ token, user: { id: user.id, email: user.email, role: user.role, name: user.profile?.name } });
     } catch (error: any) {
+        console.error(`[Auth] Login error: ${error.name} - ${error.message}`);
         if (error.name === 'ZodError') {
             return res.status(400).json({ errors: error.errors });
         }

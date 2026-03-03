@@ -2,7 +2,7 @@
     "version": 2,
     "functions": {
         "api/index.ts": {
-            "includeFiles": "prisma/**,node_modules/.prisma/client/**,swagger.yaml"
+            "includeFiles": "prisma/**,swagger.yaml"
         }
     },
     "rewrites": [
