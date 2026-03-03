@@ -32,8 +32,9 @@ app.use('/api/admin/events', adminEventRoutes);
 app.use('/api/teams', teamRoutes);
 app.use('/api/admin/registrations', adminRegistrationRoutes);
 
-app.get('/', (req, res) => {
-    res.send('Multi-Event Management Platform API is running. Docs are available at /api-docs');
+// Health Check
+app.get('/api/health', (req, res) => {
+    res.json({ status: 'OK', message: 'API is running' });
 });
 
 // Global Error Handler

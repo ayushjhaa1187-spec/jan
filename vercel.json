@@ -13,26 +13,18 @@
             }
         }
     ],
-    "routes": [
+    "rewrites": [
         {
-            "src": "/api/(.*)",
-            "dest": "src/index.ts"
+            "source": "/api/(.*)",
+            "destination": "src/index.ts"
         },
         {
-            "src": "/api-docs(.*)",
-            "dest": "src/index.ts"
+            "source": "/api-docs(.*)",
+            "destination": "src/index.ts"
         },
         {
-            "src": "/dashboard",
-            "dest": "Frontend/Dashboard.html"
-        },
-        {
-            "src": "/",
-            "dest": "Frontend/index.html"
-        },
-        {
-            "src": "/(.*)",
-            "dest": "Frontend/$1"
+            "source": "/dashboard",
+            "destination": "/Dashboard.html"
         }
     ]
 }
