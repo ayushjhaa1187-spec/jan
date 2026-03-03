@@ -55,6 +55,18 @@ app.use('/api/admin/events', adminEventRoutes);
 app.use('/api/teams', teamRoutes);
 app.use('/api/admin/registrations', adminRegistrationRoutes);
 
+// Static file serving from 'public' (CSS, Images, etc)
+app.use(express.static(path.join(__dirname, '../public')));
+
+// Explicit Frontend Routes
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, '../public/index.html'));
+});
+
+app.get('/dashboard', (req, res) => {
+    res.sendFile(path.join(__dirname, '../public/Dashboard.html'));
+});
+
 // Health Check
 app.get('/api/health', async (req, res) => {
     try {
