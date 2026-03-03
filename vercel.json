@@ -17,6 +17,10 @@
         {
             "source": "/dashboard",
             "destination": "/Dashboard.html"
+        },
+        {
+            "source": "/",
+            "destination": "/index.html"
         }
     ]
 }
