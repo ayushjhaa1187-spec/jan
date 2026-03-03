@@ -1,14 +1,14 @@
 {
     "version": 2,
     "functions": {
-        "api/index.ts": {
+        "api/server.ts": {
             "includeFiles": "prisma/**,swagger.yaml,public/**"
         }
     },
     "rewrites": [
         {
             "source": "/(.*)",
-            "destination": "/api/index.ts"
+            "destination": "/api/server"
         }
     ]
 }

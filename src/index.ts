@@ -55,16 +55,17 @@ app.use('/api/admin/events', adminEventRoutes);
 app.use('/api/teams', teamRoutes);
 app.use('/api/admin/registrations', adminRegistrationRoutes);
 
-// Static file serving from 'public' (CSS, Images, etc)
-app.use(express.static(path.join(__dirname, '../public')));
+// Static file serving from 'public'
+const publicPath = path.resolve(process.cwd(), 'public');
+app.use(express.static(publicPath));
 
 // Explicit Frontend Routes
 app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, '../public/index.html'));
+    res.sendFile(path.join(publicPath, 'index.html'));
 });
 
 app.get('/dashboard', (req, res) => {
-    res.sendFile(path.join(__dirname, '../public/Dashboard.html'));
+    res.sendFile(path.join(publicPath, 'Dashboard.html'));
 });
 
 // Health Check
