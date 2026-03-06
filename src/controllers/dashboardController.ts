@@ -186,6 +186,15 @@ export const getEventStats = async (req: Request, res: Response) => {
         const totalRegistrations = await prisma.registration.count({ where: { eventId } });
         const checkIns = await prisma.registration.count({ where: { eventId, status: 'CHECKED_IN' } });
 
+        const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
+        const recentCheckins = await prisma.registration.count({
+            where: {
+                eventId,
+                status: 'CHECKED_IN',
+                updatedAt: { gte: fiveMinutesAgo }
+            }
+        });
+
         // Aggregate custom fields
         const fieldStats: any[] = [];
 
@@ -210,6 +219,7 @@ export const getEventStats = async (req: Request, res: Response) => {
         res.json({
             totalRegistrations,
             checkIns,
+            recentCheckins, // Count of checkins in the last 5 mins
             attendanceRate: totalRegistrations > 0 ? (checkIns / totalRegistrations) * 100 : 0,
             customFieldBreakdown: fieldStats
         });
@@ -249,6 +259,48 @@ export const sendEventReminder = async (req: Request, res: Response) => {
         }
 
         res.json({ message: `Reminder sent to ${notificationData.length} participants.` });
+    } catch (error) {
+        res.status(500).json({ error: 'Internal server error' });
+    }
+};
+
+export const getLiveActivity = async (req: Request, res: Response) => {
+    try {
+        const eventId = req.params.id as string;
+        const userId = req.user?.id;
+        if (!userId) return res.status(401).json({ error: 'Unauthorized' });
+
+        const event = await prisma.event.findUnique({ where: { id: eventId } });
+        if (!event) return res.status(404).json({ error: 'Event not found' });
+
+        if (event.creatorId !== userId) {
+            return res.status(403).json({ error: 'You do not have permission to view activity for this event.' });
+        }
+
+        const recentRegistrations = await prisma.registration.findMany({
+            where: { eventId },
+            orderBy: { updatedAt: 'desc' },
+            take: 12,
+            include: { user: { select: { profile: true, email: true } } }
+        });
+
+        const activityFeed = recentRegistrations.map(reg => {
+            let name = 'Unknown';
+            if (reg.user.profile && reg.user.profile.name) {
+                name = reg.user.profile.name;
+            } else if (reg.user.email) {
+                name = reg.user.email.split('@')[0];
+            }
+
+            return {
+                type: reg.status === 'CHECKED_IN' ? 'ci' : 'reg',
+                name: name,
+                detail: reg.status === 'CHECKED_IN' ? 'Checked in' : 'Registered',
+                timestamp: reg.updatedAt
+            };
+        });
+
+        res.json(activityFeed);
     } catch (error) {
         res.status(500).json({ error: 'Internal server error' });
     }

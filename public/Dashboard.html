@@ -7,6 +7,11 @@
   <title>CoCreate — Dashboard 2026</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
   <link rel="stylesheet" href="Dashboard.css">
+  <script>
+    if (!localStorage.getItem('token')) {
+      window.location.href = '/';
+    }
+  </script>
 </head>
 
 <body>
@@ -30,7 +35,7 @@
     </div>
     <nav class="sidebar-nav">
       <div class="nav-lbl">Main</div>
-      <div class="nav-item active">
+      <div class="nav-item active" onclick="window.location.href='/dashboard'" style="cursor:pointer">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
           <rect x="3" y="3" width="7" height="7" rx="1" />
           <rect x="14" y="3" width="7" height="7" rx="1" />
@@ -39,7 +44,7 @@
         </svg>
         Dashboard
       </div>
-      <div class="nav-item">
+      <div class="nav-item" onclick="window.location.href='/events'" style="cursor:pointer">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
           <rect x="3" y="4" width="18" height="18" rx="2" />
           <line x1="16" y1="2" x2="16" y2="6" />
@@ -48,7 +53,7 @@
         </svg>
         Events <span class="nav-badge">3</span>
       </div>
-      <div class="nav-item">
+      <div class="nav-item" onclick="window.location.href='/attendees'" style="cursor:pointer">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
           <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
           <circle cx="9" cy="7" r="4" />
@@ -56,13 +61,13 @@
         Attendees
       </div>
       <div class="nav-lbl">Management</div>
-      <div class="nav-item">
+      <div class="nav-item" onclick="window.location.href='/analytics'" style="cursor:pointer">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
           <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
         </svg>
         Analytics
       </div>
-      <div class="nav-item">
+      <div class="nav-item" onclick="window.location.href='/settings'" style="cursor:pointer">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
           <circle cx="12" cy="12" r="3" />
           <path
@@ -346,6 +351,7 @@
     }
 
     // ── Load stats for event ──
+    let lastStatsStr = '';
     async function loadStats(eventId) {
       try {
         const res = await fetch('/api/admin/events/' + eventId + '/stats', {
@@ -353,11 +359,14 @@
         });
         if (!res.ok) return;
         const stats = await res.json();
+        const newStatsStr = JSON.stringify(stats);
+        if (newStatsStr === lastStatsStr) return; // Memoize
+        lastStatsStr = newStatsStr;
 
         const kpiVals = document.querySelectorAll('.kpi-val');
         if (kpiVals[0]) kpiVals[0].textContent = (stats.totalRegistrations || 0).toLocaleString();
-        if (kpiVals[1]) kpiVals[1].textContent = (stats.checkedIn || 0).toLocaleString();
-        if (kpiVals[2]) kpiVals[2].textContent = (stats.totalRegistrations - (stats.checkedIn || 0)).toLocaleString();
+        if (kpiVals[1]) kpiVals[1].textContent = (stats.checkIns || 0).toLocaleString();
+        if (kpiVals[2]) kpiVals[2].textContent = (stats.totalRegistrations - (stats.checkIns || 0)).toLocaleString();
         if (kpiVals[3]) kpiVals[3].textContent = (stats.attendanceRate || 0).toFixed(1) + '%';
       } catch (e) {
         console.error('Stats load error:', e);
@@ -365,25 +374,30 @@
     }
 
     // ── Load recent check-ins ──
+    let lastFeedStr = '';
     async function loadRecentCheckins(eventId) {
       try {
-        const res = await fetch('/api/admin/events/' + eventId + '/attendees', {
+        const res = await fetch('/api/admin/events/' + eventId + '/live-activity', {
           headers: { 'Authorization': 'Bearer ' + token }
         });
         if (!res.ok) return;
-        const data = await res.json();
+        const feedData = await res.json();
         const feedList = document.querySelector('.feed-list');
-        if (!feedList || !data.registrations) return;
+        if (!feedList || !feedData) return;
 
-        if (data.registrations.length === 0) {
-          feedList.innerHTML = '<div style="text-align:center;padding:24px;color:#6e6e7d">No registrations yet</div>';
+        const newFeedStr = JSON.stringify(feedData.map(a => a.name + a.timestamp + a.detail));
+        if (newFeedStr === lastFeedStr) return; // Memoize
+        lastFeedStr = newFeedStr;
+
+        if (feedData.length === 0) {
+          feedList.innerHTML = '<div style="text-align:center;padding:24px;color:#6e6e7d">No activity yet</div>';
           return;
         }
 
-        feedList.innerHTML = data.registrations.slice(0, 6).map(reg => {
-          const name = reg.user?.profile?.name || reg.user?.email || 'Unknown';
+        feedList.innerHTML = feedData.slice(0, 6).map(act => {
+          const name = act.name || 'Unknown';
           const initials = name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
-          const isCheckedIn = reg.status === 'CHECKED_IN';
+          const isCheckedIn = act.type === 'ci';
           const colors = ['#6040f0', '#1a96d8', '#0aaa6e', '#b030d8'];
           const color = colors[Math.floor(Math.random() * colors.length)];
           return `
@@ -391,7 +405,7 @@
               <div class="feed-av" style="background:${color}">${initials}</div>
               <div class="feed-info">
                 <div class="feed-name">${name}</div>
-                <div class="feed-detail">ID: ${reg.id.slice(0, 8)}...</div>
+                <div class="feed-detail">${act.detail} · ${new Date(act.timestamp).toLocaleTimeString([], { timeStyle: 'short' })}</div>
               </div>
               <div class="feed-r">
                 <span class="pill ${isCheckedIn ? 'ci' : 'reg'}">${isCheckedIn ? 'Checked In' : 'Registered'}</span>
@@ -403,6 +417,14 @@
         console.error('Feed load error:', e);
       }
     }
+
+    // ── Live Polling ──
+    setInterval(() => {
+      if (currentEventId) {
+        loadStats(currentEventId);
+        loadRecentCheckins(currentEventId);
+      }
+    }, 5000);
 
     // ── Button: Check-in Mode → Scanner ──
     document.querySelector('.btn-pri').addEventListener('click', function () {
@@ -483,61 +505,7 @@
       alert('Teams are managed per-event. Share your event link with participants so they can create and join teams!');
     });
 
-    // ── Sidebar Navigation ──
-    const navItems = document.querySelectorAll('.nav-item');
-    // Dashboard (index 0) - already active
-    // Events (index 1)
-    if (navItems[1]) {
-      navItems[1].style.cursor = 'pointer';
-      navItems[1].addEventListener('click', function () {
-        navItems.forEach(n => n.classList.remove('active'));
-        this.classList.add('active');
-        if (adminEvents.length > 0) {
-          alert('Your events:\n' + adminEvents.map((e, i) => `${i + 1}. ${e.title}`).join('\n'));
-        } else {
-          alert('No events created yet.');
-        }
-      });
-    }
-    // Attendees (index 2)
-    if (navItems[2]) {
-      navItems[2].style.cursor = 'pointer';
-      navItems[2].addEventListener('click', function () {
-        if (!currentEventId) return alert('No event selected');
-        navItems.forEach(n => n.classList.remove('active'));
-        this.classList.add('active');
-        // Show attendee count
-        fetch('/api/admin/events/' + currentEventId + '/attendees', {
-          headers: { 'Authorization': 'Bearer ' + token }
-        }).then(r => r.json()).then(data => {
-          const list = (data.registrations || []).map(r => {
-            const name = r.user?.profile?.name || r.user?.email || 'Unknown';
-            return `${name} - ${r.status}`;
-          }).join('\n');
-          alert('Attendees:\n' + (list || 'None yet'));
-        });
-      });
-    }
-    // Analytics (index 3)
-    if (navItems[3]) {
-      navItems[3].style.cursor = 'pointer';
-      navItems[3].addEventListener('click', function () {
-        navItems.forEach(n => n.classList.remove('active'));
-        this.classList.add('active');
-        if (currentEventId) loadStats(currentEventId);
-        alert('Analytics loaded — check the dashboard KPI cards for live stats.');
-      });
-    }
-    // Settings (index 4)
-    if (navItems[4]) {
-      navItems[4].style.cursor = 'pointer';
-      navItems[4].addEventListener('click', function () {
-        navItems.forEach(n => n.classList.remove('active'));
-        this.classList.add('active');
-        const u = JSON.parse(localStorage.getItem('user') || '{}');
-        alert('⚙️ Account Settings\n\nName: ' + (u.name || 'N/A') + '\nEmail: ' + (u.email || 'N/A') + '\nRole: ' + (u.role || 'N/A') + '\n\nTo logout, use the Logout button at the bottom of the sidebar.');
-      });
-    }
+
 
     // Logout button
     document.getElementById('logoutBtn').addEventListener('click', function () {

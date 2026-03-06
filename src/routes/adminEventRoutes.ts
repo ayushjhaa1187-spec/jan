@@ -11,6 +11,7 @@ import {
     getEventAttendees,
     getEventStats,
     sendEventReminder,
+    getLiveActivity,
 } from '../controllers/dashboardController';
 
 const router = Router();
@@ -23,6 +24,7 @@ router.delete('/:id', authenticate, requireAdmin, deleteEvent);
 router.post('/:id/announcements', authenticate, requireAdmin, createAnnouncement);
 router.get('/:id/attendees', authenticate, requireAdmin, getEventAttendees);
 router.get('/:id/stats', authenticate, requireAdmin, getEventStats);
+router.get('/:id/live-activity', authenticate, requireAdmin, getLiveActivity);
 router.post('/:id/reminders', authenticate, requireAdmin, sendEventReminder);
 
 export default router;

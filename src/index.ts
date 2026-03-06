@@ -55,9 +55,11 @@ app.use('/api/admin/events', adminEventRoutes);
 app.use('/api/teams', teamRoutes);
 app.use('/api/admin/registrations', adminRegistrationRoutes);
 
-// Static file serving from 'public'
+// Static file serving from 'public' and 'admin_pages'
 const publicPath = path.resolve(process.cwd(), 'public');
+const adminPagesPath = path.resolve(process.cwd(), 'admin_pages');
 app.use(express.static(publicPath));
+app.use(express.static(adminPagesPath));
 
 // Explicit Frontend Routes
 app.get('/', (req, res) => {
@@ -70,6 +72,22 @@ app.get('/dashboard', (req, res) => {
 
 app.get('/scanner', (req, res) => {
     res.sendFile(path.join(publicPath, 'Scanner.html'));
+});
+
+app.get('/events', (req, res) => {
+    res.sendFile(path.join(adminPagesPath, 'Events.html'));
+});
+
+app.get('/attendees', (req, res) => {
+    res.sendFile(path.join(adminPagesPath, 'Attendees.html'));
+});
+
+app.get('/analytics', (req, res) => {
+    res.sendFile(path.join(adminPagesPath, 'Analytics.html'));
+});
+
+app.get('/settings', (req, res) => {
+    res.sendFile(path.join(adminPagesPath, 'Settings.html'));
 });
 
 // Health Check
