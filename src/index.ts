@@ -13,6 +13,10 @@ import teamRoutes from './routes/teamRoutes';
 import adminRegistrationRoutes from './routes/adminRegistrationRoutes';
 import prisma from './utils/prisma';
 
+// Import controllers for additional routes
+import { getNotifications } from './controllers/dashboardController';
+import { authenticate } from './middlewares/authMiddleware';
+
 // Environment Validation
 const REQUIRED_ENV = ['DATABASE_URL', 'JWT_SECRET'];
 REQUIRED_ENV.forEach(name => {
@@ -54,6 +58,9 @@ app.use('/api/events', eventRoutes);
 app.use('/api/admin/events', adminEventRoutes);
 app.use('/api/teams', teamRoutes);
 app.use('/api/admin/registrations', adminRegistrationRoutes);
+
+// Additional user routes
+app.get('/api/users/me/notifications', authenticate, getNotifications);
 
 // Static file serving from 'public' and 'admin_pages'
 const publicPath = path.resolve(process.cwd(), 'public');

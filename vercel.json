@@ -1,30 +1,47 @@
 {
     "version": 2,
-    "functions": {
-        "api/server.ts": {
-            "includeFiles": "prisma/**,swagger.yaml,public/**"
+    "builds": [
+        {
+            "src": "src/index.ts",
+            "use": "@vercel/node"
         }
-    },
+    ],
     "routes": [
         {
             "src": "/api/(.*)",
-            "dest": "/api/server.ts"
+            "dest": "/src/index.ts"
         },
         {
-            "src": "/api-docs(.*)",
-            "dest": "/api/server.ts"
+            "src": "/api-docs/(.*)",
+            "dest": "/src/index.ts"
         },
         {
             "src": "/dashboard",
-            "dest": "/api/server.ts"
+            "dest": "/src/index.ts"
         },
         {
             "src": "/scanner",
-            "dest": "/api/server.ts"
+            "dest": "/src/index.ts"
+        },
+        {
+            "src": "/events",
+            "dest": "/src/index.ts"
+        },
+        {
+            "src": "/attendees",
+            "dest": "/src/index.ts"
+        },
+        {
+            "src": "/analytics",
+            "dest": "/src/index.ts"
+        },
+        {
+            "src": "/settings",
+            "dest": "/src/index.ts"
         },
         {
             "src": "/(.*)",
-            "dest": "/api/server.ts"
+            "dest": "/src/index.ts"
         }
     ]
 }
