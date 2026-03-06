@@ -46,6 +46,8 @@ body {
   line-height: 1.5;
   min-height: 100vh;
   display: flex;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 /* noise overlay */

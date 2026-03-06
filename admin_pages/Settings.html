@@ -53,7 +53,7 @@
           <line x1="8" y1="2" x2="8" y2="6" />
           <line x1="3" y1="10" x2="21" y2="10" />
         </svg>
-        Events <span class="nav-badge">3</span>
+        Events <span class="nav-badge" id="eventBadge" style="display:none;">0</span>
       </div>
       <div class="nav-item" onclick="window.location.href='/attendees'" style="cursor:pointer">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
@@ -104,7 +104,7 @@
     <header class="topbar">
       <div class="topbar-left">
         <div class="ev-sel">
-          <span>Design Summit 2026</span>
+          <span id="currentEventName">Design Summit 2026</span>
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
             <polyline points="6 9 12 15 18 9" />
           </svg>
@@ -117,7 +117,7 @@
           <input type="text" class="f-input" placeholder="Search event, attendees..."
             style="padding-left: 36px; height: 36px;">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"
-            style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); opacity: 0.5;">
+            style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); opacity: 0.8;">
             <circle cx="11" cy="11" r="8" />
             <line x1="21" y1="21" x2="16.65" y2="16.65" />
           </svg>
@@ -149,7 +149,18 @@
         <!-- ══ LEFT NAV ══ -->
         <nav class="settings-nav" aria-label="Settings navigation">
 
-          <div class="snav-item active" onclick="showSection('general', this)">
+          <div class="snav-item active" onclick="showSection('operations', this)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <rect x="3" y="3" width="7" height="7" rx="1" />
+              <rect x="14" y="3" width="7" height="7" rx="1" />
+              <rect x="3" y="14" width="7" height="7" rx="1" />
+              <path d="M14 17h7" />
+              <path d="M14 21h7" />
+            </svg>
+            Operations Hub
+          </div>
+
+          <div class="snav-item" onclick="showSection('general', this)">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
               <circle cx="12" cy="12" r="3" />
               <path
@@ -211,7 +222,118 @@
         <div class="settings-panels">
 
           <!-- ─────────────── SECTION: GENERAL ─────────────── -->
-          <section id="sec-general" class="settings-section active">
+          <section id="sec-operations" class="settings-section active">
+
+            <div class="card">
+              <div class="card-hdr">
+                <div>
+                  <div class="card-title">Event / Attendee / Analytics Control Tower</div>
+                  <div class="card-sub">Monitor all operational modules and jump to each workspace from one place.</div>
+                </div>
+              </div>
+              <div class="card-body">
+                <div class="ops-grid">
+
+                  <article class="ops-card">
+                    <div class="ops-head">
+                      <div class="ops-icon violet">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                          <rect x="3" y="4" width="18" height="18" rx="2" />
+                          <line x1="16" y1="2" x2="16" y2="6" />
+                          <line x1="8" y1="2" x2="8" y2="6" />
+                          <line x1="3" y1="10" x2="21" y2="10" />
+                        </svg>
+                      </div>
+                      <div>
+                        <div class="ops-title">Events Workspace</div>
+                        <div class="ops-sub">Scheduling, venue and lifecycle</div>
+                      </div>
+                    </div>
+                    <div class="ops-metrics">
+                      <div class="ops-metric-row"><span>Total events</span><strong id="opsEventsCount">--</strong></div>
+                      <div class="ops-metric-row"><span>Active event</span><strong id="opsActiveEvent">--</strong></div>
+                      <div class="ops-metric-row"><span>Next start</span><strong id="opsNextStart">--</strong></div>
+                    </div>
+                    <div class="ops-actions">
+                      <button class="btn btn-secondary btn-sm" onclick="window.location.href='/events'">Open Events</button>
+                    </div>
+                  </article>
+
+                  <article class="ops-card">
+                    <div class="ops-head">
+                      <div class="ops-icon azure">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                          <circle cx="9" cy="7" r="4" />
+                        </svg>
+                      </div>
+                      <div>
+                        <div class="ops-title">Attendee Workspace</div>
+                        <div class="ops-sub">Registrations, check-ins and support</div>
+                      </div>
+                    </div>
+                    <div class="ops-metrics">
+                      <div class="ops-metric-row"><span>Registered</span><strong id="opsAttendeeTotal">--</strong></div>
+                      <div class="ops-metric-row"><span>Checked in</span><strong id="opsCheckedIn">--</strong></div>
+                      <div class="ops-metric-row"><span>Pending check-in</span><strong id="opsPendingCount">--</strong></div>
+                    </div>
+                    <div class="ops-actions">
+                      <button class="btn btn-secondary btn-sm" onclick="window.location.href='/attendees'">Open Attendees</button>
+                    </div>
+                  </article>
+
+                  <article class="ops-card">
+                    <div class="ops-head">
+                      <div class="ops-icon emerald">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                          <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
+                        </svg>
+                      </div>
+                      <div>
+                        <div class="ops-title">Analytics Workspace</div>
+                        <div class="ops-sub">Trends, funnels and performance</div>
+                      </div>
+                    </div>
+                    <div class="ops-metrics">
+                      <div class="ops-metric-row"><span>Check-in rate</span><strong id="opsCheckinRate">--</strong></div>
+                      <div class="ops-metric-row"><span>Last sync</span><strong id="opsLastSync">--</strong></div>
+                      <div class="ops-metric-row"><span>Data source</span><strong>Live API</strong></div>
+                    </div>
+                    <div class="ops-actions">
+                      <button class="btn btn-secondary btn-sm" onclick="window.location.href='/analytics'">Open Analytics</button>
+                    </div>
+                  </article>
+
+                </div>
+
+                <div class="ops-toggles">
+                  <div class="toggle-row">
+                    <div class="tr-left">
+                      <div class="tr-label">Auto-refresh cross-module metrics</div>
+                      <div class="tr-desc">Keep settings snapshot aligned with event, attendee and analytics pages.</div>
+                    </div>
+                    <label class="toggle"><input type="checkbox" checked><span class="t-track"></span></label>
+                  </div>
+
+                  <div class="toggle-row" style="border-bottom:none">
+                    <div class="tr-left">
+                      <div class="tr-label">Flag attendee anomalies in analytics</div>
+                      <div class="tr-desc">Highlight unexpected check-in dips or registration spikes for admins.</div>
+                    </div>
+                    <label class="toggle"><input type="checkbox" checked><span class="t-track"></span></label>
+                  </div>
+                </div>
+              </div>
+              <div class="card-footer">
+                <span class="save-confirm" id="sc-operations"></span>
+                <button class="btn btn-secondary btn-sm" onclick="loadOperationsSnapshot()">Refresh snapshot</button>
+                <button class="btn btn-primary btn-sm" onclick="save('operations')">Save controls</button>
+              </div>
+            </div>
+
+          </section>
+
+          <section id="sec-general" class="settings-section">
 
             <div class="card">
               <div class="card-hdr">
@@ -805,45 +927,168 @@
     /* ── FETCH CURRENT EVENT DATA ───────────────────────────── */
     const currentEventId = localStorage.getItem('currentEventId');
     const token = localStorage.getItem('token');
-    const userData = JSON.parse(localStorage.getItem('user') || '{}');
 
-    // ── Update Profile ──
-    document.getElementById('userName').textContent = userData.name || 'Admin';
-    if (userData.name) {
-      const initials = userData.name.split(' ').map(n => n[0]).join('').toUpperCase();
-      document.getElementById('userInitials').textContent = initials;
+    function normalizeUser(userObj) {
+      if (!userObj || typeof userObj !== 'object') return { name: '', email: '' };
+      return {
+        ...userObj,
+        name: userObj.name || userObj.fullName || userObj.profile?.name || '',
+        email: userObj.email || userObj.profile?.email || '',
+      };
     }
 
-    // ── Logout Binding ──
+    function parseEventsPayload(payload) {
+      if (Array.isArray(payload)) return payload;
+      if (payload && Array.isArray(payload.events)) return payload.events;
+      return [];
+    }
+
+    function getInitials(name) {
+      if (!name) return 'AD';
+      return name
+        .split(' ')
+        .filter(Boolean)
+        .map(part => part[0])
+        .join('')
+        .toUpperCase()
+        .slice(0, 2) || 'AD';
+    }
+
+    function formatDateShort(value) {
+      if (!value) return '--';
+      const dt = new Date(value);
+      if (Number.isNaN(dt.getTime())) return '--';
+      return dt.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    }
+
+    function setText(id, value) {
+      const el = document.getElementById(id);
+      if (el) el.textContent = value;
+    }
+
+    const userData = normalizeUser(JSON.parse(localStorage.getItem('user') || '{}'));
+    const displayName = userData.name || userData.email || 'Admin';
+    setText('userName', displayName);
+    setText('userInitials', getInitials(displayName));
+
+    // Logout Binding
     document.getElementById('logoutBtn').addEventListener('click', () => {
       if (confirm('Are you sure you want to logout?')) {
         localStorage.removeItem('token');
         localStorage.removeItem('user');
+        localStorage.removeItem('currentEventId');
         window.location.href = '/';
       }
     });
 
-    async function loadEventData() {
-      if (!token || !currentEventId) return;
+    async function fetchAdminEvents() {
+      if (!token) return [];
+      const res = await fetch('/api/admin/events', {
+        headers: { 'Authorization': 'Bearer ' + token }
+      });
+      if (!res.ok) return [];
+      return parseEventsPayload(await res.json());
+    }
+
+    // Update event badge count
+    async function updateEventBadge() {
       try {
-        const res = await fetch(`/api/admin/events`, {
-          headers: { 'Authorization': 'Bearer ' + token }
-        });
-        if (res.ok) {
-          const data = await res.json();
-          const currentEvent = data.events.find(e => e.id === currentEventId);
-          if (currentEvent) {
-            document.getElementById('ev-name').value = currentEvent.title || '';
-            document.getElementById('ev-location').value = currentEvent.venue || '';
-            document.getElementById('ev-date').value = currentEvent.startDate ? currentEvent.startDate.split('T')[0] : '';
-            document.getElementById('ev-desc').value = currentEvent.description || '';
-          }
+        const events = await fetchAdminEvents();
+        const badge = document.getElementById('eventBadge');
+        if (badge) {
+          badge.textContent = String(events.length);
+          badge.style.display = events.length > 0 ? '' : 'none';
         }
+      } catch (e) {
+        console.error('Failed to update event badge:', e);
+      }
+    }
+    updateEventBadge();
+
+    // Update current event name
+    async function updateEventName() {
+      try {
+        const events = await fetchAdminEvents();
+        const activeEvent = events.find(e => e.id === currentEventId) || events[0];
+        if (activeEvent) {
+          const nameEl = document.getElementById('currentEventName');
+          if (nameEl) nameEl.textContent = activeEvent.title;
+        }
+      } catch (e) {
+        console.error('Failed to update event name:', e);
+      }
+    }
+    updateEventName();
+
+    async function loadEventData() {
+      if (!token) return;
+      try {
+        const events = await fetchAdminEvents();
+        const selectedEvent = events.find(e => e.id === currentEventId) || events[0];
+        if (!selectedEvent) return;
+        document.getElementById('ev-name').value = selectedEvent.title || '';
+        document.getElementById('ev-location').value = selectedEvent.venue || '';
+        document.getElementById('ev-date').value = selectedEvent.startDate ? selectedEvent.startDate.split('T')[0] : '';
+        document.getElementById('ev-desc').value = selectedEvent.description || '';
       } catch (e) {
         console.error(e);
       }
     }
     loadEventData();
+
+    async function loadOperationsSnapshot() {
+      if (!token) return;
+      try {
+        const events = await fetchAdminEvents();
+        const selectedEvent = events.find(e => e.id === currentEventId) || events[0];
+
+        setText('opsEventsCount', String(events.length));
+        setText('opsActiveEvent', selectedEvent?.title || 'No event selected');
+        setText('opsNextStart', formatDateShort(selectedEvent?.startDate));
+
+        if (!selectedEvent) {
+          setText('opsAttendeeTotal', '0');
+          setText('opsCheckedIn', '0');
+          setText('opsPendingCount', '0');
+          setText('opsCheckinRate', '0%');
+          setText('opsLastSync', '--');
+          return;
+        }
+
+        const attendeeRes = await fetch(`/api/admin/events/${selectedEvent.id}/attendees`, {
+          headers: { 'Authorization': 'Bearer ' + token }
+        });
+
+        if (!attendeeRes.ok) {
+          setText('opsLastSync', 'Sync failed');
+          return;
+        }
+
+        const attendeePayload = await attendeeRes.json();
+        const registrations = Array.isArray(attendeePayload)
+          ? attendeePayload
+          : (Array.isArray(attendeePayload.registrations) ? attendeePayload.registrations : []);
+
+        const totalRegistrations = registrations.length;
+        const checkedIn = registrations.filter(reg => {
+          const status = String(reg.status || '').toUpperCase();
+          return status === 'CHECKED_IN' || status === 'CHECKED';
+        }).length;
+        const pendingCheckin = Math.max(totalRegistrations - checkedIn, 0);
+        const checkinRate = totalRegistrations > 0
+          ? Math.round((checkedIn / totalRegistrations) * 100)
+          : 0;
+
+        setText('opsAttendeeTotal', totalRegistrations.toLocaleString());
+        setText('opsCheckedIn', checkedIn.toLocaleString());
+        setText('opsPendingCount', pendingCheckin.toLocaleString());
+        setText('opsCheckinRate', `${checkinRate}%`);
+        setText('opsLastSync', new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }));
+      } catch (e) {
+        console.error('Failed to load operations snapshot:', e);
+      }
+    }
+    loadOperationsSnapshot();
 
     async function saveGeneral() {
       if (!token || !currentEventId) return;

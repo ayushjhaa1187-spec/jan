@@ -53,7 +53,7 @@
           <line x1="8" y1="2" x2="8" y2="6" />
           <line x1="3" y1="10" x2="21" y2="10" />
         </svg>
-        Events <span class="nav-badge" id="sidebarEventCount">0</span>
+        Events <span class="nav-badge" id="sidebarEventCount" style="display:none;">0</span>
       </div>
 
       <div class="nav-item" onclick="window.location.href='/attendees'" style="cursor:pointer">
@@ -105,24 +105,24 @@
 
     <!-- Topbar -->
     <header class="topbar">
-      <div class="topbar-ev">
-        <div class="ev-sel">
-          <span>Design Summit 2026</span>
+      <div class="topbar-ev" id="topbarEventContainer" style="display:none;">
+        <div class="ev-sel" id="eventSelector">
+          <span id="eventName">Design Summit 2026</span>
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
             <polyline points="6 9 12 15 18 9" />
           </svg>
         </div>
-        <div class="live-badge">
+        <div class="live-badge" id="liveBadge" style="display:none;">
           <div class="live-dot"></div>Live
         </div>
-        <div class="ev-meta">
-          March 8, 2026 <span class="ev-meta-sep">•</span> Bharat Mandapam, New Delhi
+        <div class="ev-meta" id="eventMeta" style="display:none;">
+          <span id="eventDate">March 8, 2026</span> <span class="ev-meta-sep">•</span> <span id="eventVenue">Bharat Mandapam, New Delhi</span>
         </div>
         <div class="search-wrap" style="margin-left: 20px; flex: 1; max-width: 400px; position: relative;">
           <input type="text" class="f-input" placeholder="Search event, attendees..."
             style="padding-left: 36px; height: 36px; border: 1px solid var(--edge-2); border-radius: 8px; width: 100%; outline: none;">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"
-            style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); opacity: 0.5;">
+            style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); opacity: 0.8;">
             <circle cx="11" cy="11" r="8" />
             <line x1="21" y1="21" x2="16.65" y2="16.65" />
           </svg>
@@ -186,6 +186,24 @@
         </div>
         <!-- Cards rendered via JS -->
       </div><!-- /events-grid -->
+
+      <!-- Empty State for New Admin -->
+      <div class="empty-state" id="emptyState" style="display:none;">
+        <div class="empty-illo">
+          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm3.5-9c.83 0 1.5-.67 1.5-1.5S16.33 8 15.5 8 14 8.67 14 9.5s.67 1.5 1.5 1.5zm-7 0c.83 0 1.5-.67 1.5-1.5S9.33 8 8.5 8 7 8.67 7 9.5 7.67 11 8.5 11zm3.5 6.5c2.33 0 4.31-1.46 5.11-3.5H6.89c.8 2.04 2.78 3.5 5.11 3.5z"/>
+          </svg>
+        </div>
+        <div class="empty-title">Creating Event, right?</div>
+        <div class="empty-sub">Start by creating your first event. Set a date, venue, and description to get started with managing your event registrations.</div>
+        <button class="btn btn-pri" onclick="openModal()" style="margin-top: 12px;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <line x1="12" y1="5" x2="12" y2="19" />
+            <line x1="5" y1="12" x2="19" y2="12" />
+          </svg>
+          Create Your First Event
+        </button>
+      </div>
     </main>
   </div>
 
@@ -266,6 +284,7 @@
     }
 
     let allEvents = [];
+    let currentEvent = null;
 
     async function loadEvents() {
       try {
@@ -278,12 +297,50 @@
           return;
         }
         allEvents = await res.json();
+
+        // Set current event if available
+        if (allEvents.length > 0) {
+          currentEvent = allEvents[0];
+          updateTopbarEvent();
+          document.getElementById('topbarEventContainer').style.display = '';
+          document.getElementById('eventsGrid').style.display = '';
+          document.getElementById('emptyState').style.display = 'none';
+        } else {
+          document.getElementById('topbarEventContainer').style.display = 'none';
+          document.getElementById('eventsGrid').style.display = 'none';
+          document.getElementById('emptyState').style.display = 'flex';
+        }
+
         renderEvents(allEvents);
         document.getElementById('filterCount').textContent = allEvents.length + (allEvents.length === 1 ? ' event' : ' events');
         const badge = document.getElementById('sidebarEventCount');
-        if (badge) badge.textContent = allEvents.length;
+        if (badge) {
+          badge.textContent = allEvents.length;
+          badge.style.display = allEvents.length > 0 ? '' : 'none';
+        }
       } catch (e) {
         console.error('Failed to load events:', e);
+      }
+    }
+
+    function updateTopbarEvent() {
+      if (!currentEvent) return;
+      const status = getStatus(currentEvent);
+      const d = new Date(currentEvent.startDate);
+      const dateStr = d.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+
+      document.getElementById('eventName').textContent = currentEvent.title;
+      document.getElementById('eventDate').textContent = dateStr;
+      document.getElementById('eventVenue').textContent = currentEvent.venue || 'Virtual';
+
+      const liveBadge = document.getElementById('liveBadge');
+      const eventMeta = document.getElementById('eventMeta');
+      if (status === 'live') {
+        liveBadge.style.display = '';
+        eventMeta.style.display = 'none';
+      } else {
+        liveBadge.style.display = 'none';
+        eventMeta.style.display = '';
       }
     }
 
