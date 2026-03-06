@@ -22,7 +22,7 @@ export class SecurityService {
     /**
      * Validates that the current user has permission to manage an event.
      */
-    static canManageEvent(userId: string, event: { creatorId: string }): boolean {
-        return this.isOwner(userId, event.creatorId);
+    static canManageEvent(userId: string, event: { creatorId: string }, user?: { role: string }): boolean {
+        return this.isAdmin(user) || this.isOwner(userId, event.creatorId);
     }
 }

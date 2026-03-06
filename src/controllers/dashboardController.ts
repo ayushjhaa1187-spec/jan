@@ -179,7 +179,7 @@ export const getEventStats = async (req: Request, res: Response) => {
         });
         if (!event) return res.status(404).json({ error: 'Event not found' });
 
-        if (event.creatorId !== userId) {
+        if (event.creatorId !== userId && req.user?.role !== 'ADMIN') {
             return res.status(403).json({ error: 'You do not have permission to view stats for this event.' });
         }
 
@@ -195,36 +195,37 @@ export const getEventStats = async (req: Request, res: Response) => {
             }
         });
 
-        // Aggregate custom fields
-        const fieldStats: any[] = [];
+        // Optimized Custom Field Aggregation
+        const fieldIds = event.customFields.map(f => f.id);
+        const allFieldValues = await prisma.fieldValue.findMany({
+            where: { fieldId: { in: fieldIds } },
+            select: { fieldId: true, value: true }
+        });
 
-        for (const field of event.customFields) {
-            const values = await prisma.fieldValue.findMany({
-                where: { fieldId: field.id },
-                select: { value: true }
-            });
-
-            const counts = values.reduce((acc: any, curr) => {
+        const fieldStats = event.customFields.map(field => {
+            const values = allFieldValues.filter(fv => fv.fieldId === field.id);
+            const breakdown = values.reduce((acc: any, curr) => {
                 acc[curr.value] = (acc[curr.value] || 0) + 1;
                 return acc;
             }, {});
 
-            fieldStats.push({
+            return {
                 label: field.label,
                 type: field.type,
-                breakdown: counts
-            });
-        }
+                breakdown
+            };
+        });
 
         res.json({
             totalRegistrations,
             checkIns,
-            recentCheckins, // Count of checkins in the last 5 mins
+            recentCheckins,
             attendanceRate: totalRegistrations > 0 ? (checkIns / totalRegistrations) * 100 : 0,
             customFieldBreakdown: fieldStats
         });
-    } catch (error) {
-        res.status(500).json({ error: 'Internal server error' });
+    } catch (error: any) {
+        console.error(`[DashboardController] Stats error for Event ${req.params.id}:`, error);
+        res.status(500).json({ error: 'Internal server error', msg: error.message });
     }
 };
 

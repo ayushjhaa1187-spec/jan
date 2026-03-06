@@ -52,7 +52,7 @@ export const updateEvent = async (req: Request, res: Response) => {
         const event = await prisma.event.findUnique({ where: { id } });
         if (!event) return res.status(404).json({ error: 'Event not found' });
 
-        if (event.creatorId !== userId) {
+        if (event.creatorId !== userId && req.user?.role !== 'ADMIN') {
             return res.status(403).json({ error: 'You do not have permission to update this event.' });
         }
 
@@ -66,15 +66,37 @@ export const updateEvent = async (req: Request, res: Response) => {
                 ...(rest.endDate && { endDate: new Date(rest.endDate) }),
                 ...(rest.registrationStart && { registrationStart: new Date(rest.registrationStart) }),
                 ...(rest.registrationEnd && { registrationEnd: new Date(rest.registrationEnd) }),
+                // Deep updates for nested fields
+                ...(schedules && {
+                    schedules: {
+                        deleteMany: {},
+                        create: schedules.map((s: any) => ({
+                            ...s,
+                            startTime: new Date(s.startTime),
+                            endTime: new Date(s.endTime),
+                        }))
+                    }
+                }),
+                ...(customFields && {
+                    customFields: {
+                        deleteMany: {},
+                        create: customFields
+                    }
+                })
             },
+            include: {
+                schedules: true,
+                customFields: true
+            }
         });
 
         res.json(updatedEvent);
     } catch (error: any) {
+        console.error(`[EventController] Update error for ID ${req.params.id}:`, error);
         if (error.name === 'ZodError') {
             return res.status(400).json({ errors: error.errors });
         }
-        res.status(500).json({ error: 'Internal server error' });
+        res.status(500).json({ error: 'Internal server error', msg: error.message });
     }
 };
 

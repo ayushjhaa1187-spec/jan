@@ -831,8 +831,10 @@
       fetchLiveActivity();
 
       setInterval(() => {
-        fetchStats();
-        fetchLiveActivity();
+        if (document.visibilityState === 'visible') {
+          fetchStats();
+          fetchLiveActivity();
+        }
       }, 5000); // Poll every 5 seconds
     }
 

@@ -428,7 +428,7 @@
 
     // ── Live Polling ──
     setInterval(() => {
-      if (currentEventId) {
+      if (currentEventId && document.visibilityState === 'visible') {
         loadStats(currentEventId);
         loadRecentCheckins(currentEventId);
       }
