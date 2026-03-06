@@ -34,7 +34,7 @@ body {
   font-family: var(--font-u);
   background: var(--base);
   color: var(--ink-0);
-  font-size: 13px;
+  font-size: 14px;
   line-height: 1.5;
   min-height: 100vh;
   display: flex;
