@@ -174,7 +174,7 @@
             Export CSV
           </button>
           <!-- ②  SCAN QR BUTTON -->
-          <button class="btn btn-pri" onclick="alert('QR Scanner opening… (demo)')">
+          <button class="btn btn-pri" onclick="handleQRScan()">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
               <rect x="3" y="3" width="7" height="7" rx="1" />
               <rect x="14" y="3" width="7" height="7" rx="1" />
@@ -941,6 +941,79 @@
     /* ─── UTILS ─────────────────────────────────────────── */
     function now() {
       return new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+    }
+
+    /* ─── QR SCAN CHECK-IN ──────────────────────────────── */
+    async function handleQRScan() {
+      if (!token || !currentEventId) {
+        alert("Please select an event first.");
+        return;
+      }
+
+      // For demo/testing: prompt for registration ID (simulating QR scan)
+      // In production, this would use a camera-based QR scanner library
+      const input = prompt(
+        "QR Scanner (Demo)\n\n" +
+        "Enter a registration ID to check in:\n" +
+        "(You can generate a QR code in Settings → Check-in to get a valid ID)\n\n" +
+        "Example: Enter a registration ID from the attendees list"
+      );
+
+      if (!input || !input.trim()) {
+        return; // User cancelled
+      }
+
+      const registrationId = input.trim();
+      
+      // Try to find the attendee locally first
+      let attendee = ATTENDEES.find(a => 
+        a.id.toString() === registrationId || 
+        a.regId.toLowerCase().includes(registrationId.toLowerCase())
+      );
+
+      if (!attendee) {
+        // If not found locally, try to fetch from API
+        try {
+          const res = await fetch(`/api/admin/registrations/${registrationId}`, {
+            headers: { 'Authorization': 'Bearer ' + token }
+          });
+          if (res.ok) {
+            const data = await res.json();
+            attendee = {
+              id: data.id,
+              name: data.user?.name || data.name || 'Unknown',
+              email: data.user?.email || data.email || '',
+              ticket: data.ticketType || 'General',
+              status: data.status || 'registered',
+              time: data.checkinTime ? new Date(data.checkinTime).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }) : '—'
+            };
+          }
+        } catch (e) {
+          console.error(e);
+        }
+      }
+
+      if (!attendee) {
+        alert(`No attendee found with ID: ${registrationId}\n\nPlease check the ID and try again.`);
+        return;
+      }
+
+      // Check if already checked in
+      if (attendee.status === 'checked' || attendee.status === 'vip' || attendee.status === 'speaker') {
+        alert(`${attendee.name} is already checked in!`);
+        return;
+      }
+
+      // Show confirmation modal with attendee details
+      pendingCheckinId = attendee.id;
+      document.getElementById('ciAv').textContent = initials(attendee.name);
+      document.getElementById('ciAv').style.background = attendee.color || '#6040f0';
+      document.getElementById('ciName').textContent = attendee.name;
+      document.getElementById('ciEmail').textContent = attendee.email;
+      document.getElementById('ciTicket').textContent = attendee.ticket;
+      document.getElementById('ciRegId').textContent = attendee.regId || 'REG-' + attendee.id;
+      document.getElementById('ciStatus').textContent = attendee.status.charAt(0).toUpperCase() + attendee.status.slice(1);
+      openModal('ciModal');
     }
 
     renderSkeleton();
