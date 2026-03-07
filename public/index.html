@@ -518,10 +518,12 @@
           throw new Error(data.error || 'Invalid email or password');
         }
 
+        // Store token and user data
         localStorage.setItem('token', data.token);
         localStorage.setItem('user', JSON.stringify(data.user));
         localStorage.setItem('role', data.user.role);
 
+        // Route based on actual role from token, not dropdown
         if (data.user.role === 'ADMIN') {
           window.location.href = '/dashboard';
         } else {

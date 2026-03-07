@@ -2,218 +2,329 @@
 <html lang="en">
 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Circles — Register</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Register — Circles</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet" />
+    <link rel="stylesheet" href="Landingpage.css" />
     <style>
-        :root {
-            --ink-0: #0d0c1a;
-            --ink-1: rgba(13, 12, 26, 0.85);
-            --ink-2: rgba(13, 12, 26, 0.65);
-            --base: #f4f3fb;
-            --surface: #ffffff;
-            --border: rgba(13, 12, 26, 0.08);
-            --violet: #6040f0;
-            --grad: linear-gradient(135deg, #6040f0 0%, #1a96d8 100%);
-        }
-
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-
         body {
-            font-family: 'Geist', system-ui, sans-serif;
-            background: var(--base);
-            color: var(--ink-0);
+            min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
-            min-height: 100vh;
+            background: linear-gradient(135deg, #f5f7fa 0%, #e4e8ec 100%);
             padding: 20px;
         }
 
-        .form-card {
-            background: var(--surface);
-            padding: 40px;
+        .register-container {
+            background: #fff;
             border-radius: 20px;
-            box-shadow: 0 8px 32px rgba(13, 12, 26, 0.05);
+            padding: 48px;
             width: 100%;
             max-width: 440px;
-            border: 1px solid var(--border);
+            box-shadow: 0 24px 80px rgba(0, 0, 0, 0.08);
         }
 
-        .title {
-            font-size: 28px;
-            font-weight: 700;
-            margin-bottom: 8px;
-            letter-spacing: -0.02em;
-        }
-
-        .subtitle {
-            color: var(--ink-2);
-            font-size: 14px;
+        .register-header {
+            text-align: center;
             margin-bottom: 32px;
         }
 
-        .field {
+        .register-header h1 {
+            font-family: 'Instrument Serif', serif;
+            font-size: 32px;
+            color: #1a1a2e;
+            margin: 0 0 8px;
+        }
+
+        .register-header p {
+            color: #6e6e7d;
+            font-size: 14px;
+            margin: 0;
+        }
+
+        .form-group {
             margin-bottom: 20px;
         }
 
-        .label {
+        .form-group label {
             display: block;
-            font-size: 12px;
+            font-size: 13px;
             font-weight: 600;
-            color: var(--ink-1);
+            color: #333;
             margin-bottom: 8px;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
         }
 
-        .input,
-        .select {
+        .form-group input,
+        .form-group select {
             width: 100%;
             padding: 12px 16px;
+            border: 1.5px solid #e0e0e8;
             border-radius: 10px;
-            border: 1px solid var(--border);
-            background: var(--base);
             font-size: 14px;
             outline: none;
-            transition: border-color 0.2s;
+            transition: border 0.2s;
+            box-sizing: border-box;
+            font-family: inherit;
         }
 
-        .input:focus,
-        .select:focus {
-            border-color: var(--violet);
+        .form-group input:focus,
+        .form-group select:focus {
+            border-color: #6040f0;
         }
 
-        .btn {
+        .form-group input::placeholder {
+            color: #a0a0b0;
+        }
+
+        .btn-register {
             width: 100%;
             padding: 14px;
-            border-radius: 10px;
+            background: linear-gradient(135deg, #6040f0, #1a96d8);
+            color: #fff;
             border: none;
-            background: var(--grad);
-            color: white;
+            border-radius: 10px;
             font-size: 15px;
-            font-weight: 700;
+            font-weight: 600;
             cursor: pointer;
+            margin-top: 12px;
             transition: opacity 0.2s;
-            margin-top: 10px;
         }
 
-        .btn:hover {
+        .btn-register:hover {
             opacity: 0.9;
         }
 
-        .btn:disabled {
-            opacity: 0.5;
+        .btn-register:disabled {
+            opacity: 0.6;
             cursor: not-allowed;
         }
 
-        .footer-link {
-            text-align: center;
-            margin-top: 24px;
-            font-size: 14px;
-            color: var(--ink-2);
-        }
-
-        .footer-link a {
-            color: var(--violet);
-            text-decoration: none;
-            font-weight: 600;
-        }
-
-        #error {
-            color: #ef4444;
-            background: #fee2e2;
-            padding: 12px;
+        .error-message {
+            background: #fee;
+            color: #c00;
+            padding: 12px 16px;
             border-radius: 8px;
             font-size: 13px;
             margin-bottom: 20px;
             display: none;
         }
+
+        .error-message.show {
+            display: block;
+        }
+
+        .login-link {
+            text-align: center;
+            margin-top: 24px;
+            font-size: 14px;
+            color: #6e6e7d;
+        }
+
+        .login-link a {
+            color: #6040f0;
+            font-weight: 600;
+            text-decoration: none;
+        }
+
+        .login-link a:hover {
+            text-decoration: underline;
+        }
+
+        .nav-back {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #6e6e7d;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .nav-back:hover {
+            color: #333;
+        }
+
+        .role-selector {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .role-option {
+            flex: 1;
+            padding: 16px;
+            border: 2px solid #e0e0e8;
+            border-radius: 12px;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.2s;
+        }
+
+        .role-option:hover {
+            border-color: #6040f0;
+        }
+
+        .role-option.selected {
+            border-color: #6040f0;
+            background: rgba(96, 64, 240, 0.05);
+        }
+
+        .role-option input {
+            display: none;
+        }
+
+        .role-option .role-icon {
+            font-size: 24px;
+            margin-bottom: 8px;
+        }
+
+        .role-option .role-title {
+            font-weight: 600;
+            font-size: 14px;
+            color: #333;
+        }
+
+        .role-option .role-desc {
+            font-size: 12px;
+            color: #6e6e7d;
+            margin-top: 4px;
+        }
     </style>
 </head>
 
 <body>
-    <div class="form-card">
-        <h1 class="title">Get Started</h1>
-        <p class="subtitle">Create your Circles account in seconds.</p>
+    <a href="/" class="nav-back">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M19 12H5M12 19l-7-7 7-7" />
+        </svg>
+        Back to Home
+    </a>
 
-        <div id="error"></div>
+    <div class="register-container">
+        <div class="register-header">
+            <h1>Create Account</h1>
+            <p>Join Circles to manage or attend events</p>
+        </div>
+
+        <div id="errorMessage" class="error-message"></div>
 
         <form id="registerForm">
-            <div class="field">
-                <label class="label">Full Name</label>
-                <input class="input" id="name" placeholder="John Doe" required />
+            <div class="form-group">
+                <label for="name">Full Name</label>
+                <input type="text" id="name" placeholder="John Doe" required />
             </div>
-            <div class="field">
-                <label class="label">Email Address</label>
-                <input class="input" id="email" type="email" placeholder="name@company.com" required />
+
+            <div class="form-group">
+                <label for="email">Email Address</label>
+                <input type="email" id="email" placeholder="you@example.com" required />
             </div>
-            <div class="field">
-                <label class="label">Password</label>
-                <input class="input" id="password" type="password" placeholder="••••••••" required />
+
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" placeholder="Min 6 characters" required minlength="6" />
             </div>
-            <div class="field">
-                <label class="label">Role</label>
-                <select class="select" id="role">
-                    <option value="ADMIN">Event Organizer</option>
-                    <option value="PARTICIPANT">Attendee</option>
-                </select>
+
+            <div class="form-group">
+                <label>I want to...</label>
+                <div class="role-selector">
+                    <label class="role-option selected" id="roleAdmin">
+                        <input type="radio" name="role" value="ADMIN" checked />
+                        <div class="role-icon">🎯</div>
+                        <div class="role-title">Organize Events</div>
+                        <div class="role-desc">Create & manage events</div>
+                    </label>
+                    <label class="role-option" id="roleParticipant">
+                        <input type="radio" name="role" value="PARTICIPANT" />
+                        <div class="role-icon">🎟️</div>
+                        <div class="role-title">Attend Events</div>
+                        <div class="role-desc">Join & participate</div>
+                    </label>
+                </div>
             </div>
-            <button class="btn" type="submit" id="submitBtn">Create Account</button>
+
+            <button type="submit" class="btn-register" id="registerBtn">Create Account</button>
         </form>
 
-        <p class="footer-link">Already have an account? <a href="/">Sign In</a></p>
+        <div class="login-link">
+            Already have an account? <a href="/">Sign In</a>
+        </div>
     </div>
 
     <script>
-        document.getElementById('registerForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const btn = document.getElementById('submitBtn');
-            const err = document.getElementById('error');
+        // Role selector click handling
+        document.querySelectorAll('.role-option').forEach(option => {
+            option.addEventListener('click', function() {
+                document.querySelectorAll('.role-option').forEach(o => o.classList.remove('selected'));
+                this.classList.add('selected');
+                this.querySelector('input').checked = true;
+            });
+        });
 
-            btn.disabled = true;
+        // Form submission
+        document.getElementById('registerForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const name = document.getElementById('name').value.trim();
+            const email = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value;
+            const role = document.querySelector('input[name="role"]:checked').value;
+
+            const errorEl = document.getElementById('errorMessage');
+            const btn = document.getElementById('registerBtn');
+
+            // Validation
+            if (!name || !email || !password) {
+                errorEl.textContent = 'Please fill in all fields.';
+                errorEl.classList.add('show');
+                return;
+            }
+
+            if (password.length < 6) {
+                errorEl.textContent = 'Password must be at least 6 characters.';
+                errorEl.classList.add('show');
+                return;
+            }
+
             btn.textContent = 'Creating account...';
-            err.style.display = 'none';
+            btn.disabled = true;
+            errorEl.classList.remove('show');
 
             try {
                 const res = await fetch('/api/auth/register', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        name: document.getElementById('name').value,
-                        email: document.getElementById('email').value,
-                        password: document.getElementById('password').value,
-                        role: document.getElementById('role').value
-                    })
+                    body: JSON.stringify({ name, email, password, role })
                 });
 
                 const data = await res.json();
 
-                if (res.ok) {
-                    // Save token if returned, or just redirected
-                    if (data.token) {
-                        localStorage.setItem('token', data.token);
-                        localStorage.setItem('user', JSON.stringify(data.user));
-                    }
-                    window.location.href = '/';
-                } else {
-                    err.textContent = data.error || 'Registration failed. Please try again.';
-                    err.style.display = 'block';
-                    btn.disabled = false;
-                    btn.textContent = 'Create Account';
+                if (!res.ok) {
+                    throw new Error(data.error || 'Registration failed');
                 }
-            } catch (e) {
-                err.textContent = 'Network error. Please check your connection.';
-                err.style.display = 'block';
-                btn.disabled = false;
+
+                // Success - redirect to login or directly login
+                alert('Account created successfully! Please sign in.');
+                window.location.href = '/';
+            } catch (err) {
+                errorEl.textContent = err.message;
+                errorEl.classList.add('show');
+            } finally {
                 btn.textContent = 'Create Account';
+                btn.disabled = false;
             }
         });
     </script>
 </body>
 
 </html>
+

@@ -195,4 +195,5 @@ if (process.env.NODE_ENV !== 'test' && !process.env.VERCEL) {
     });
 }
 
+// For Vercel — must export the app
 export default app;
