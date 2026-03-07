@@ -136,410 +136,434 @@
 
     <main class="content">
 
-      <!-- ① PAGE HEADER -->
-      <div class="page-hdr">
-        <div>
-          <div class="page-title">Analytics</div>
-          <div class="page-event-name" id="pageEventName">Select an event from Dashboard</div>
-          <div class="page-sub">Insights into registrations, attendance and engagement</div>
-        </div>
-        <div class="hdr-actions">
-          <div class="date-tabs">
-            <button class="date-tab" onclick="setRange(this)">Today</button>
-            <button class="date-tab active" onclick="setRange(this)">Last 7 days</button>
-            <button class="date-tab" onclick="setRange(this)">Last 30 days</button>
-            <button class="date-tab" onclick="setRange(this)">Custom</button>
-          </div>
-          <button class="btn btn-sec">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-              <polyline points="7 10 12 15 17 10" />
-              <line x1="12" y1="15" x2="12" y2="3" />
+      <main class="content">
+
+        <!-- ── Empty State Hero (Hidden by default) ── -->
+        <div id="analyticsEmptyState" style="display:none; text-align:center; padding: 100px 20px;">
+          <div
+            style="width: 64px; height: 64px; border-radius: 50%; background: rgba(96,64,240,0.1); color: var(--violet); display: flex; align-items: center; justify-content: center; margin: 0 auto 24px;">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
             </svg>
-            Export Report
-          </button>
-        </div>
-      </div>
-
-      <!-- ② METRIC CARDS — Revenue replaced with Venue Capacity -->
-      <div class="metric-cards">
-
-        <div class="metric-card">
-          <div class="mc-top">
-            <div class="mc-ico" style="background:rgba(96,64,240,0.1);color:var(--violet)">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-                <circle cx="9" cy="7" r="4" />
-                <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
-                <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-              </svg>
-            </div>
-            <span class="mc-trend up"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                stroke-width="3">
-                <polyline points="18 15 12 9 6 15" />
-              </svg>+12%</span>
           </div>
-          <div class="mc-val">4,821</div>
-          <div class="mc-lbl">Total Registrations</div>
-          <div class="mc-sub">vs 4,304 last week</div>
+          <h2 style="font-size: 24px; font-weight: 700; color: var(--ink-0); margin-bottom: 12px;">No Analytics Yet</h2>
+          <p style="font-size: 15px; color: var(--ink-3); max-width: 400px; margin: 0 auto 32px;">Create an event on the
+            dashboard to start collecting registrations and view real-time engagement data.</p>
+          <button class="btn btn-pri btn-lg" onclick="window.location.href='/dashboard'">Go to Dashboard</button>
         </div>
 
-        <div class="metric-card">
-          <div class="mc-top">
-            <div class="mc-ico" style="background:rgba(10,170,110,0.1);color:var(--emerald)">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                <polyline points="9 11 12 14 22 4" />
-                <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
-              </svg>
-            </div>
-            <span class="mc-trend up"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                stroke-width="3">
-                <polyline points="18 15 12 9 6 15" />
-              </svg>+8%</span>
-          </div>
-          <div class="mc-val" style="color:var(--emerald)">2,942</div>
-          <div class="mc-lbl">Check-ins</div>
-          <div class="mc-sub">1,879 still pending</div>
-        </div>
-
-        <div class="metric-card">
-          <div class="mc-top">
-            <div class="mc-ico" style="background:rgba(26,150,216,0.1);color:var(--azure)">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                <line x1="18" y1="20" x2="18" y2="10" />
-                <line x1="12" y1="20" x2="12" y2="4" />
-                <line x1="6" y1="20" x2="6" y2="14" />
-              </svg>
-            </div>
-            <span class="mc-trend down"><svg width="10" height="10" viewBox="0 0 24 24" fill="none"
-                stroke="currentColor" stroke-width="3">
-                <polyline points="6 9 12 15 18 9" />
-              </svg>−4%</span>
-          </div>
-          <div class="mc-val" style="color:var(--azure)">61%</div>
-          <div class="mc-lbl">Check-in Rate</div>
-          <div class="mc-sub">Target 80% by 2 PM</div>
-        </div>
-
-        <!-- ① Venue Capacity (replaces Revenue) -->
-        <div class="metric-card">
-          <div class="mc-top">
-            <div class="mc-ico" style="background:rgba(217,119,6,0.1);color:var(--amber)">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
-                <polyline points="9 22 9 12 15 12 15 22" />
-              </svg>
-            </div>
-            <span class="mc-trend up" style="background:rgba(217,119,6,0.1);color:var(--amber)">64% filled</span>
-          </div>
-          <div class="mc-val" style="color:var(--amber)">3,200</div>
-          <div class="mc-lbl">Venue Capacity <span style="color:var(--ink-3);font-weight:500">/ 5,000</span></div>
-          <div class="mc-sub">1,800 seats remaining</div>
-          <div class="mc-cap-bar">
-            <div class="mc-cap-fill" style="width:64%"></div>
-          </div>
-        </div>
-
-      </div>
-
-      <!-- ③ ATTENDANCE FUNNEL -->
-      <div class="panel">
-        <div class="panel-hdr">
-          <div>
-            <div class="panel-title">Attendance Funnel</div>
-            <div class="panel-meta" style="margin-top:2px">Registration → Arrival → Check-in → Inside venue</div>
-          </div>
-          <div style="font-size:12px;color:var(--ink-3);font-weight:500">Today · March 8</div>
-        </div>
-        <div class="panel-body">
-          <div class="funnel-steps" id="funnelSteps">
-            <div class="funnel-connector"></div>
-
-            <div class="funnel-step">
-              <div class="funnel-step-ico lit">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                  <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-                  <circle cx="9" cy="7" r="4" />
-                  <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
-                  <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-                </svg>
-              </div>
-              <div class="funnel-step-val">4,821</div>
-              <div class="funnel-step-lbl">Registrations</div>
-              <div class="funnel-conv base">—</div>
-            </div>
-
-            <div class="funnel-step">
-              <div class="funnel-step-ico lit">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                  <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
-                  <circle cx="9" cy="7" r="4" />
-                  <line x1="19" y1="8" x2="19" y2="14" />
-                  <line x1="22" y1="11" x2="16" y2="11" />
-                </svg>
-              </div>
-              <div class="funnel-step-val">3,102</div>
-              <div class="funnel-step-lbl">Arrived</div>
-              <div class="funnel-conv">64% of registered</div>
-            </div>
-
-            <div class="funnel-step">
-              <div class="funnel-step-ico lit">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                  <polyline points="9 11 12 14 22 4" />
-                  <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
-                </svg>
-              </div>
-              <div class="funnel-step-val">2,942</div>
-              <div class="funnel-step-lbl">Checked In</div>
-              <div class="funnel-conv warn">95% of arrived</div>
-            </div>
-
-            <div class="funnel-step">
-              <div class="funnel-step-ico" style="border-color:rgba(96,64,240,0.2);background:rgba(96,64,240,0.06)">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--violet)" stroke-width="2.5">
-                  <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
-                  <polyline points="9 22 9 12 15 12 15 22" />
-                </svg>
-              </div>
-              <div class="funnel-step-val" style="color:var(--violet)">1,280</div>
-              <div class="funnel-step-lbl">Inside Venue</div>
-              <div class="funnel-conv warn">44% of checked-in</div>
-            </div>
-
-          </div>
-        </div>
-      </div>
-
-      <!-- CHARTS ROW -->
-      <div class="two-col-wide">
-
-        <!-- Registration Growth -->
-        <div class="panel">
-          <div class="panel-hdr">
+        <div id="analyticsContent">
+          <!-- ① PAGE HEADER -->
+          <div class="page-hdr">
             <div>
-              <div class="panel-title">Registration Growth</div>
-              <div class="panel-meta" style="margin-top:2px">Cumulative registrations over time</div>
+              <div class="page-title">Analytics</div>
+              <div class="page-event-name" id="pageEventName">Select an event from Dashboard</div>
+              <div class="page-sub">Insights into registrations, attendance and engagement</div>
             </div>
-            <div class="chart-tabs">
-              <button class="chart-tab active" onclick="switchRegChart(this,'daily')">Daily</button>
-              <button class="chart-tab" onclick="switchRegChart(this,'weekly')">Weekly</button>
-            </div>
-          </div>
-          <div class="panel-body">
-            <div class="chart-wrap"><canvas id="regChart"></canvas></div>
-            <!-- ⑨ Context label -->
-            <div class="chart-context">Cumulative registrations over time. Hover over points to see daily totals.</div>
-            <div class="inline-stats">
-              <div><span class="istat-val">4,821</span><span class="istat-lbl">Total registered</span></div>
-              <div><span class="istat-val">+517</span><span class="istat-lbl">This week</span></div>
-              <div><span class="istat-val">Mar 5</span><span class="istat-lbl">Peak single day</span></div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Check-in Timeline -->
-        <div class="panel">
-          <div class="panel-hdr">
-            <div>
-              <div class="panel-title">Check-in Timeline</div>
-              <div class="panel-meta" style="margin-top:2px">Hourly check-ins for today</div>
-            </div>
-          </div>
-          <div class="panel-body">
-            <div class="chart-wrap"><canvas id="ciChart"></canvas></div>
-            <!-- ⑨ Context label -->
-            <div class="chart-context">Hourly check-in volume across all entry gates today.</div>
-            <!-- ④ Peak insight callout -->
-            <div class="chart-insight">
-              <div class="chart-insight-ico">
-                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                  <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
+            <div class="hdr-actions">
+              <div class="date-tabs">
+                <button class="date-tab" onclick="setRange(this)">Today</button>
+                <button class="date-tab active" onclick="setRange(this)">Last 7 days</button>
+                <button class="date-tab" onclick="setRange(this)">Last 30 days</button>
+                <button class="date-tab" onclick="setRange(this)">Custom</button>
+              </div>
+              <button class="btn btn-sec">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                  <polyline points="7 10 12 15 17 10" />
+                  <line x1="12" y1="15" x2="12" y2="3" />
                 </svg>
-              </div>
-              <div class="chart-insight-text">
-                <strong>Peak check-in time: 10 AM</strong> — 243 attendees checked in during this hour.
-              </div>
+                Export Report
+              </button>
             </div>
           </div>
-        </div>
 
-      </div>
+          <!-- ② METRIC CARDS — Revenue replaced with Venue Capacity -->
+          <div class="metric-cards">
 
-      <!-- THREE COL: Donut + Sources + Cities -->
-      <div class="three-col">
-
-        <div class="panel">
-          <div class="panel-hdr">
-            <div class="panel-title">Attendee Types</div>
-            <div class="panel-meta">4,821 total</div>
-          </div>
-          <div class="panel-body">
-            <div class="donut-wrap">
-              <div class="donut-svg-wrap">
-                <svg id="donutSvg" width="136" height="136" viewBox="0 0 136 136"></svg>
-                <div class="donut-center">
-                  <div class="donut-center-val">4,821</div>
-                  <div class="donut-center-lbl">Attendees</div>
+            <div class="metric-card">
+              <div class="mc-top">
+                <div class="mc-ico" style="background:rgba(96,64,240,0.1);color:var(--violet)">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                    <circle cx="9" cy="7" r="4" />
+                    <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+                    <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                  </svg>
                 </div>
+                <span class="mc-trend up"><svg width="10" height="10" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="3">
+                    <polyline points="18 15 12 9 6 15" />
+                  </svg>+12%</span>
               </div>
-              <div class="donut-legend" id="donutLegend"></div>
+              <div class="mc-val">4,821</div>
+              <div class="mc-lbl">Total Registrations</div>
+              <div class="mc-sub">vs 4,304 last week</div>
             </div>
-          </div>
-        </div>
 
-        <div class="panel">
-          <div class="panel-hdr">
-            <div class="panel-title">Registration Sources</div>
-            <div class="panel-meta">All time</div>
-          </div>
-          <div class="panel-body-sm">
-            <div class="bar-list" id="refList"></div>
-          </div>
-        </div>
-
-        <!-- ⑤ Renamed to "Attendee Distribution by City" -->
-        <div class="panel">
-          <div class="panel-hdr">
-            <div class="panel-title">Attendee Distribution by City</div>
-            <div class="panel-meta">By registration</div>
-          </div>
-          <div class="panel-body-sm">
-            <div class="bar-list" id="geoList"></div>
-          </div>
-        </div>
-
-      </div>
-
-      <!-- ⑦ EVENT HEALTH + LIVE STATUS + FEED -->
-      <div class="two-col">
-
-        <!-- Event Health Score -->
-        <div class="panel">
-          <div class="panel-hdr">
-            <div>
-              <div class="panel-title">Event Health</div>
-              <div class="panel-meta" style="margin-top:2px">Overall event performance score</div>
+            <div class="metric-card">
+              <div class="mc-top">
+                <div class="mc-ico" style="background:rgba(10,170,110,0.1);color:var(--emerald)">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <polyline points="9 11 12 14 22 4" />
+                    <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
+                  </svg>
+                </div>
+                <span class="mc-trend up"><svg width="10" height="10" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="3">
+                    <polyline points="18 15 12 9 6 15" />
+                  </svg>+8%</span>
+              </div>
+              <div class="mc-val" style="color:var(--emerald)">2,942</div>
+              <div class="mc-lbl">Check-ins</div>
+              <div class="mc-sub">1,879 still pending</div>
             </div>
-            <span
-              style="font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;background:rgba(10,170,110,0.1);color:var(--emerald)">Good</span>
-          </div>
-          <div class="health-body">
-            <!-- Circular SVG ring -->
-            <div class="health-ring-wrap">
-              <svg width="110" height="110" viewBox="0 0 110 110">
-                <defs>
-                  <linearGradient id="hg" x1="0" y1="0" x2="1" y2="1">
-                    <stop offset="0%" stop-color="#6040f0" />
-                    <stop offset="100%" stop-color="#1a96d8" />
-                  </linearGradient>
-                </defs>
-                <!-- Track -->
-                <circle cx="55" cy="55" r="44" fill="none" stroke="var(--base-2)" stroke-width="10" />
-                <!-- Score arc: circumference ≈ 276.5, 82/100 * 276.5 = 226.7 -->
-                <circle cx="55" cy="55" r="44" fill="none" stroke="url(#hg)" stroke-width="10" stroke-linecap="round"
-                  stroke-dasharray="226.7 276.5" stroke-dashoffset="69.1"
-                  style="transition:stroke-dasharray 1.2s cubic-bezier(.4,0,.2,1)" />
-              </svg>
-              <div class="health-ring-center">
-                <div class="health-score-val">82</div>
-                <div class="health-score-denom">/ 100</div>
-                <div class="health-grade">Healthy</div>
+
+            <div class="metric-card">
+              <div class="mc-top">
+                <div class="mc-ico" style="background:rgba(26,150,216,0.1);color:var(--azure)">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <line x1="18" y1="20" x2="18" y2="10" />
+                    <line x1="12" y1="20" x2="12" y2="4" />
+                    <line x1="6" y1="20" x2="6" y2="14" />
+                  </svg>
+                </div>
+                <span class="mc-trend down"><svg width="10" height="10" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="3">
+                    <polyline points="6 9 12 15 18 9" />
+                  </svg>−4%</span>
+              </div>
+              <div class="mc-val" style="color:var(--azure)">61%</div>
+              <div class="mc-lbl">Check-in Rate</div>
+              <div class="mc-sub">Target 80% by 2 PM</div>
+            </div>
+
+            <!-- ① Venue Capacity (replaces Revenue) -->
+            <div class="metric-card">
+              <div class="mc-top">
+                <div class="mc-ico" style="background:rgba(217,119,6,0.1);color:var(--amber)">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+                    <polyline points="9 22 9 12 15 12 15 22" />
+                  </svg>
+                </div>
+                <span class="mc-trend up" style="background:rgba(217,119,6,0.1);color:var(--amber)">64% filled</span>
+              </div>
+              <div class="mc-val" style="color:var(--amber)">3,200</div>
+              <div class="mc-lbl">Venue Capacity <span style="color:var(--ink-3);font-weight:500">/ 5,000</span></div>
+              <div class="mc-sub">1,800 seats remaining</div>
+              <div class="mc-cap-bar">
+                <div class="mc-cap-fill" style="width:64%"></div>
               </div>
             </div>
-            <div class="health-factors">
-              <div class="health-factor">
-                <div class="health-factor-name">Registration growth</div>
-                <div class="health-factor-bar-wrap">
-                  <div class="health-factor-bar" style="width:88%"></div>
-                </div>
-                <div class="health-factor-score">+12</div>
-              </div>
-              <div class="health-factor">
-                <div class="health-factor-name">Engagement rate</div>
-                <div class="health-factor-bar-wrap">
-                  <div class="health-factor-bar" style="width:74%"></div>
-                </div>
-                <div class="health-factor-score">+10</div>
-              </div>
-              <div class="health-factor">
-                <div class="health-factor-name">Check-in rate</div>
-                <div class="health-factor-bar-wrap">
-                  <div class="health-factor-bar" style="width:61%"></div>
-                </div>
-                <div class="health-factor-score">+8</div>
-              </div>
-              <div class="health-factor">
-                <div class="health-factor-name">Source diversity</div>
-                <div class="health-factor-bar-wrap">
-                  <div class="health-factor-bar" style="width:68%"></div>
-                </div>
-                <div class="health-factor-score">+7</div>
-              </div>
-              <div class="health-factor">
-                <div class="health-factor-name">Venue utilisation</div>
-                <div class="health-factor-bar-wrap">
-                  <div class="health-factor-bar" style="width:45%"></div>
-                </div>
-                <div class="health-factor-score">+4</div>
-              </div>
-            </div>
+
           </div>
-        </div>
 
-        <!-- Live Status + Activity Feed stacked -->
-        <div style="display:flex;flex-direction:column;gap:20px">
-
+          <!-- ③ ATTENDANCE FUNNEL -->
           <div class="panel">
             <div class="panel-hdr">
               <div>
-                <div class="panel-title">Live Event Status</div>
-                <div class="panel-meta" style="margin-top:2px">Real-time venue data</div>
+                <div class="panel-title">Attendance Funnel</div>
+                <div class="panel-meta" style="margin-top:2px">Registration → Arrival → Check-in → Inside venue</div>
               </div>
-              <div class="live-label">
-                <div class="live-dot"></div>Live
-              </div>
+              <div style="font-size:12px;color:var(--ink-3);font-weight:500">Today · March 8</div>
             </div>
-            <div class="panel-body" style="padding:16px 18px">
-              <div class="live-panel-grid">
-                <div class="live-stat">
-                  <div class="live-stat-lbl">Inside venue</div>
-                  <div class="live-stat-val green" id="liveInside">1,280</div>
+            <div class="panel-body">
+              <div class="funnel-steps" id="funnelSteps">
+                <div class="funnel-connector"></div>
+
+                <div class="funnel-step">
+                  <div class="funnel-step-ico lit">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                      stroke-width="2.5">
+                      <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                      <circle cx="9" cy="7" r="4" />
+                      <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+                      <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                    </svg>
+                  </div>
+                  <div class="funnel-step-val">4,821</div>
+                  <div class="funnel-step-lbl">Registrations</div>
+                  <div class="funnel-conv base">—</div>
                 </div>
-                <div class="live-stat">
-                  <div class="live-stat-lbl">Last 5 minutes</div>
-                  <div class="live-stat-val" id="liveRecent">43</div>
+
+                <div class="funnel-step">
+                  <div class="funnel-step-ico lit">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                      stroke-width="2.5">
+                      <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+                      <circle cx="9" cy="7" r="4" />
+                      <line x1="19" y1="8" x2="19" y2="14" />
+                      <line x1="22" y1="11" x2="16" y2="11" />
+                    </svg>
+                  </div>
+                  <div class="funnel-step-val">3,102</div>
+                  <div class="funnel-step-lbl">Arrived</div>
+                  <div class="funnel-conv">64% of registered</div>
                 </div>
-                <div class="live-stat">
-                  <div class="live-stat-lbl">Avg. entry speed</div>
-                  <div class="live-stat-val">7 <span
-                      style="font-size:11px;font-weight:600;color:var(--ink-3)">/min</span></div>
+
+                <div class="funnel-step">
+                  <div class="funnel-step-ico lit">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                      stroke-width="2.5">
+                      <polyline points="9 11 12 14 22 4" />
+                      <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
+                    </svg>
+                  </div>
+                  <div class="funnel-step-val">2,942</div>
+                  <div class="funnel-step-lbl">Checked In</div>
+                  <div class="funnel-conv warn">95% of arrived</div>
                 </div>
-                <div class="live-stat">
-                  <div class="live-stat-lbl">VIP checked in</div>
-                  <div class="live-stat-val">96 <span style="font-size:11px;color:var(--ink-3);font-weight:600">/
-                      120</span></div>
+
+                <div class="funnel-step">
+                  <div class="funnel-step-ico" style="border-color:rgba(96,64,240,0.2);background:rgba(96,64,240,0.06)">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--violet)"
+                      stroke-width="2.5">
+                      <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+                      <polyline points="9 22 9 12 15 12 15 22" />
+                    </svg>
+                  </div>
+                  <div class="funnel-step-val" style="color:var(--violet)">1,280</div>
+                  <div class="funnel-step-lbl">Inside Venue</div>
+                  <div class="funnel-conv warn">44% of checked-in</div>
                 </div>
+
               </div>
             </div>
           </div>
 
-          <!-- ⑥ Activity Feed with live timestamps -->
-          <div class="panel" style="flex:1">
-            <div class="panel-hdr">
-              <div class="panel-title">Recent Activity</div>
-              <div class="live-label">
-                <div class="live-dot"></div>Live
+          <!-- CHARTS ROW -->
+          <div class="two-col-wide">
+
+            <!-- Registration Growth -->
+            <div class="panel">
+              <div class="panel-hdr">
+                <div>
+                  <div class="panel-title">Registration Growth</div>
+                  <div class="panel-meta" style="margin-top:2px">Cumulative registrations over time</div>
+                </div>
+                <div class="chart-tabs">
+                  <button class="chart-tab active" onclick="switchRegChart(this,'daily')">Daily</button>
+                  <button class="chart-tab" onclick="switchRegChart(this,'weekly')">Weekly</button>
+                </div>
+              </div>
+              <div class="panel-body">
+                <div class="chart-wrap"><canvas id="regChart"></canvas></div>
+                <!-- ⑨ Context label -->
+                <div class="chart-context">Cumulative registrations over time. Hover over points to see daily totals.
+                </div>
+                <div class="inline-stats">
+                  <div><span class="istat-val">4,821</span><span class="istat-lbl">Total registered</span></div>
+                  <div><span class="istat-val">+517</span><span class="istat-lbl">This week</span></div>
+                  <div><span class="istat-val">Mar 5</span><span class="istat-lbl">Peak single day</span></div>
+                </div>
               </div>
             </div>
-            <div class="feed-list" id="feedList"></div>
+
+            <!-- Check-in Timeline -->
+            <div class="panel">
+              <div class="panel-hdr">
+                <div>
+                  <div class="panel-title">Check-in Timeline</div>
+                  <div class="panel-meta" style="margin-top:2px">Hourly check-ins for today</div>
+                </div>
+              </div>
+              <div class="panel-body">
+                <div class="chart-wrap"><canvas id="ciChart"></canvas></div>
+                <!-- ⑨ Context label -->
+                <div class="chart-context">Hourly check-in volume across all entry gates today.</div>
+                <!-- ④ Peak insight callout -->
+                <div class="chart-insight">
+                  <div class="chart-insight-ico">
+                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                      stroke-width="2.5">
+                      <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
+                    </svg>
+                  </div>
+                  <div class="chart-insight-text">
+                    <strong>Peak check-in time: 10 AM</strong> — 243 attendees checked in during this hour.
+                  </div>
+                </div>
+              </div>
+            </div>
+
           </div>
 
-        </div>
+          <!-- THREE COL: Donut + Sources + Cities -->
+          <div class="three-col">
 
-      </div>
+            <div class="panel">
+              <div class="panel-hdr">
+                <div class="panel-title">Attendee Types</div>
+                <div class="panel-meta">4,821 total</div>
+              </div>
+              <div class="panel-body">
+                <div class="donut-wrap">
+                  <div class="donut-svg-wrap">
+                    <svg id="donutSvg" width="136" height="136" viewBox="0 0 136 136"></svg>
+                    <div class="donut-center">
+                      <div class="donut-center-val">4,821</div>
+                      <div class="donut-center-lbl">Attendees</div>
+                    </div>
+                  </div>
+                  <div class="donut-legend" id="donutLegend"></div>
+                </div>
+              </div>
+            </div>
 
-    </main>
+            <div class="panel">
+              <div class="panel-hdr">
+                <div class="panel-title">Registration Sources</div>
+                <div class="panel-meta">All time</div>
+              </div>
+              <div class="panel-body-sm">
+                <div class="bar-list" id="refList"></div>
+              </div>
+            </div>
+
+            <!-- ⑤ Renamed to "Attendee Distribution by City" -->
+            <div class="panel">
+              <div class="panel-hdr">
+                <div class="panel-title">Attendee Distribution by City</div>
+                <div class="panel-meta">By registration</div>
+              </div>
+              <div class="panel-body-sm">
+                <div class="bar-list" id="geoList"></div>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- ⑦ EVENT HEALTH + LIVE STATUS + FEED -->
+          <div class="two-col">
+
+            <!-- Event Health Score -->
+            <div class="panel">
+              <div class="panel-hdr">
+                <div>
+                  <div class="panel-title">Event Health</div>
+                  <div class="panel-meta" style="margin-top:2px">Overall event performance score</div>
+                </div>
+                <span
+                  style="font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;background:rgba(10,170,110,0.1);color:var(--emerald)">Good</span>
+              </div>
+              <div class="health-body">
+                <!-- Circular SVG ring -->
+                <div class="health-ring-wrap">
+                  <svg width="110" height="110" viewBox="0 0 110 110">
+                    <defs>
+                      <linearGradient id="hg" x1="0" y1="0" x2="1" y2="1">
+                        <stop offset="0%" stop-color="#6040f0" />
+                        <stop offset="100%" stop-color="#1a96d8" />
+                      </linearGradient>
+                    </defs>
+                    <!-- Track -->
+                    <circle cx="55" cy="55" r="44" fill="none" stroke="var(--base-2)" stroke-width="10" />
+                    <!-- Score arc: circumference ≈ 276.5, 82/100 * 276.5 = 226.7 -->
+                    <circle cx="55" cy="55" r="44" fill="none" stroke="url(#hg)" stroke-width="10"
+                      stroke-linecap="round" stroke-dasharray="226.7 276.5" stroke-dashoffset="69.1"
+                      style="transition:stroke-dasharray 1.2s cubic-bezier(.4,0,.2,1)" />
+                  </svg>
+                  <div class="health-ring-center">
+                    <div class="health-score-val">82</div>
+                    <div class="health-score-denom">/ 100</div>
+                    <div class="health-grade">Healthy</div>
+                  </div>
+                </div>
+                <div class="health-factors">
+                  <div class="health-factor">
+                    <div class="health-factor-name">Registration growth</div>
+                    <div class="health-factor-bar-wrap">
+                      <div class="health-factor-bar" style="width:88%"></div>
+                    </div>
+                    <div class="health-factor-score">+12</div>
+                  </div>
+                  <div class="health-factor">
+                    <div class="health-factor-name">Engagement rate</div>
+                    <div class="health-factor-bar-wrap">
+                      <div class="health-factor-bar" style="width:74%"></div>
+                    </div>
+                    <div class="health-factor-score">+10</div>
+                  </div>
+                  <div class="health-factor">
+                    <div class="health-factor-name">Check-in rate</div>
+                    <div class="health-factor-bar-wrap">
+                      <div class="health-factor-bar" style="width:61%"></div>
+                    </div>
+                    <div class="health-factor-score">+8</div>
+                  </div>
+                  <div class="health-factor">
+                    <div class="health-factor-name">Source diversity</div>
+                    <div class="health-factor-bar-wrap">
+                      <div class="health-factor-bar" style="width:68%"></div>
+                    </div>
+                    <div class="health-factor-score">+7</div>
+                  </div>
+                  <div class="health-factor">
+                    <div class="health-factor-name">Venue utilisation</div>
+                    <div class="health-factor-bar-wrap">
+                      <div class="health-factor-bar" style="width:45%"></div>
+                    </div>
+                    <div class="health-factor-score">+4</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Live Status + Activity Feed stacked -->
+            <div style="display:flex;flex-direction:column;gap:20px">
+
+              <div class="panel">
+                <div class="panel-hdr">
+                  <div>
+                    <div class="panel-title">Live Event Status</div>
+                    <div class="panel-meta" style="margin-top:2px">Real-time venue data</div>
+                  </div>
+                  <div class="live-label">
+                    <div class="live-dot"></div>Live
+                  </div>
+                </div>
+                <div class="panel-body" style="padding:16px 18px">
+                  <div class="live-panel-grid">
+                    <div class="live-stat">
+                      <div class="live-stat-lbl">Inside venue</div>
+                      <div class="live-stat-val green" id="liveInside">1,280</div>
+                    </div>
+                    <div class="live-stat">
+                      <div class="live-stat-lbl">Last 5 minutes</div>
+                      <div class="live-stat-val" id="liveRecent">43</div>
+                    </div>
+                    <div class="live-stat">
+                      <div class="live-stat-lbl">Avg. entry speed</div>
+                      <div class="live-stat-val">7 <span
+                          style="font-size:11px;font-weight:600;color:var(--ink-3)">/min</span></div>
+                    </div>
+                    <div class="live-stat">
+                      <div class="live-stat-lbl">VIP checked in</div>
+                      <div class="live-stat-val">96 <span style="font-size:11px;color:var(--ink-3);font-weight:600">/
+                          120</span></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- ⑥ Activity Feed with live timestamps -->
+              <div class="panel" style="flex:1">
+                <div class="panel-hdr">
+                  <div class="panel-title">Recent Activity</div>
+                  <div class="live-label">
+                    <div class="live-dot"></div>Live
+                  </div>
+                </div>
+                <div class="feed-list" id="feedList"></div>
+              </div>
+
+            </div>
+
+          </div>
+
+        </div> <!-- End of analyticsContent -->
+      </main>
   </div>
 
   <!-- ══════════════════════ JAVASCRIPT ══════════════════════ -->
@@ -777,19 +801,35 @@
         });
         if (res.ok) {
           const events = await res.json();
-          const event = events.find(e => e.id === currentEventId);
-          if (event) {
+          if (events.length === 0) {
+            document.getElementById('analyticsContent').style.display = 'none';
+            document.getElementById('analyticsEmptyState').style.display = 'block';
+            return;
+          }
+
+          document.getElementById('analyticsContent').style.display = 'block';
+          document.getElementById('analyticsEmptyState').style.display = 'none';
+
+          const activeEvent = events.find(e => e.id === currentEventId) || events[0];
+          if (activeEvent) {
+            currentEventId = activeEvent.id;
+            localStorage.setItem('currentEventId', currentEventId);
+
             const nameEl = document.getElementById('currentEventName');
             const pageNameEl = document.getElementById('pageEventName');
             const topMetaEl = document.getElementById('topEventMeta');
 
-            if (nameEl) nameEl.textContent = event.title;
-            if (pageNameEl) pageNameEl.textContent = event.title;
+            if (nameEl) nameEl.textContent = activeEvent.title;
+            if (pageNameEl) pageNameEl.textContent = activeEvent.title;
 
             if (topMetaEl) {
-              const d = new Date(event.startDate).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
-              topMetaEl.innerHTML = `${event.venue || 'Virtual'} <br> ${d}`;
+              const d = new Date(activeEvent.startDate).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+              topMetaEl.innerHTML = `${activeEvent.venue || 'Virtual'} <br> ${d}`;
             }
+
+            // Immediately load data for this active event
+            fetchStats();
+            fetchLiveActivity();
           }
         }
       } catch (e) {
@@ -903,9 +943,6 @@
     }
 
     function initRealTimeUpdates() {
-      fetchStats();
-      fetchLiveActivity();
-
       setInterval(() => {
         if (document.visibilityState === 'visible') {
           fetchStats();
@@ -913,7 +950,6 @@
         }
       }, 5000); // Poll every 5 seconds
     }
-
 
     initRealTimeUpdates();
 
