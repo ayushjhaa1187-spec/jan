@@ -400,15 +400,20 @@
         }
         const evSel = document.querySelector('.ev-sel span');
         if (adminEvents.length > 0) {
-          currentEventId = adminEvents[0].id;
+          // Use stored eventId if valid, otherwise use the first event
+          const storedId = localStorage.getItem('currentEventId');
+          const storedEvent = storedId ? adminEvents.find(e => e.id === storedId) : null;
+          const activeEvent = storedEvent || adminEvents[0];
+          currentEventId = activeEvent.id;
+          localStorage.setItem('currentEventId', currentEventId);
           const selector = document.getElementById('currentEventName');
-          if (selector) selector.textContent = adminEvents[0].title;
+          if (selector) selector.textContent = activeEvent.title;
           const evSel = document.querySelector('.ev-sel span');
-          if (evSel) evSel.textContent = adminEvents[0].title;
+          if (evSel) evSel.textContent = activeEvent.title;
           const topMeta = document.getElementById('topEventMeta');
-          const d = new Date(adminEvents[0].startDate);
+          const d = new Date(activeEvent.startDate);
           const dStr = d.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
-          const venueStr = adminEvents[0].venue || 'Virtual';
+          const venueStr = activeEvent.venue || 'Virtual';
 
           if (topMeta) topMeta.innerHTML = `${venueStr} <br> ${dStr}`;
 
@@ -675,6 +680,7 @@
       const idx = parseInt(choice) - 1;
       if (idx >= 0 && idx < adminEvents.length) {
         currentEventId = adminEvents[idx].id;
+        localStorage.setItem('currentEventId', currentEventId);
         this.querySelector('span').textContent = adminEvents[idx].title;
         const meta = document.querySelector('.ev-meta');
         const d = new Date(adminEvents[idx].startDate);

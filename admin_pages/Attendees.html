@@ -692,10 +692,6 @@
       updateBulkButtons();
     }
 
-    // Initialize
-    loadDashboard();
-    setInterval(loadDashboard, 10000); // Polling for real-time vibe
-
     // Sidebar/Name Init
     const user = JSON.parse(localStorage.getItem('user') || '{}');
     if (user.name) document.getElementById('userName').textContent = user.name;
@@ -705,6 +701,208 @@
       localStorage.clear();
       window.location.href = '/';
     });
+
+    // ── applyFilters: search + status filter ──
+    function applyFilters() {
+      const searchQuery = (document.getElementById('searchInput').value || '').toLowerCase();
+      const statusFilter = document.getElementById('statusFilter').value;
+
+      const filtered = currentAttendees.filter(a => {
+        const matchSearch = !searchQuery ||
+          a.name.toLowerCase().includes(searchQuery) ||
+          a.email.toLowerCase().includes(searchQuery) ||
+          a.regId.toLowerCase().includes(searchQuery);
+
+        let matchStatus = true;
+        if (statusFilter === 'checked') matchStatus = a.status.toUpperCase().includes('CHECKED');
+        else if (statusFilter === 'registered') matchStatus = a.status.toUpperCase() === 'REGISTERED';
+        else if (statusFilter === 'vip') matchStatus = (a.ticketType || '').toLowerCase().includes('vip');
+        else if (statusFilter === 'speaker') matchStatus = (a.ticketType || '').toLowerCase().includes('speaker');
+
+        return matchSearch && matchStatus;
+      });
+
+      loadAttendeeTable(filtered);
+    }
+
+    // ── exportCSV ──
+    async function exportCSV() {
+      if (currentAttendees.length === 0) {
+        alert('No attendees to export');
+        return;
+      }
+      let csv = 'Name,Email,Ticket Type,Status,Check-in Time,Registration ID\n';
+      currentAttendees.forEach(a => {
+        csv += `"${a.name}","${a.email}","${a.ticketType || 'General'}","${a.status}","${a.checkinTime || ''}","${a.regId}"\n`;
+      });
+      const blob = new Blob([csv], { type: 'text/csv' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = 'attendees_export.csv';
+      link.click();
+      URL.revokeObjectURL(url);
+    }
+
+    // ── handleQRScan ──
+    function handleQRScan() {
+      window.location.href = '/scanner';
+    }
+
+    // ── Pagination (simplified) ──
+    let currentPage = 1;
+    const pageSize = 20;
+
+    function changePage(delta) {
+      const totalPages = Math.ceil(currentAttendees.length / pageSize) || 1;
+      currentPage = Math.max(1, Math.min(totalPages, currentPage + delta));
+      const start = (currentPage - 1) * pageSize;
+      const paged = currentAttendees.slice(start, start + pageSize);
+      loadAttendeeTable(paged);
+      document.getElementById('prevBtn').disabled = currentPage <= 1;
+      document.getElementById('nextBtn').disabled = currentPage >= totalPages;
+      document.getElementById('pagInfo').textContent =
+        `Showing ${start + 1}–${Math.min(start + pageSize, currentAttendees.length)} of ${currentAttendees.length} attendees`;
+    }
+
+    // ── Select Mode Toggle ──
+    let selectModeActive = false;
+
+    function toggleSelectMode() {
+      selectModeActive = !selectModeActive;
+      const table = document.getElementById('attTable');
+      const btn = document.getElementById('selectModeBtn');
+      if (selectModeActive) {
+        table.classList.add('select-mode');
+        btn.classList.add('active');
+        btn.innerHTML = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg> Done';
+      } else {
+        table.classList.remove('select-mode');
+        btn.classList.remove('active');
+        btn.innerHTML = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg> Select';
+        // Uncheck all
+        document.querySelectorAll('input.row-check').forEach(chk => chk.checked = false);
+        updateBulkButtons();
+      }
+    }
+
+    // ── Bulk Operations ──
+    function getSelectedIds() {
+      return Array.from(document.querySelectorAll('input.row-check:checked'))
+        .map(cb => cb.dataset.id)
+        .filter(Boolean);
+    }
+
+    async function bulkCheckin() {
+      const ids = getSelectedIds();
+      if (ids.length === 0) return;
+      try {
+        await api('/admin/registrations/bulk-checkin', {
+          method: 'POST',
+          body: JSON.stringify({ ids })
+        });
+        loadDashboard();
+      } catch (e) {
+        alert('Bulk check-in failed');
+      }
+    }
+
+    function bulkExport() {
+      const ids = getSelectedIds();
+      if (ids.length === 0) return;
+      const selected = currentAttendees.filter(a => ids.includes(a.id));
+      let csv = 'Name,Email,Ticket Type,Status,Check-in Time,Registration ID\n';
+      selected.forEach(a => {
+        csv += `"${a.name}","${a.email}","${a.ticketType || 'General'}","${a.status}","${a.checkinTime || ''}","${a.regId}"\n`;
+      });
+      const blob = new Blob([csv], { type: 'text/csv' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = 'selected_attendees.csv';
+      link.click();
+      URL.revokeObjectURL(url);
+    }
+
+    async function bulkDelete() {
+      const ids = getSelectedIds();
+      if (ids.length === 0) return;
+      if (!confirm(`Remove ${ids.length} attendee(s)? This cannot be undone.`)) return;
+      try {
+        await api('/admin/registrations/bulk-delete', {
+          method: 'POST',
+          body: JSON.stringify({ ids })
+        });
+        loadDashboard();
+      } catch (e) {
+        alert('Bulk delete failed');
+      }
+    }
+
+    // ── Load Activity Feed ──
+    async function loadActivityFeed() {
+      if (!eventId) return;
+      try {
+        const feed = await api(`/admin/events/${eventId}/live-activity`);
+        const listEl = document.getElementById('activityList');
+        if (!listEl || !Array.isArray(feed)) return;
+
+        if (feed.length === 0) {
+          listEl.innerHTML = '<div style="text-align:center;padding:32px;color:var(--ink-3);font-size:13px">No activity yet</div>';
+          return;
+        }
+
+        listEl.innerHTML = feed.slice(0, 10).map(act => {
+          const initials = (act.name || '?').split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
+          const isCI = act.type === 'ci';
+          const colors = ['#6040f0', '#1a96d8', '#0aaa6e', '#b030d8'];
+          const color = colors[initials.charCodeAt(0) % colors.length];
+          const timeStr = new Date(act.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+          return `
+            <div class="activity-item" style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--edge,#eee);">
+              <div style="width:30px;height:30px;border-radius:50%;background:${color};color:#fff;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0">${initials}</div>
+              <div style="flex:1;min-width:0">
+                <div style="font-size:13px;font-weight:600;color:var(--ink-0,#1a1a2e)">${act.name}</div>
+                <div style="font-size:11px;color:var(--ink-3,#888)">${act.detail} · ${timeStr}</div>
+              </div>
+              <span style="font-size:11px;font-weight:600;padding:2px 8px;border-radius:99px;background:${isCI ? 'rgba(10,170,110,0.1)' : 'rgba(96,64,240,0.1)'};color:${isCI ? '#0aaa6e' : '#6040f0'}">${isCI ? 'Checked In' : 'Registered'}</span>
+            </div>`;
+        }).join('');
+      } catch (e) {
+        console.warn('Activity feed error:', e);
+      }
+    }
+
+    // ── Load topbar event context ──
+    async function loadEventContext() {
+      if (!eventId) return;
+      try {
+        const events = await api('/admin/events');
+        if (!Array.isArray(events)) return;
+        const ev = events.find(e => e.id === eventId) || events[0];
+        if (!ev) return;
+        const nameEl = document.getElementById('currentEventName');
+        if (nameEl) nameEl.textContent = ev.title;
+        const breadcrumb = document.getElementById('breadcrumbEventName');
+        if (breadcrumb) breadcrumb.textContent = ev.title;
+        const topMeta = document.getElementById('topEventMeta');
+        if (topMeta) {
+          const d = new Date(ev.startDate);
+          topMeta.innerHTML = `${ev.venue || 'Virtual'} <br> ${d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`;
+        }
+      } catch (e) {
+        console.warn('Event context error:', e);
+      }
+    }
+
+    // Initialize
+    loadDashboard();
+    loadActivityFeed();
+    loadEventContext();
+    setInterval(() => {
+      loadDashboard();
+      loadActivityFeed();
+    }, 10000);
   </script>
 </body>
 
