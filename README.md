@@ -89,8 +89,8 @@ graph LR
 
 ```bash
 # 1. Clone the repository
-git clone https://github.com/ayushjhaa1187-spec/jan.git
-cd jan
+git clone https://github.com/ayushjhaa1187-spec/ELITE-HACK-1.0.git
+cd ELITE-HACK-1.0
 
 # 2. Install dependencies
 npm install
@@ -207,3 +207,4 @@ Built at **IIT Madras** for **Elite Hack 1.0 — Web Track**.
 ---
 
 *Built with ❤️ for Elite Hack 1.0 · IIT Madras*
+
