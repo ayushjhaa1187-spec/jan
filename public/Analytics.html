@@ -589,12 +589,12 @@
     /* ─── REGISTRATION LINE CHART ────────────────────────── */
     const REG_DATA = {
       daily: {
-        labels: ['Feb 28', 'Mar 1', 'Mar 2', 'Mar 3', 'Mar 4', 'Mar 5', 'Mar 6', 'Mar 7', 'Mar 8'],
-        data: [3820, 3980, 4120, 4250, 4410, 4610, 4700, 4781, 4821],
+        labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+        data: [0, 0, 0, 0, 0, 0, 0],
       },
       weekly: {
-        labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4', 'Week 5', 'Week 6', 'Week 7', 'Week 8'],
-        data: [320, 890, 1540, 2310, 3100, 3850, 4450, 4821],
+        labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4'],
+        data: [0, 0, 0, 0],
       }
     };
     const regCtx = document.getElementById('regChart').getContext('2d');
@@ -617,7 +617,6 @@
           pointHoverRadius: 5,
           pointHoverBackgroundColor: '#6040f0',
           pointHoverBorderColor: '#fff',
-          pointHoverBorderWidth: 2.5,
         }]
       },
       options: {
@@ -643,25 +642,17 @@
       regChart.update();
     }
 
-    /* ─── CHECK-IN BAR CHART ─────────────────────────────── */
+    /* ─── BAR CHART (CHECK-INS) ─────────────────────────── */
     const ciCtx = document.getElementById('ciChart').getContext('2d');
-    const ciGrad = ciCtx.createLinearGradient(0, 0, 0, 170);
-    ciGrad.addColorStop(0, 'rgba(10,170,110,0.82)');
-    ciGrad.addColorStop(1, 'rgba(10,170,110,0.28)');
-    const ciHoverGrad = ciCtx.createLinearGradient(0, 0, 0, 170);
-    ciHoverGrad.addColorStop(0, 'rgba(10,170,110,1)');
-    ciHoverGrad.addColorStop(1, 'rgba(10,170,110,0.5)');
-
     new Chart(ciCtx, {
       type: 'bar',
       data: {
-        labels: ['8 AM', '9 AM', '10 AM', '11 AM', '12 PM', '1 PM', '2 PM', '3 PM'],
+        labels: ['6am', '8am', '10am', '12pm', '2pm', '4pm', '6pm', '8pm'],
         datasets: [{
-          data: [28, 112, 243, 198, 156, 87, 134, 96],
-          backgroundColor: ciGrad,
-          hoverBackgroundColor: ciHoverGrad,
-          borderRadius: 5,
-          borderSkipped: false,
+          data: [0, 0, 0, 0, 0, 0, 0, 0],
+          backgroundColor: '#0aaa6e',
+          borderRadius: 4,
+          barPercentage: 0.6
         }]
       },
       options: {
@@ -679,58 +670,69 @@
       }
     });
 
-    /* ─── DONUT (SVG) ────────────────────────────────────── */
+    /* ─── DONUT CHART (ATTENDEE TYPES) ──────────────────── */
+    const donCtx = document.getElementById('donutChart').getContext('2d');
     const DONUT_DATA = [
-      { label: 'General', value: 3760, pct: 78, color: '#6040f0' },
-      { label: 'VIP', value: 579, pct: 12, color: '#1a96d8' },
-      { label: 'Speakers', value: 482, pct: 10, color: '#0aaa6e' },
+      { label: 'General', val: 0, color: '#6040f0' },
+      { label: 'VIP', val: 0, color: '#b030d8' },
+      { label: 'Speaker', val: 0, color: '#ff6b6b' },
+      { label: 'Staff', val: 0, color: '#1a96d8' }
     ];
-    (function drawDonut() {
-      const svg = document.getElementById('donutSvg');
-      const cx = 68, cy = 68, r = 50, sw = 17;
-      let offset = -Math.PI / 2;
-      const gap = 0.045;
-      let html = '';
-      DONUT_DATA.forEach(seg => {
-        const angle = (seg.pct / 100) * Math.PI * 2 - gap;
-        const x1 = cx + r * Math.cos(offset), y1 = cy + r * Math.sin(offset);
-        const x2 = cx + r * Math.cos(offset + angle), y2 = cy + r * Math.sin(offset + angle);
-        html += `<path d="M${x1} ${y1} A${r} ${r} 0 ${angle > Math.PI ? 1 : 0} 1 ${x2} ${y2}" fill="none" stroke="${seg.color}" stroke-width="${sw}" stroke-linecap="round" style="filter:drop-shadow(0 2px 8px ${seg.color}28)"/>`;
-        offset += angle + gap;
-      });
-      svg.innerHTML = html;
-      document.getElementById('donutLegend').innerHTML = DONUT_DATA.map(s => `
-    <div class="legend-item"><div class="legend-dot" style="background:${s.color}"></div><span class="legend-name">${s.label}</span><span class="legend-pct">${s.pct}%</span></div>
-    <div class="legend-sub">${s.value.toLocaleString()} attendees</div>`).join('');
-    })();
 
-    /* ─── REFERRAL SOURCES ───────────────────────────────── */
+    new Chart(donCtx, {
+      type: 'doughnut',
+      data: {
+        labels: DONUT_DATA.map(d => d.label),
+        datasets: [{
+          data: DONUT_DATA.map(d => d.val),
+          backgroundColor: DONUT_DATA.map(d => d.color),
+          borderWidth: 0,
+          hoverOffset: 4
+        }]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        animation: ANIM,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            ...TOOLTIP_STYLE,
+            callbacks: {
+              label: ctx => ` ${ctx.label}: ${ctx.parsed} attendees`,
+              title: () => ''
+            }
+          }
+        }
+      }
+    });
+
+    /* ─── REFERRERS LIST ────────────────────────────────── */
     const REFS = [
-      { name: 'Direct', val: 1646, cls: '' },
-      { name: 'LinkedIn', val: 1243, cls: '' },
-      { name: 'Website', val: 1110, cls: 'azure' },
-      { name: 'Twitter/X', val: 822, cls: 'emerald' },
+      { source: 'Direct / Email', views: 0, conv: '0%' },
+      { source: 'LinkedIn Search', views: 0, conv: '0%' },
+      { source: 'Twitter Promo', views: 0, conv: '0%' },
+      { source: 'Google Organic', views: 0, conv: '0%' }
     ];
-    const refMax = Math.max(...REFS.map(r => r.val));
     document.getElementById('refList').innerHTML = REFS.map(r => `
-  <div class="bar-row">
-    <div class="bar-row-top"><span class="bar-row-name">${r.name}</span><span class="bar-row-val">${r.val.toLocaleString()}</span></div>
-    <div class="bar-track"><div class="bar-fill ${r.cls}" style="width:${(r.val / refMax * 100).toFixed(1)}%"></div></div>
-  </div>`).join('');
+      <div class="ref-row">
+        <span>${r.source}</span>
+        <span>${r.views} <span style="color:var(--ink-4);margin-left:8px;font-size:12px">${r.conv}</span></span>
+      </div>
+    `).join('');
 
     /* ─── ⑤ GEO — renamed title in HTML, data here ──────── */
     const CITIES = [
-      { name: 'New Delhi', val: 1242 },
-      { name: 'Mumbai', val: 830 },
-      { name: 'Bengaluru', val: 720 },
-      { name: 'Hyderabad', val: 410 },
-      { name: 'Pune', val: 298 },
+      { name: 'New Delhi', val: 0 },
+      { name: 'Mumbai', val: 0 },
+      { name: 'Bengaluru', val: 0 },
+      { name: 'Hyderabad', val: 0 },
+      { name: 'Pune', val: 0 },
     ];
     const geoMax = Math.max(...CITIES.map(c => c.val));
     document.getElementById('geoList').innerHTML = CITIES.map(c => `
   <div class="bar-row">
     <div class="bar-row-top"><span class="bar-row-name">${c.name}</span><span class="bar-row-val">${c.val.toLocaleString()}</span></div>
-    <div class="bar-track"><div class="bar-fill emerald" style="width:${(c.val / geoMax * 100).toFixed(1)}%"></div></div>
+    <div class="bar-track"><div class="bar-fill emerald" style="width:${geoMax > 0 ? (c.val / geoMax * 100).toFixed(1) : 0}%"></div></div>
   </div>`).join('');
 
     /* ─── INITIALIZATION ──────────── */

@@ -105,15 +105,15 @@
     <header class="topbar">
       <div class="topbar-left">
         <div class="ev-sel">
-          <span id="currentEventName">Design Summit 2026</span>
+          <span id="currentEventName">Select Event</span>
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
             <polyline points="6 9 12 15 18 9" />
           </svg>
         </div>
-        <div class="live-badge">
+        <div class="live-badge" id="topLiveBadge" style="display:none;">
           <div class="live-dot"></div>Live
         </div>
-        <div class="ev-meta">March 8, 2026 &nbsp;·&nbsp; Bharat Mandapam, New Delhi</div>
+        <div class="ev-meta" id="topEventMeta">No event data</div>
         <div class="search-wrap" style="margin-left: 20px; flex: 1; max-width: 400px; position: relative;">
           <input type="text" class="f-input" id="globalSearchInput" placeholder="Search event, attendees..."
             style="padding-left: 36px; height: 36px;">
@@ -1026,6 +1026,17 @@
           activeEventId = activeEvent.id;
           const nameEl = document.getElementById('currentEventName');
           if (nameEl) nameEl.textContent = activeEvent.title;
+
+          const topMetaEl = document.getElementById('topEventMeta');
+          if (topMetaEl) {
+            const d = new Date(activeEvent.startDate).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+            topMetaEl.innerHTML = `${d} &nbsp;·&nbsp; ${activeEvent.venue || 'Virtual'}`;
+          }
+
+          const topLiveBadge = document.getElementById('topLiveBadge');
+          if (topLiveBadge) {
+            topLiveBadge.style.display = '';
+          }
         }
       } catch (e) {
         console.error('Failed to update event name:', e);
@@ -1181,7 +1192,13 @@
     }
 
     function confirmDelete() {
-      if (confirm('Are you sure? This will permanently delete the event and all its data.')) {
+      const input = document.getElementById('deleteConfirmInput');
+      if (input && input.value !== 'DELETE') {
+        alert('Please type DELETE to confirm');
+        return;
+      }
+
+      if (confirm('Are you absolutely sure? This will permanently delete the event and all its data.')) {
         if (!token || !activeEventId) return;
         fetch(`/api/admin/events/${activeEventId}`, {
           method: 'DELETE',
@@ -1189,7 +1206,8 @@
         }).then(res => {
           if (res.ok) {
             alert('Event deleted.');
-            window.location.href = '/events';
+            localStorage.removeItem('currentEventId');
+            window.location.href = '/dashboard';
           } else {
             alert('Failed to delete event');
           }
