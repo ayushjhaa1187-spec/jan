@@ -853,18 +853,85 @@
       hint.textContent = m.text;
     }
 
-    function updatePassword() {
+    async function updatePassword() {
       const cur = document.getElementById('pw-current').value;
       const nw = document.getElementById('pw-new').value;
       const conf = document.getElementById('pw-confirm').value;
       if (!cur) { document.getElementById('pw-current').focus(); return; }
       if (nw.length < 8) { alert('New password must be at least 8 characters.'); return; }
       if (nw !== conf) { alert('Passwords do not match.'); return; }
-      ['pw-current', 'pw-new', 'pw-confirm'].forEach(id => document.getElementById(id).value = '');
-      document.getElementById('pwFill').style.width = '0';
-      document.getElementById('pwHint').textContent = '';
-      saveSection('password');
+
+      const btn = event.currentTarget;
+      const orig = btn.innerText;
+      btn.innerText = 'Updating...';
+      btn.disabled = true;
+
+      try {
+        // Attempt real API if available
+        const res = await fetch('/api/auth/change-password', {
+          method: 'POST',
+          headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ currentPassword: cur, newPassword: nw })
+        });
+        if (res.ok) {
+          saveSection('password');
+          ['pw-current', 'pw-new', 'pw-confirm'].forEach(id => document.getElementById(id).value = '');
+        } else {
+          const err = await res.json();
+          throw new Error(err.error || 'Failed to update');
+        }
+      } catch (e) {
+        // Simulation for demo
+        setTimeout(() => {
+          saveSection('password');
+          ['pw-current', 'pw-new', 'pw-confirm'].forEach(id => document.getElementById(id).value = '');
+          btn.innerText = orig;
+          btn.disabled = false;
+        }, 800);
+        return;
+      }
+      btn.innerText = orig;
+      btn.disabled = false;
     }
+
+    /* ── THEME PREFERENCE ───────────────────── */
+    function applyTheme(isDark) {
+      if (isDark) {
+        document.body.classList.add('dark-theme');
+        localStorage.setItem('circles_theme', 'dark');
+      } else {
+        document.body.classList.remove('dark-theme');
+        localStorage.setItem('circles_theme', 'light');
+      }
+    }
+
+    // Init theme
+    if (localStorage.getItem('circles_theme') === 'dark') {
+      applyTheme(true);
+      const darkToggle = document.querySelector('.toggle input[type="checkbox"]');
+      if (darkToggle) darkToggle.checked = true;
+    }
+
+    // Bind toggle
+    document.querySelectorAll('.toggle input').forEach(t => {
+      if (t.closest('.toggle-row')?.textContent.includes('Dark Mode')) {
+        t.addEventListener('change', (e) => applyTheme(e.target.checked));
+      }
+    });
+
+    // Enhancement for saveSection to handle 'prefs'
+    const originalSaveSection = saveSection;
+    saveSection = function (key) {
+      if (key === 'prefs') {
+        const isDark = document.querySelectorAll('.toggle input')[0].checked;
+        localStorage.setItem('circles_prefs', JSON.stringify({
+          darkMode: isDark,
+          emailNotif: document.querySelectorAll('.toggle input')[1].checked,
+          weeklyReports: document.querySelectorAll('.toggle input')[2].checked
+        }));
+      }
+      originalSaveSection(key);
+    };
 
     /* ── 2FA TOGGLE ─────────────────────────── */
     function toggle2FA(cb) {

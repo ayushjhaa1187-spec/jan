@@ -436,6 +436,28 @@
       }
     })();
 
+    // ── Live Pulse Simulation ──
+    (function () {
+      const stats = { reg: 3124, ci: 1487, active: 512 };
+      const elements = {
+        reg: document.querySelector('.db-stat-val.v'),
+        ci: document.querySelector('.db-stat-val.a'),
+        active: document.querySelector('.db-stat-val.e')
+      };
+      setInterval(() => {
+        if (Math.random() > 0.4) {
+          stats.reg += Math.floor(Math.random() * 2) + 1;
+          if (elements.reg) elements.reg.textContent = stats.reg.toLocaleString();
+        }
+        if (Math.random() > 0.6) {
+          stats.ci += Math.floor(Math.random() * 2) + 1;
+          if (elements.ci) elements.ci.textContent = stats.ci.toLocaleString();
+          stats.active = Math.max(12, stats.active + (Math.random() > 0.5 ? 2 : -2));
+          if (elements.active) elements.active.textContent = stats.active.toLocaleString();
+        }
+      }, 4000);
+    })();
+
     // ── Auth Modal Logic ──
     let authMode = 'login';
 

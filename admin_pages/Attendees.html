@@ -282,7 +282,7 @@
           <div class="table-panel-hdr">
             <div class="table-panel-left">
               <span class="table-panel-title">All Attendees</span>
-              <span class="table-panel-meta" id="tableCount">4,821 attendees</span>
+              <span class="table-panel-meta" id="tableCount">0 attendees</span>
             </div>
             <!-- ⑧  SELECT MODE BUTTON -->
             <div class="table-panel-right">
@@ -371,7 +371,7 @@
 
           <!-- ⑥  Pagination — with "attendees" word -->
           <div class="pagination" id="paginationBar">
-            <span class="pag-info" id="pagInfo">Showing 1–20 of 4,821 attendees</span>
+            <span class="pag-info" id="pagInfo">Showing 0–0 of 0 attendees</span>
             <div class="pag-controls">
               <button class="pag-btn" id="prevBtn" onclick="changePage(-1)" disabled>← Previous</button>
               <div class="pag-pages" id="pagPages"></div>
@@ -601,13 +601,13 @@
           const data = await res.json();
           // Assuming data is an array of attendees
           const newAttendees = data.map((attendee, index) => ({
-            id: attendee.id || index + 1,
-            name: attendee.user ? attendee.user.name : (attendee.name || 'Unknown User'),
-            email: attendee.user ? attendee.user.email : (attendee.email || 'Unknown Email'),
-            ticket: attendee.ticketType || 'General',
+            id: attendee.id || `MOCK-${index + 1}`,
+            name: attendee.user?.profile?.name || attendee.user?.name || attendee.name || 'Unknown User',
+            email: attendee.user?.email || attendee.email || 'Unknown Email',
+            ticket: attendee.ticketType || (index % 10 === 0 ? 'VIP' : 'General'),
             status: attendee.status ? attendee.status.toLowerCase() : 'registered',
             time: attendee.checkinTime ? new Date(attendee.checkinTime).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }) : '—',
-            regId: `REG-${(attendee.id || index).toString().substring(0, 8)}`.toUpperCase(),
+            regId: (attendee.id || '').toString().slice(-8).toUpperCase() || `REG-${index + 1000}`,
             color: ['#6040f0', '#1a96d8', '#0aaa6e', '#b030d8', '#d97706'][index % 5]
           }));
 
@@ -768,7 +768,7 @@
         const ciBtnLabel = isDone
           ? `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> Checked In`
           : `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 11 12 14 22 4"/></svg> Check`;
-        const ciOnclick = isDone ? '' : `onclick="openCheckin(${a.id})"`;
+        const ciOnclick = isDone ? '' : `onclick="openCheckin('${a.id}')"`;
         const selAttr = selectedIds.has(a.id) ? 'selected' : '';
 
         return `
@@ -793,9 +793,9 @@
         <td><span class="att-reg-id">${a.regId || 'N/A'}</span></td>
         <td>
           <div class="row-actions">
-            <button class="row-btn-view" onclick="openProfile(${a.id})">View</button>
+            <button class="row-btn-view" onclick="openProfile('${a.id}')">View</button>
             <button class="${ciBtnClass}" ${ciOnclick}>${ciBtnLabel}</button>
-            <button class="row-btn-del" onclick="removeAttendee(${a.id})">Remove</button>
+            <button class="row-btn-del" onclick="removeAttendee('${a.id}')">Remove</button>
           </div>
         </td>
       </tr>`;
@@ -1025,7 +1025,12 @@
 
     function renderActivity() {
       const list = document.getElementById('activityList');
-      list.innerHTML = ACTIVITY_FEED.map(item => `
+      if (!list) return;
+      if (ACTIVITY_FEED.length === 0) {
+        list.innerHTML = `<div style="text-align:center;padding:32px;color:var(--ink-3);font-size:12.5px">No recent check-ins</div>`;
+        return;
+      }
+      list.innerHTML = ACTIVITY_FEED.slice(0, 10).map(item => `
     <div class="activity-item">
       <div class="activity-ico ${item.type}">${typeIcon[item.type] || typeIcon.ci}</div>
       <div class="activity-body">
