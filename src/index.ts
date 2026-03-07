@@ -97,6 +97,14 @@ app.get('/settings', (req, res) => {
     res.sendFile(path.join(adminPagesPath, 'Settings.html'));
 });
 
+app.get('/profile', (req, res) => {
+    res.sendFile(path.join(adminPagesPath, 'Profile.html'));
+});
+
+app.get('/emptypages', (req, res) => {
+    res.sendFile(path.join(adminPagesPath, 'emptypages.html'));
+});
+
 // Health Check
 app.get('/api/health', async (req, res) => {
     try {

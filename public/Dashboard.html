@@ -97,37 +97,35 @@
 
   <div class="main">
     <header class="topbar">
-      <div class="topbar-ev">
-        <div class="ev-sel">
-          <span>Design Summit 2026</span>
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
-            <polyline points="6 9 12 15 18 9" />
-          </svg>
-        </div>
-        <div class="live-badge">
-          <div class="live-dot"></div>Live
-        </div>
-        <div class="ev-meta">
-          March 8, 2026 <span class="ev-meta-sep">•</span> Bharat Mandapam, New Delhi
-        </div>
-        <div class="search-wrap" style="margin-left: 20px; flex: 1; max-width: 400px; position: relative;">
-          <input type="text" class="f-input" id="globalSearchInput" placeholder="Search event, attendees..."
-            style="padding-left: 36px; height: 36px; border: 1px solid var(--edge-2); border-radius: 8px; width: 100%; outline: none; background: var(--surface);">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"
+      <div class="topbar-ev" style="flex: 1; display: flex; align-items: center;">
+        <div class="search-wrap" style="position: relative; width: 100%; max-width: 400px; margin-left: 0;">
+          <input type="text" class="f-input" id="globalSearchInput" placeholder="Search events, analytics..."
+            style="padding-left: 36px; height: 38px; border: 1px solid var(--edge-2); border-radius: 9px; width: 100%; outline: none; background: var(--surface);">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"
             style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); opacity: 0.5;">
             <circle cx="11" cy="11" r="8" />
             <line x1="21" y1="21" x2="16.65" y2="16.65" />
           </svg>
         </div>
       </div>
+
       <div class="tb-actions">
-        <button class="icon-btn" aria-label="Search">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
-            stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="11" cy="11" r="8" />
-            <line x1="21" y1="21" x2="16.65" y2="16.65" />
-          </svg>
-        </button>
+        <!-- Dashboard Event Context -->
+        <div class="topbar-ev-ctx"
+          style="display: flex; align-items: center; gap: 12px; margin-right: 16px; border-right: 1px solid var(--edge); padding-right: 16px;">
+          <div class="ev-sel"
+            style="background: var(--surface); border: 1px solid var(--edge-2); padding: 5px 12px; border-radius: 8px; font-weight: 600; font-size: 13.5px; display: flex; align-items: center; gap: 7px; cursor: pointer;">
+            <span id="currentEventName">Design Summit 2026</span>
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+              <polyline points="6 9 12 15 18 9" />
+            </svg>
+          </div>
+          <div class="ev-meta" id="topEventMeta"
+            style="font-size: 11.5px; color: var(--ink-3); text-align: right; line-height: 1.2;">
+            Bharat Mandapam <br> March 8, 2026
+          </div>
+        </div>
+
         <button class="icon-btn" aria-label="Notifications">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
@@ -346,19 +344,27 @@
         const evSel = document.querySelector('.ev-sel span');
         if (adminEvents.length > 0) {
           currentEventId = adminEvents[0].id;
-          evSel.textContent = adminEvents[0].title;
-          const meta = document.querySelector('.ev-meta');
+          const selector = document.getElementById('currentEventName');
+          if (selector) selector.textContent = adminEvents[0].title;
+          const evSel = document.querySelector('.ev-sel span');
+          if (evSel) evSel.textContent = adminEvents[0].title;
+          const topMeta = document.getElementById('topEventMeta');
+          const d = new Date(adminEvents[0].startDate);
+          const dStr = d.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+          const venueStr = adminEvents[0].venue || 'Virtual';
+
+          if (topMeta) topMeta.innerHTML = `${venueStr} <br> ${dStr}`;
+
+          const meta = document.querySelector('.ev-meta:not(#topEventMeta)');
           if (meta) {
-            const d = new Date(adminEvents[0].startDate);
-            meta.innerHTML = d.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) +
-              ' <span class="ev-meta-sep">•</span> ' + (adminEvents[0].venue || 'Virtual');
+            meta.innerHTML = dStr + ' <span class="ev-meta-sep">•</span> ' + venueStr;
           }
           loadStats(currentEventId);
           loadRecentCheckins(currentEventId);
 
         } else {
           // If no events, redirect to empty state page
-          window.location.href = '/emptypages.html';
+          window.location.href = '/emptypages';
         }
       } catch (e) {
         console.error('Failed to load events:', e);

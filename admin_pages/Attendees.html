@@ -19,7 +19,7 @@
   <!-- ══════════════════════ SIDEBAR ══════════════════════ -->
   <aside class="sidebar">
     <div class="sidebar-logo">
-      <a href="#" class="nav-logo">
+      <a href="/" class="nav-logo">
         <svg class="logo-svg" viewBox="0 0 26 26" fill="none">
           <defs>
             <linearGradient id="lg-nav" x1="2" y1="2" x2="24" y2="24" gradientUnits="userSpaceOnUse">
@@ -99,30 +99,35 @@
   <div class="main">
 
     <header class="topbar">
-      <div class="topbar-ev">
-        <div class="ev-sel">
-          <span id="currentEventName">Design Summit 2026</span>
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
-            <polyline points="6 9 12 15 18 9" />
-          </svg>
-        </div>
-        <div class="live-badge">
-          <div class="live-dot"></div>Live
-        </div>
-        <div class="ev-meta">
-          March 8, 2026 <span style="margin:0 4px;opacity:0.3">•</span> Bharat Mandapam, New Delhi
-        </div>
-        <div class="search-wrap" style="margin-left: 20px; flex: 1; max-width: 400px; position: relative;">
-          <input type="text" class="f-input" id="globalSearchInput" placeholder="Search event, attendees..."
-            style="padding-left: 36px; height: 36px; border: 1px solid var(--edge-2); border-radius: 8px; width: 100%; outline: none;">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"
-            style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); opacity: 0.8;">
+      <div class="topbar-ev" style="flex: 1; display: flex; align-items: center;">
+        <div class="search-wrap" style="position: relative; width: 100%; max-width: 400px; margin-left: 0;">
+          <input type="text" class="f-input" id="globalSearchInput" placeholder="Search attendees, metrics..."
+            style="padding-left: 36px; height: 38px; border: 1px solid var(--edge-2); border-radius: 9px; width: 100%; outline: none; background: var(--surface);">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"
+            style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); opacity: 0.5;">
             <circle cx="11" cy="11" r="8" />
             <line x1="21" y1="21" x2="16.65" y2="16.65" />
           </svg>
         </div>
       </div>
+
       <div class="tb-actions">
+        <!-- Event Context on Top-Right -->
+        <div class="topbar-ev-ctx"
+          style="display: flex; align-items: center; gap: 12px; margin-right: 16px; border-right: 1px solid var(--edge); padding-right: 16px;">
+          <div class="ev-sel"
+            style="background: var(--surface); border: 1px solid var(--edge-2); padding: 5px 12px; border-radius: 8px; font-weight: 600; font-size: 13.5px; display: flex; align-items: center; gap: 7px; cursor: pointer;">
+            <span id="currentEventName" style="color: var(--ink-0);">Loading...</span>
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+              <polyline points="6 9 12 15 18 9" />
+            </svg>
+          </div>
+          <div class="ev-meta" id="topEventMeta"
+            style="font-size: 11.5px; color: var(--ink-3); text-align: right; line-height: 1.2;">
+            Location TBD <br> Date TBD
+          </div>
+        </div>
+
         <button class="icon-btn" aria-label="Notifications">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
@@ -135,19 +140,19 @@
 
     <main class="content">
 
-      <!-- ①  PAGE HEADER — with event context -->
+      <!-- ① PAGE HEADER — modernized -->
       <div class="page-hdr">
         <div class="page-title-block">
           <div class="page-breadcrumb">
-            <a href="#" class="page-breadcrumb-link">Events</a>
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <a href="/dashboard" class="page-breadcrumb-link">Dashboard</a>
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
               <polyline points="9 6 15 12 9 18" />
             </svg>
-            <span>Design Summit 2026</span>
+            <span id="breadcrumbEventName" style="color: var(--violet); font-weight: 600;">Event Name</span>
           </div>
           <div class="page-title">Attendees</div>
-          <div class="page-event-name" id="pageEventName">Design Summit 2026</div>
-          <div class="page-sub">Managing registrations and check-ins</div>
+          <div class="page-event-name" id="pageEventName" style="display:none;">Event Title</div>
+          <div class="page-sub">Comprehensive overview of registrations and live check-in performance</div>
         </div>
         <div class="hdr-actions">
           <div class="search-wrap">
@@ -554,8 +559,17 @@
           if (event) {
             const nameEl = document.getElementById('currentEventName');
             const pageNameEl = document.getElementById('pageEventName');
+            const breadcrumbEl = document.getElementById('breadcrumbEventName');
+            const metaEl = document.getElementById('topEventMeta');
+
             if (nameEl) nameEl.textContent = event.title;
             if (pageNameEl) pageNameEl.textContent = event.title;
+            if (breadcrumbEl) breadcrumbEl.textContent = event.title;
+
+            if (metaEl) {
+              const d = new Date(event.startDate).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+              metaEl.innerHTML = `${d} <span style="margin:0 4px;opacity:0.3">•</span> ${event.venue || 'Virtual'}`;
+            }
           }
         }
       } catch (e) {
