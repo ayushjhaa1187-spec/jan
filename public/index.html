@@ -86,7 +86,7 @@
             <div class="db-dot"></div>
             <div class="db-dot"></div>
           </div>
-          <div class="db-titlebar">circles.so — Event Command</div>
+          <div class="db-titlebar">circles.so — Event Control Room</div>
           <div class="db-live">
             <span class="live-dot"></span>
             Live
@@ -334,11 +334,11 @@
       Circles
     </div>
     <ul class="footer-links">
-      <li><a href="#">Privacy</a></li>
-      <li><a href="#">Terms</a></li>
-      <li><a href="#">Status</a></li>
+      <li><a href="/privacy">Privacy</a></li>
+      <li><a href="/terms">Terms</a></li>
+      <li><a href="/status">Status</a></li>
     </ul>
-    <div class="footer-copy">© 2026 Circles, Inc.</div>
+    <div class="footer-copy">© 2026 Circles. All rights reserved.</div>
   </footer>
 
   <!-- ══════════════════ AUTH MODAL ══════════════════ -->
@@ -375,9 +375,9 @@
       <div id="roleGroup" style="display:none;margin-bottom:14px">
         <label style="display:block;font-size:13px;font-weight:600;color:#333;margin-bottom:6px">I am a</label>
         <select id="authRole"
-          style="width:100%;padding:10px 14px;border:1.5px solid #e0e0e8;border-radius:10px;font-size:14px;outline:none;box-sizing:border-box;background:#fff">
+          style="width:100%;padding:10px 14px;border:1.5px solid #e0e0e8;border-radius:10px;font-size:14px;outline:none;box-sizing:border-box;background:#fff;cursor:pointer">
           <option value="ADMIN">Event Organizer (Admin)</option>
-          <option value="PARTICIPANT">Participant</option>
+          <option value="PARTICIPANT">Attendee (Participant)</option>
         </select>
       </div>
       <button id="authSubmit" onclick="submitAuth()"

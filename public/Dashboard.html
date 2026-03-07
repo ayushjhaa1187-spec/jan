@@ -110,19 +110,19 @@
       </div>
 
       <div class="tb-actions">
-        <!-- Dashboard Event Context -->
+        <!-- Event Context on Top-Right -->
         <div class="topbar-ev-ctx"
           style="display: flex; align-items: center; gap: 12px; margin-right: 16px; border-right: 1px solid var(--edge); padding-right: 16px;">
           <div class="ev-sel"
             style="background: var(--surface); border: 1px solid var(--edge-2); padding: 5px 12px; border-radius: 8px; font-weight: 600; font-size: 13.5px; display: flex; align-items: center; gap: 7px; cursor: pointer;">
-            <span id="currentEventName">Design Summit 2026</span>
+            <span id="currentEventName">Select Event</span>
             <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
               <polyline points="6 9 12 15 18 9" />
             </svg>
           </div>
           <div class="ev-meta" id="topEventMeta"
             style="font-size: 11.5px; color: var(--ink-3); text-align: right; line-height: 1.2;">
-            Bharat Mandapam <br> March 8, 2026
+            Location <br> Date
           </div>
         </div>
 
@@ -158,7 +158,7 @@
               </svg>
             </div>
           </div>
-          <div class="kpi-val">4,821</div>
+          <div class="kpi-val" id="statTotal">0</div>
           <div class="kpi-lbl">Total Registrations</div>
         </div>
         <div class="kpi-card">
@@ -170,7 +170,7 @@
               </svg>
             </div>
           </div>
-          <div class="kpi-val">2,942</div>
+          <div class="kpi-val" id="statChecked">0</div>
           <div class="kpi-lbl">Live Check-ins</div>
         </div>
         <div class="kpi-card">
@@ -182,7 +182,7 @@
               </svg>
             </div>
           </div>
-          <div class="kpi-val">1,102</div>
+          <div class="kpi-val" id="statActive">0</div>
           <div class="kpi-lbl">Active Now</div>
         </div>
         <div class="kpi-card">
@@ -195,7 +195,7 @@
               </svg>
             </div>
           </div>
-          <div class="kpi-val">84.2%</div>
+          <div class="kpi-val" id="statRate">0%</div>
           <div class="kpi-lbl">Attendance Rate</div>
         </div>
       </div>
@@ -384,11 +384,15 @@
         if (newStatsStr === lastStatsStr) return; // Memoize
         lastStatsStr = newStatsStr;
 
-        const kpiVals = document.querySelectorAll('.kpi-val');
-        if (kpiVals[0]) kpiVals[0].textContent = (stats.totalRegistrations || 0).toLocaleString();
-        if (kpiVals[1]) kpiVals[1].textContent = (stats.checkIns || 0).toLocaleString();
-        if (kpiVals[2]) kpiVals[2].textContent = (stats.totalRegistrations - (stats.checkIns || 0)).toLocaleString();
-        if (kpiVals[3]) kpiVals[3].textContent = (stats.attendanceRate || 0).toFixed(1) + '%';
+        const statTotal = document.getElementById('statTotal');
+        const statChecked = document.getElementById('statChecked');
+        const statActive = document.getElementById('statActive');
+        const statRate = document.getElementById('statRate');
+
+        if (statTotal) statTotal.textContent = (stats.totalRegistrations || 0).toLocaleString();
+        if (statChecked) statChecked.textContent = (stats.checkIns || 0).toLocaleString();
+        if (statActive) statActive.textContent = (stats.totalRegistrations - (stats.checkIns || 0)).toLocaleString();
+        if (statRate) statRate.textContent = (stats.attendanceRate || 0).toFixed(1) + '%';
       } catch (e) {
         console.error('Stats load error:', e);
       }
