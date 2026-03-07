@@ -54,7 +54,7 @@
           <line x1="8" y1="2" x2="8" y2="6" />
           <line x1="3" y1="10" x2="21" y2="10" />
         </svg>
-        Events <span class="nav-badge" id="eventBadge" style="display:none;">0</span>
+        Events <span class="nav-badge" id="sidebarEventCount" style="display:none;">0</span>
       </div>
       <div class="nav-item" onclick="window.location.href='/attendees'" style="cursor:pointer">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
@@ -147,634 +147,505 @@
       <!-- Settings body -->
       <div class="settings-wrap">
 
+
         <!-- ══ LEFT NAV ══ -->
-        <nav class="settings-nav" aria-label="Settings navigation">
-
-          <div class="snav-item active" onclick="showSection('operations', this)">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-              <rect x="3" y="3" width="7" height="7" rx="1" />
-              <rect x="14" y="3" width="7" height="7" rx="1" />
-              <rect x="3" y="14" width="7" height="7" rx="1" />
-              <path d="M14 17h7" />
-              <path d="M14 21h7" />
-            </svg>
-            Operations Hub
+        <div class="settings-nav">
+          <div class="settings-header">
+            <div class="title">Settings</div>
+            <div class="sub">Manage event configuration and platform preferences</div>
           </div>
 
-          <div class="snav-item" onclick="showSection('general', this)">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-              <circle cx="12" cy="12" r="3" />
-              <path
-                d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
-            </svg>
-            General
+          <!-- Admin / Attendee Tab Switcher -->
+          <div class="tab-switcher">
+            <button class="tab-btn active" id="tabAdmin" onclick="switchTab('admin')">Admin</button>
+            <button class="tab-btn" id="tabAttendee" onclick="switchTab('attendee')">Attendee</button>
           </div>
 
-          <div class="snav-item" onclick="showSection('event', this)">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-              <rect x="3" y="4" width="18" height="18" rx="2" />
-              <line x1="16" y1="2" x2="16" y2="6" />
-              <line x1="8" y1="2" x2="8" y2="6" />
-              <line x1="3" y1="10" x2="21" y2="10" />
-            </svg>
-            Event Settings
+          <!-- Admin Navigation Group -->
+          <div id="navAdmin" class="settings-nav-group active">
+            <div class="snav-item active" onclick="showSection('operations', this)">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <rect x="3" y="3" width="7" height="7" rx="1" />
+                <rect x="14" y="3" width="7" height="7" rx="1" />
+                <rect x="3" y="14" width="7" height="7" rx="1" />
+                <path d="M14 17h7" />
+                <path d="M14 21h7" />
+              </svg>
+              Operations Hub
+            </div>
+            <div class="snav-item" onclick="showSection('general', this)">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <circle cx="12" cy="12" r="3" />
+                <path
+                  d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
+              </svg>
+              General
+            </div>
+            <div class="snav-item" onclick="showSection('event', this)">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <rect x="3" y="4" width="18" height="18" rx="2" />
+                <line x1="16" y1="2" x2="16" y2="6" />
+                <line x1="8" y1="2" x2="8" y2="6" />
+                <line x1="3" y1="10" x2="21" y2="10" />
+              </svg>
+              Event Settings
+            </div>
+            <div class="snav-item" onclick="showSection('team', this)">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                <circle cx="9" cy="7" r="4" />
+                <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+                <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+              </svg>
+              Team & Permissions
+            </div>
+            <div class="snav-item" onclick="showSection('notifications', this)">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+                <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+              </svg>
+              Notifications
+            </div>
           </div>
 
-          <div class="snav-item" onclick="showSection('registration', this)">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-              <polyline points="14 2 14 8 20 8" />
-              <line x1="9" y1="13" x2="15" y2="13" />
-              <line x1="9" y1="17" x2="15" y2="17" />
-            </svg>
-            Registration
+          <!-- Attendee Navigation Group -->
+          <div id="navAttendee" class="settings-nav-group">
+            <div class="snav-item" onclick="showSection('registration', this)">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                <polyline points="14 2 14 8 20 8" />
+                <line x1="9" y1="13" x2="15" y2="13" />
+                <line x1="9" y1="17" x2="15" y2="17" />
+              </svg>
+              Registration
+            </div>
+            <div class="snav-item" onclick="showSection('checkin', this)">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <polyline points="9 11 12 14 22 4" />
+                <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
+              </svg>
+              Check-in
+            </div>
+            <div class="snav-item" onclick="showSection('live_updates', this)">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <path d="M5 12a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v0a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1v0z" />
+                <circle cx="12" cy="7" r="1" />
+                <circle cx="12" cy="17" r="1" />
+                <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07" />
+              </svg>
+              Live Updates
+            </div>
           </div>
-
-          <div class="snav-item" onclick="showSection('checkin', this)">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-              <polyline points="9 11 12 14 22 4" />
-              <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
-            </svg>
-            Check-in
-          </div>
-
-          <div class="snav-item" onclick="showSection('notifications', this)">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-              <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
-              <path d="M13.73 21a2 2 0 0 1-3.46 0" />
-            </svg>
-            Notifications
-          </div>
-
-          <div class="snav-item" onclick="showSection('team', this)">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-              <circle cx="9" cy="7" r="4" />
-              <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
-              <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-            </svg>
-            Team &amp; Permissions
-          </div>
-
-        </nav>
+        </div>
         <!-- /settings-nav -->
+
+        <!-- /settings-nav -->
+
+        <!-- ══ PANELS ══ -->
 
         <!-- ══ PANELS ══ -->
         <div class="settings-panels">
 
-          <!-- ─────────────── SECTION: GENERAL ─────────────── -->
+          <!-- ─────────────── SECTION: OPERATIONS HUB ─────────────── -->
           <section id="sec-operations" class="settings-section active">
-
             <div class="card">
-              <div class="card-hdr">
-                <div>
-                  <div class="card-title">Event / Attendee / Analytics Control Tower</div>
-                  <div class="card-sub">Monitor all operational modules and jump to each workspace from one place.</div>
-                </div>
+              <div class="card-head-refined">
+                <div class="card-title">Operations Control Tower</div>
+                <div class="card-sub">Monitor all operational modules and sync settings across the platform.</div>
               </div>
               <div class="card-body">
                 <div class="ops-grid">
-
                   <article class="ops-card">
                     <div class="ops-head">
-                      <div class="ops-icon violet">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                      <div class="ops-icon violet"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                          stroke-width="2.5">
                           <rect x="3" y="4" width="18" height="18" rx="2" />
                           <line x1="16" y1="2" x2="16" y2="6" />
                           <line x1="8" y1="2" x2="8" y2="6" />
                           <line x1="3" y1="10" x2="21" y2="10" />
-                        </svg>
-                      </div>
+                        </svg></div>
                       <div>
-                        <div class="ops-title">Events Workspace</div>
-                        <div class="ops-sub">Scheduling, venue and lifecycle</div>
+                        <div class="ops-title">Events</div>
+                        <div class="ops-sub">Scheduling & Lifecycle</div>
                       </div>
                     </div>
                     <div class="ops-metrics">
                       <div class="ops-metric-row"><span>Total events</span><strong id="opsEventsCount">--</strong></div>
-                      <div class="ops-metric-row"><span>Active event</span><strong id="opsActiveEvent">--</strong></div>
-                      <div class="ops-metric-row"><span>Next start</span><strong id="opsNextStart">--</strong></div>
+                      <div class="ops-metric-row"><span>Active event</span><strong id="opsActiveEvent"
+                          style="max-width:80px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">--</strong>
+                      </div>
                     </div>
-                    <div class="ops-actions">
-                      <button class="btn btn-secondary btn-sm" onclick="window.location.href='/events'">Open Events</button>
-                    </div>
+                    <div class="ops-actions"><button class="btn btn-secondary btn-sm"
+                        onclick="window.location.href='/events'">Open Events</button></div>
                   </article>
 
                   <article class="ops-card">
                     <div class="ops-head">
-                      <div class="ops-icon azure">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                      <div class="ops-icon azure"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                          stroke-width="2.5">
                           <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
                           <circle cx="9" cy="7" r="4" />
-                        </svg>
-                      </div>
+                        </svg></div>
                       <div>
-                        <div class="ops-title">Attendee Workspace</div>
-                        <div class="ops-sub">Registrations, check-ins and support</div>
+                        <div class="ops-title">Attendees</div>
+                        <div class="ops-sub">Registration & Support</div>
                       </div>
                     </div>
                     <div class="ops-metrics">
                       <div class="ops-metric-row"><span>Registered</span><strong id="opsAttendeeTotal">--</strong></div>
                       <div class="ops-metric-row"><span>Checked in</span><strong id="opsCheckedIn">--</strong></div>
-                      <div class="ops-metric-row"><span>Pending check-in</span><strong id="opsPendingCount">--</strong></div>
                     </div>
-                    <div class="ops-actions">
-                      <button class="btn btn-secondary btn-sm" onclick="window.location.href='/attendees'">Open Attendees</button>
-                    </div>
+                    <div class="ops-actions"><button class="btn btn-secondary btn-sm"
+                        onclick="window.location.href='/attendees'">Open Attendees</button></div>
                   </article>
 
                   <article class="ops-card">
                     <div class="ops-head">
-                      <div class="ops-icon emerald">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                      <div class="ops-icon emerald"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                          stroke-width="2.5">
                           <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
-                        </svg>
-                      </div>
+                        </svg></div>
                       <div>
-                        <div class="ops-title">Analytics Workspace</div>
-                        <div class="ops-sub">Trends, funnels and performance</div>
+                        <div class="ops-title">Analytics</div>
+                        <div class="ops-sub">Trends & Performance</div>
                       </div>
                     </div>
                     <div class="ops-metrics">
-                      <div class="ops-metric-row"><span>Check-in rate</span><strong id="opsCheckinRate">--</strong></div>
+                      <div class="ops-metric-row"><span>Check-in rate</span><strong id="opsCheckinRate">--</strong>
+                      </div>
                       <div class="ops-metric-row"><span>Last sync</span><strong id="opsLastSync">--</strong></div>
-                      <div class="ops-metric-row"><span>Data source</span><strong>Live API</strong></div>
                     </div>
-                    <div class="ops-actions">
-                      <button class="btn btn-secondary btn-sm" onclick="window.location.href='/analytics'">Open Analytics</button>
-                    </div>
+                    <div class="ops-actions"><button class="btn btn-secondary btn-sm"
+                        onclick="window.location.href='/analytics'">Open Analytics</button></div>
                   </article>
-
                 </div>
 
                 <div class="ops-toggles">
                   <div class="toggle-row">
                     <div class="tr-left">
-                      <div class="tr-label">Auto-refresh cross-module metrics</div>
-                      <div class="tr-desc">Keep settings snapshot aligned with event, attendee and analytics pages.</div>
-                    </div>
-                    <label class="toggle"><input type="checkbox" checked><span class="t-track"></span></label>
+                      <div class="tr-label">Auto-refresh metrics</div>
+                      <div class="tr-desc">Keep operational counts aligned with the backend in real-time.</div>
+                    </div><label class="toggle"><input type="checkbox" checked><span class="t-track"></span></label>
                   </div>
-
-                  <div class="toggle-row" style="border-bottom:none">
+                  <div class="toggle-row" style="border:none">
                     <div class="tr-left">
-                      <div class="tr-label">Flag attendee anomalies in analytics</div>
-                      <div class="tr-desc">Highlight unexpected check-in dips or registration spikes for admins.</div>
-                    </div>
-                    <label class="toggle"><input type="checkbox" checked><span class="t-track"></span></label>
+                      <div class="tr-label">Cloud sync enabled</div>
+                      <div class="tr-desc">Ensure all local changes are broadcast to connected admin instances.</div>
+                    </div><label class="toggle"><input type="checkbox" checked><span class="t-track"></span></label>
                   </div>
                 </div>
               </div>
-              <div class="card-footer">
-                <span class="save-confirm" id="sc-operations"></span>
-                <button class="btn btn-secondary btn-sm" onclick="loadOperationsSnapshot()">Refresh snapshot</button>
-                <button class="btn btn-primary btn-sm" onclick="save('operations')">Save controls</button>
+              <div class="card-footer" style="padding:16px 24px">
+                <button class="btn btn-secondary btn-sm" onclick="loadOperationsSnapshot()"
+                  style="border:none;background:var(--base-2)">Force Sync Now</button>
               </div>
             </div>
-
           </section>
 
-          <section id="sec-general" class="settings-section">
 
+          <!-- ─────────────── SECTION: GENERAL ─────────────── -->
+          <section id="sec-general" class="settings-section">
             <div class="card">
-              <div class="card-hdr">
-                <div>
-                  <div class="card-title">General</div>
-                  <div class="card-sub">Basic information about your event</div>
-                </div>
+              <div class="card-head-refined">
+                <div class="card-title">General Settings</div>
+                <div class="card-sub">Global configuration for your event branding and identity.</div>
               </div>
               <div class="card-body">
-
-                <div class="form-row">
-                  <label class="f-label" for="ev-name">Event Name</label>
-                  <input class="f-input" id="ev-name" type="text" value="Design Summit 2026"
-                    placeholder="Enter event name">
+                <div class="field-wrap" style="margin-bottom:20px">
+                  <label class="field-label" for="ev-name">Event Name</label>
+                  <input class="f-input" id="ev-name" type="text" placeholder="Enter formal event name">
                 </div>
-
-                <div class="form-row form-grid">
-                  <div style="display:flex;flex-direction:column;gap:6px">
-                    <label class="f-label" for="ev-location">Location</label>
-                    <input class="f-input" id="ev-location" type="text" value="Bharat Mandapam, New Delhi"
-                      placeholder="Venue or city">
-                  </div>
-                  <div style="display:flex;flex-direction:column;gap:6px">
-                    <label class="f-label" for="ev-date">Event Date</label>
-                    <input class="f-input" id="ev-date" type="date" value="2026-03-08">
-                  </div>
+                <div class="form-grid" style="grid-template-columns:1fr 1fr; gap:20px; margin-bottom:20px">
+                  <div class="field-wrap"><label class="field-label" for="ev-location">Venue / Location</label><input
+                      class="f-input" id="ev-location" type="text" placeholder="e.g. Virtual or physical address"></div>
+                  <div class="field-wrap"><label class="field-label" for="ev-date">Primary Event Date</label><input
+                      class="f-input" id="ev-date" type="date"></div>
                 </div>
-
-                <div class="form-row" style="border-bottom:none">
-                  <label class="f-label" for="ev-desc">Event Description</label>
-                  <div class="f-hint">Shown on your event registration page.</div>
-                  <textarea class="f-textarea" id="ev-desc"
-                    placeholder="Describe your event…">India's premier design and technology conference bringing together 5,000 designers, developers and product thinkers for two days of talks, workshops and deep-dive sessions.</textarea>
-                </div>
-
+                <div class="field-wrap"><label class="field-label" for="ev-desc">Public Description</label><textarea
+                    class="f-textarea" id="ev-desc" style="height:100px"
+                    placeholder="Visible on registration pages..."></textarea></div>
               </div>
-              <div class="card-footer">
-                <span class="save-confirm" id="sc-general">
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                    <polyline points="20 6 9 17 4 12" />
-                  </svg>
-                  Saved
-                </span>
-                <button class="btn btn-secondary btn-sm" onclick="loadEventData()">Discard changes</button>
-                <button class="btn btn-primary btn-sm" onclick="saveGeneral()">Save changes</button>
+              <div class="action-ftr">
+                <button class="btn btn-secondary btn-sm" onclick="loadEventData()">Discard</button>
+                <button class="btn btn-primary btn-sm" id="btnSaveGeneral" onclick="saveGeneral()">Save Profile</button>
               </div>
             </div>
 
-            <!-- Danger Zone -->
-            <div class="danger-zone">
-              <div class="danger-zone-hdr">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--danger)" stroke-width="2.5">
-                  <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
-                  <line x1="12" y1="9" x2="12" y2="13" />
-                  <line x1="12" y1="17" x2="12.01" y2="17" />
-                </svg>
-                <span class="dz-title">Danger Zone</span>
+            <div class="card danger-card">
+              <div class="card-head-refined">
+                <div class="card-title"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2.5">
+                    <path
+                      d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+                    <line x1="12" y1="9" x2="12" y2="13" />
+                    <line x1="12" y1="17" x2="12.01" y2="17" />
+                  </svg> Danger Zone</div>
+                <div class="card-sub">Actions here are permanent and cannot be reversed.</div>
               </div>
-              <div class="dz-row">
-                <div>
-                  <div class="dz-label">Archive event</div>
-                  <div class="dz-sub">Hide this event from all active views. It can be restored later.</div>
+              <div class="card-body">
+                <div style="margin-bottom:16px">
+                  <div style="font-size:14px;font-weight:600;color:var(--ink-0)">Remove Event Workspace</div>
+                  <div style="font-size:13px;color:var(--ink-3);margin-top:2px">Permanently delete this event. Type
+                    "DELETE" to confirm.</div>
                 </div>
-                <button class="btn btn-danger btn-sm">Archive event</button>
-              </div>
-              <div class="dz-row">
-                <div>
-                  <div class="dz-label">Delete event</div>
-                  <div class="dz-sub">Permanently delete this event and all associated data. This cannot be undone.
-                  </div>
+                <div class="danger-confirm-wrap">
+                  <input class="f-input danger-input" id="deleteConfirmInput" placeholder="Type DELETE">
+                  <button class="btn btn-danger btn-sm" onclick="confirmDelete()">Destroy Event</button>
                 </div>
-                <button class="btn btn-danger btn-sm" onclick="confirmDelete()">Delete event</button>
               </div>
             </div>
-
           </section>
+
 
           <!-- ─────────────── SECTION: EVENT SETTINGS ─────────────── -->
           <section id="sec-event" class="settings-section">
-
             <div class="card">
-              <div class="card-hdr">
-                <div>
-                  <div class="card-title">Event Configuration</div>
-                  <div class="card-sub">Control visibility, capacity and waitlist behaviour</div>
-                </div>
+              <div class="card-head-refined">
+                <div class="card-title">Lifecycle & Access</div>
+                <div class="card-sub">Control how users discover and join your event workspace.</div>
               </div>
               <div class="card-body">
-
-                <div class="form-row">
-                  <div class="f-label">Event Visibility</div>
-                  <div class="f-hint" style="margin-bottom:10px">Controls who can discover and register for this event.
-                  </div>
-                  <div class="vis-group" id="visGroup">
-                    <button class="vis-opt active" data-val="public" onclick="setVisibility(this)">
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                        <circle cx="12" cy="12" r="10" />
-                        <line x1="2" y1="12" x2="22" y2="12" />
-                        <path
-                          d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
-                      </svg>
-                      Public
-                    </button>
-                    <button class="vis-opt" data-val="private" onclick="setVisibility(this)">
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                        <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
-                        <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-                      </svg>
-                      Private
-                    </button>
+                <div class="field-wrap" style="margin-bottom:24px">
+                  <label class="field-label">Discovery Mode</label>
+                  <div class="vis-group" id="visGroup" style="margin-top:8px">
+                    <button class="vis-opt active" onclick="setVisibility(this)">Public Discovery</button>
+                    <button class="vis-opt" onclick="setVisibility(this)">Invite Only</button>
                   </div>
                 </div>
-
-                <div class="form-row">
-                  <label class="f-label" for="ev-cap">Event Capacity</label>
-                  <div class="f-hint" style="margin-bottom:8px">Maximum number of registered attendees.</div>
-                  <div class="cap-row">
-                    <input class="f-input" id="ev-cap" type="number" value="5000" min="1" step="100">
-                    <span class="cap-unit">attendees</span>
+                <div class="field-wrap" style="margin-bottom:24px">
+                  <label class="field-label" for="ev-cap">Attendee Capacity</label>
+                  <div style="display:flex;align-items:center;gap:12px;margin-top:6px">
+                    <input class="f-input" id="ev-cap" type="number" style="max-width:120px" value="5000">
+                    <span style="font-size:13px;color:var(--ink-3)">Total seats available</span>
                   </div>
                 </div>
-
-                <div class="form-row" style="border-bottom:none">
-                  <div class="toggle-row" style="padding-top:0;padding-bottom:0;border:none">
-                    <div class="tr-left">
-                      <div class="tr-label">Allow waitlist</div>
-                      <div class="tr-desc">When capacity is reached, new registrants are automatically added to a
-                        waitlist.</div>
-                    </div>
-                    <label class="toggle">
-                      <input type="checkbox" checked>
-                      <span class="t-track"></span>
-                    </label>
-                  </div>
+                <div class="toggle-row" style="border:none">
+                  <div class="tr-left">
+                    <div class="tr-label">Auto-Waitlist Flow</div>
+                    <div class="tr-desc">Automatically queue new registrants when capacity is met.</div>
+                  </div><label class="toggle"><input type="checkbox" checked><span class="t-track"></span></label>
                 </div>
-
               </div>
-              <div class="card-footer">
-                <span class="save-confirm" id="sc-event"></span>
-                <button class="btn btn-primary btn-sm" onclick="save('event')">Save changes</button>
-              </div>
+              <div class="action-ftr"><button class="btn btn-primary btn-sm" onclick="save('event')">Apply
+                  Logic</button></div>
             </div>
-
           </section>
 
           <!-- ─────────────── SECTION: REGISTRATION ─────────────── -->
           <section id="sec-registration" class="settings-section">
-
             <div class="card">
-              <div class="card-hdr">
-                <div>
-                  <div class="card-title">Registration Options</div>
-                  <div class="card-sub">Configure how attendees sign up for your event</div>
-                </div>
+              <div class="card-head-refined">
+                <div class="card-title">Registration Link Hub</div>
+                <div class="card-sub">Share this secure link with your attendees to start registrations.</div>
               </div>
               <div class="card-body">
-
-                <div class="toggle-row">
-                  <div class="tr-left">
-                    <div class="tr-label">Enable online registration</div>
-                    <div class="tr-desc">Allow attendees to register through your public event page.</div>
+                <div class="link-card">
+                  <div style="flex:1">
+                    <div style="font-size:13px;font-weight:600;color:var(--ink-1)">Public Entry Point</div>
+                    <div class="link-display">circles.app/reg/ds26-3k8s-9q2p</div>
                   </div>
-                  <label class="toggle"><input type="checkbox" checked><span class="t-track"></span></label>
+                  <button class="btn btn-secondary btn-sm" style="margin-left:16px">Copy Link</button>
                 </div>
-
-                <div class="toggle-row">
-                  <div class="tr-left">
-                    <div class="tr-label">Require email verification</div>
-                    <div class="tr-desc">Attendees must verify their email before registration is confirmed.</div>
-                  </div>
-                  <label class="toggle"><input type="checkbox" checked><span class="t-track"></span></label>
-                </div>
-
-                <div class="toggle-row">
-                  <div class="tr-left">
-                    <div class="tr-label">Allow group registrations</div>
-                    <div class="tr-desc">Let a single user register multiple attendees in one transaction.</div>
-                  </div>
-                  <label class="toggle"><input type="checkbox"><span class="t-track"></span></label>
-                </div>
-
-                <div class="toggle-row">
-                  <div class="tr-left">
-                    <div class="tr-label">Allow ticket upgrades</div>
-                    <div class="tr-desc">Attendees can upgrade from General to VIP after completing registration.</div>
-                  </div>
-                  <label class="toggle"><input type="checkbox" checked><span class="t-track"></span></label>
-                </div>
-
-              </div>
-              <div class="card-footer">
-                <span class="save-confirm" id="sc-registration"></span>
-                <button class="btn btn-primary btn-sm" onclick="save('registration')">Save changes</button>
               </div>
             </div>
 
+            <div class="card">
+              <div class="card-head-refined">
+                <div class="card-title">Ticketing & Verification</div>
+                <div class="card-sub">Configure the attendee experience during registration.</div>
+              </div>
+              <div class="card-body">
+                <div class="toggle-row">
+                  <div class="tr-left">
+                    <div class="tr-label">Multi-Stage Verification</div>
+                    <div class="tr-desc">Verify attendee credentials via email before issuing tickets.</div>
+                  </div><label class="toggle"><input type="checkbox" checked><span class="t-track"></span></label>
+                </div>
+                <div class="toggle-row">
+                  <div class="tr-left">
+                    <div class="tr-label">Group Registration Flow</div>
+                    <div class="tr-desc">Allow point-of-contact to register up to 5 colleagues.</div>
+                  </div><label class="toggle"><input type="checkbox"><span class="t-track"></span></label>
+                </div>
+                <div class="toggle-row" style="border:none">
+                  <div class="tr-left">
+                    <div class="tr-label">Self-Service Tier Upgrades</div>
+                    <div class="tr-desc">Let attendees upgrade their own tickets after confirmation.</div>
+                  </div><label class="toggle"><input type="checkbox" checked><span class="t-track"></span></label>
+                </div>
+              </div>
+              <div class="action-ftr"><button class="btn btn-primary btn-sm" onclick="save('registration')">Save
+                  Logic</button></div>
+            </div>
           </section>
 
           <!-- ─────────────── SECTION: CHECK-IN ─────────────── -->
           <section id="sec-checkin" class="settings-section">
-
             <div class="card">
-              <div class="card-hdr">
-                <div>
-                  <div class="card-title">Check-in Settings</div>
-                  <div class="card-sub">Configure how attendees check in on the day</div>
-                </div>
+              <div class="card-head-refined">
+                <div class="card-title">Admission Hardware Config</div>
+                <div class="card-sub">Setup logic for the Circles Scanner and manual entry points.</div>
               </div>
               <div class="card-body">
-
                 <div class="toggle-row">
                   <div class="tr-left">
-                    <div class="tr-label">Enable QR code check-in</div>
-                    <div class="tr-desc">Each confirmed attendee receives a unique QR code for contactless entry.</div>
-                  </div>
-                  <label class="toggle"><input type="checkbox" checked><span class="t-track"></span></label>
+                    <div class="tr-label">QR Scanning Node</div>
+                    <div class="tr-desc">Authorize QR-based entry logic for handheld scanners.</div>
+                  </div><label class="toggle"><input type="checkbox" checked><span class="t-track"></span></label>
                 </div>
-
                 <div class="toggle-row">
                   <div class="tr-left">
-                    <div class="tr-label">Allow manual check-in</div>
-                    <div class="tr-desc">Staff can search by name or registration ID to check in attendees manually.
-                    </div>
-                  </div>
-                  <label class="toggle"><input type="checkbox" checked><span class="t-track"></span></label>
+                    <div class="tr-label">Manual Supervisor Overrides</div>
+                    <div class="tr-desc">Let booth staff manually confirm attendees without QR codes.</div>
+                  </div><label class="toggle"><input type="checkbox" checked><span class="t-track"></span></label>
                 </div>
-
-                <div class="toggle-row">
+                <div class="toggle-row" style="border:none">
                   <div class="tr-left">
-                    <div class="tr-label">Enable VIP fast-track check-in</div>
-                    <div class="tr-desc">Opens a dedicated priority lane for VIP ticket holders at the venue entrance.
-                    </div>
-                  </div>
-                  <label class="toggle"><input type="checkbox" checked><span class="t-track"></span></label>
+                    <div class="tr-label">VIP Priority Lane Sync</div>
+                    <div class="tr-desc">Isolate VIP data for high-speed priority check-in booths.</div>
+                  </div><label class="toggle"><input type="checkbox" checked><span class="t-track"></span></label>
                 </div>
-
-                <!-- QR generate zone -->
-                <div class="qr-zone">
-                  <div class="qr-icon-box">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
-                      <rect x="3" y="3" width="7" height="7" rx="1" />
-                      <rect x="14" y="3" width="7" height="7" rx="1" />
-                      <rect x="3" y="14" width="7" height="7" rx="1" />
-                      <rect x="16" y="16" width="2" height="2" />
-                      <rect x="19" y="16" width="2" height="2" />
-                      <rect x="16" y="19" width="2" height="2" />
-                      <rect x="19" y="19" width="2" height="2" />
-                    </svg>
-                  </div>
-                  <div style="flex:1;min-width:0">
-                    <div class="qr-text-title">Attendee QR Codes</div>
-                    <div class="qr-text-sub">Generate unique, scannable QR codes for all 4,821 registered attendees.
-                      Codes are sent via email automatically.</div>
-                    <button class="btn btn-secondary btn-sm" id="qrBtn" onclick="generateQR()">
-                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                        stroke-width="2.5">
-                        <rect x="3" y="3" width="7" height="7" rx="1" />
-                        <rect x="14" y="3" width="7" height="7" rx="1" />
-                      </svg>
-                      Generate QR Codes
-                    </button>
-                  </div>
-                </div>
-
               </div>
-              <div class="card-footer">
-                <span class="save-confirm" id="sc-checkin"></span>
-                <button class="btn btn-primary btn-sm" onclick="save('checkin')">Save changes</button>
-              </div>
+              <div class="action-ftr"><button class="btn btn-primary btn-sm" onclick="save('checkin')">Commit Admission
+                  Settings</button></div>
             </div>
 
+            <div class="card" style="background:var(--base-2); border:1.5px dashed var(--edge-2)">
+              <div class="card-body" style="text-align:center; padding:40px 24px">
+                <div
+                  style="width:48px;height:48px;border-radius:12px;background:var(--surface-2);display:flex;align-items:center;justify-content:center;margin:0 auto 16px;color:var(--violet)">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <rect x="3" y="3" width="7" height="7" rx="1" />
+                    <rect x="14" y="3" width="7" height="7" rx="1" />
+                    <rect x="3" y="14" width="7" height="7" rx="1" />
+                    <rect x="14" y="14" width="7" height="7" rx="1" />
+                  </svg>
+                </div>
+                <div class="card-title">Ready for Mass Generation</div>
+                <div class="card-sub" style="margin-bottom:20px">Produce and broadcast 4,800+ scannable tokens to all
+                  registrants.</div>
+                <button class="btn btn-primary" id="qrBtn" onclick="generateQR()" style="width:220px">Generate & Deploy
+                  QR Codes</button>
+              </div>
+            </div>
           </section>
+
 
           <!-- ─────────────── SECTION: NOTIFICATIONS ─────────────── -->
           <section id="sec-notifications" class="settings-section">
-
             <div class="card">
-              <div class="card-hdr">
-                <div>
-                  <div class="card-title">Notifications</div>
-                  <div class="card-sub">Automated emails sent to your registered attendees</div>
-                </div>
+              <div class="card-head-refined">
+                <div class="card-title">Admin Smart Alerts</div>
+                <div class="card-sub">Receive internal updates about event health and team activity.</div>
               </div>
               <div class="card-body">
-
                 <div class="toggle-row">
                   <div class="tr-left">
-                    <div class="tr-label">Send confirmation email</div>
-                    <div class="tr-desc">Immediately send a confirmation with QR code when registration is complete.
-                    </div>
-                  </div>
-                  <label class="toggle"><input type="checkbox" checked><span class="t-track"></span></label>
+                    <div class="tr-label">Operational Health Digest</div>
+                    <div class="tr-desc">Daily summary of check-in rates and registration funnels.</div>
+                  </div><label class="toggle"><input type="checkbox" checked><span class="t-track"></span></label>
                 </div>
-
-                <div class="toggle-row">
+                <div class="toggle-row" style="border:none">
                   <div class="tr-left">
-                    <div class="tr-label">Send reminder before event</div>
-                    <div class="tr-desc">Send a reminder 24 hours before the event starts with schedule and venue
-                      details.</div>
-                  </div>
-                  <label class="toggle"><input type="checkbox" checked><span class="t-track"></span></label>
+                    <div class="tr-label">Team Activity Stream</div>
+                    <div class="tr-desc">Real-time alerts when team members modify event settings.</div>
+                  </div><label class="toggle"><input type="checkbox" checked><span class="t-track"></span></label>
                 </div>
-
-                <div class="toggle-row">
-                  <div class="tr-left">
-                    <div class="tr-label">Send post-event feedback request</div>
-                    <div class="tr-desc">Automatically email a feedback survey to attendees 24 hours after the event
-                      ends.</div>
-                  </div>
-                  <label class="toggle"><input type="checkbox"><span class="t-track"></span></label>
-                </div>
-
               </div>
-              <div class="card-footer">
-                <span class="save-confirm" id="sc-notifications"></span>
-                <button class="btn btn-primary btn-sm" onclick="save('notifications')">Save changes</button>
-              </div>
+              <div class="action-ftr"><button class="btn btn-primary btn-sm" onclick="save('notifications')">Sync
+                  Alerts</button></div>
             </div>
 
-            <!-- Sender settings -->
             <div class="card">
-              <div class="card-hdr">
-                <div>
-                  <div class="card-title">Email Sender</div>
-                  <div class="card-sub">The from name and reply-to address used for all outgoing emails</div>
-                </div>
+              <div class="card-head-refined">
+                <div class="card-title">Mail Delivery Engine</div>
+                <div class="card-sub">Configure the sender identity for system-generated mail.</div>
               </div>
               <div class="card-body">
-                <div class="form-row">
-                  <label class="f-label" for="sender-name">Sender Name</label>
-                  <input class="f-input" id="sender-name" type="text" value="Design Summit 2026">
-                </div>
-                <div class="form-row" style="border-bottom:none">
-                  <label class="f-label" for="sender-email">Reply-to Email</label>
-                  <div class="f-hint" style="margin-bottom:6px">Attendees who reply to emails will reach this address.
-                  </div>
-                  <input class="f-input" id="sender-email" type="email" value="hello@designsummit.in">
-                </div>
+                <div class="field-wrap" style="margin-bottom:20px"><label class="field-label" for="sender-name">Global
+                    Sender Name</label><input class="f-input" id="sender-name" type="text"
+                    placeholder="e.g. Event Support Team"></div>
+                <div class="field-wrap"><label class="field-label" for="sender-email">Reply-to Destination</label><input
+                    class="f-input" id="sender-email" type="email" placeholder="support@event.com"></div>
               </div>
-              <div class="card-footer">
-                <span class="save-confirm" id="sc-sender"></span>
-                <button class="btn btn-primary btn-sm" onclick="save('sender')">Save changes</button>
-              </div>
+              <div class="action-ftr"><button class="btn btn-primary btn-sm" onclick="save('sender')">Update
+                  Engine</button></div>
             </div>
-
           </section>
 
           <!-- ─────────────── SECTION: TEAM ─────────────── -->
           <section id="sec-team" class="settings-section">
-
             <div class="card">
-              <div class="card-hdr">
+              <div class="card-head-refined"
+                style="display:flex;justify-content:space-between;align-items:center;border:none;margin-bottom:0">
                 <div>
-                  <div class="card-title">Team Members</div>
-                  <div class="card-sub">People with access to manage this event</div>
+                  <div class="card-title">Team Access Control</div>
+                  <div class="card-sub">Assign roles and manage organizational permissions.</div>
                 </div>
-                <button class="btn btn-primary btn-sm" onclick="openInvite()">
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                    <line x1="12" y1="5" x2="12" y2="19" />
-                    <line x1="5" y1="12" x2="19" y2="12" />
-                  </svg>
-                  Invite member
-                </button>
+                <button class="btn btn-primary btn-sm" onclick="openInvite()">+ Invite</button>
               </div>
-
-              <table class="team-table" id="teamTable">
+              <table class="team-table" id="teamTable" style="margin-top:10px">
                 <thead>
                   <tr>
-                    <th>Name</th>
-                    <th>Role</th>
-                    <th>Email</th>
-                    <th>Status</th>
-                    <th></th>
+                    <th>Colleague</th>
+                    <th>Role Alignment</th>
+                    <th>Email / ID</th>
+                    <th>Access Status</th>
+                    <th style="text-align:right">Actions</th>
                   </tr>
                 </thead>
-                <tbody id="teamBody">
-                  <!-- injected by JS -->
-                </tbody>
+                <tbody id="teamBody"></tbody>
               </table>
-              <div class="card-footer">
-                <span class="save-confirm" id="sc-team"></span>
+              <div class="card-footer" style="padding:12px 24px;border-top:1px solid var(--edge)">
+                <div style="font-size:12px;color:var(--ink-3)">Only Admins can modify organizational roles.</div>
+              </div>
+            </div>
+          </section>
+
+          <!-- ─────────────── SECTION: LIVE UPDATES ─────────────── -->
+          <section id="sec-live_updates" class="settings-section">
+            <div class="card">
+              <div class="card-head-refined">
+                <div class="card-title">Live Broadcast Engine</div>
+                <div class="card-sub">Push real-time notifications to the live attendee mobile dashboard.</div>
+              </div>
+              <div class="card-body">
+                <div class="field-wrap" style="margin-bottom:20px"><label class="field-label">Broadcast
+                    Message</label><textarea class="f-textarea"
+                    placeholder="Type a message to push to all attendees..."></textarea></div>
+                <div style="display:flex;gap:10px"><button class="btn btn-primary btn-sm">Push Broadcast</button>
+                  <div class="live-indicator">● Broadcast Node Live</div>
+                </div>
               </div>
             </div>
 
-            <!-- Role permissions reference -->
             <div class="card">
-              <div class="card-hdr">
-                <div>
-                  <div class="card-title">Role Permissions</div>
-                  <div class="card-sub">What each role is allowed to do</div>
+              <div class="card-head-refined">
+                <div class="card-title">Recent Network Activity</div>
+                <div class="card-sub">Live feed of server-side events and attendee interactions.</div>
+              </div>
+              <div class="card-body" id="activityFeed">
+                <div class="activity-feed-row">
+                  <div class="activity-dot" style="background:var(--violet)"></div>
+                  <div class="activity-text"><strong>System:</strong> Event profile updated via Admin panel.</div>
+                  <div class="activity-time">2m ago</div>
+                </div>
+                <div class="activity-feed-row">
+                  <div class="activity-dot" style="background:var(--emerald)"></div>
+                  <div class="activity-text"><strong>Attendee:</strong> New registration confirmed (Ticket #8192).</div>
+                  <div class="activity-time">5m ago</div>
+                </div>
+                <div class="activity-feed-row">
+                  <div class="activity-dot" style="background:var(--azure)"></div>
+                  <div class="activity-text"><strong>Server:</strong> Dashboard metrics force-synced successfully.</div>
+                  <div class="activity-time">12m ago</div>
                 </div>
               </div>
-              <table class="perm-table">
-                <thead>
-                  <tr>
-                    <th>Permission</th>
-                    <th>Admin</th>
-                    <th>Organizer</th>
-                    <th>Staff</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <td>Manage event settings</td>
-                    <td><span class="perm-yes">✓</span></td>
-                    <td><span class="perm-no">—</span></td>
-                    <td><span class="perm-no">—</span></td>
-                  </tr>
-                  <tr>
-                    <td>View analytics</td>
-                    <td><span class="perm-yes">✓</span></td>
-                    <td><span class="perm-yes">✓</span></td>
-                    <td><span class="perm-no">—</span></td>
-                  </tr>
-                  <tr>
-                    <td>Manage attendees</td>
-                    <td><span class="perm-yes">✓</span></td>
-                    <td><span class="perm-yes">✓</span></td>
-                    <td><span class="perm-no">—</span></td>
-                  </tr>
-                  <tr>
-                    <td>Perform check-ins</td>
-                    <td><span class="perm-yes">✓</span></td>
-                    <td><span class="perm-yes">✓</span></td>
-                    <td><span class="perm-yes">✓</span></td>
-                  </tr>
-                  <tr>
-                    <td>Invite team members</td>
-                    <td><span class="perm-yes">✓</span></td>
-                    <td><span class="perm-no">—</span></td>
-                    <td><span class="perm-no">—</span></td>
-                  </tr>
-                </tbody>
-              </table>
-              <div style="height:4px"></div>
             </div>
-
           </section>
 
         </div>
+
         <!-- /settings-panels -->
 
       </div>
@@ -848,16 +719,51 @@
       return name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
     }
 
+
+    /* --- ADMIN / ATTENDEE TAB SWITCHER --- */
+    function switchTab(tab) {
+      // Toggle buttons
+      document.getElementById('tabAdmin').classList.toggle('active', tab === 'admin');
+      document.getElementById('tabAttendee').classList.toggle('active', tab === 'attendee');
+
+      // Toggle nav groups
+      document.querySelectorAll('.settings-nav-group').forEach(g => g.classList.remove('active'));
+      const group = document.getElementById('nav' + tab.charAt(0).toUpperCase() + tab.slice(1));
+      if (group) group.classList.add('active');
+
+      // Default section for tab
+      const defaultSection = tab === 'admin' ? 'operations' : 'registration';
+      const defaultNav = group.querySelector('.snav-item');
+      showSection(defaultSection, defaultNav);
+    }
+
+    /* --- SECTION NAVIGATION --- */
+    function showSection(id, navEl) {
+      document.querySelectorAll('.settings-section').forEach(s => s.classList.remove('active'));
+      document.querySelectorAll('.snav-item').forEach(n => n.classList.remove('active'));
+
+      const sec = document.getElementById('sec-' + id);
+      if (sec) {
+        sec.classList.add('active');
+        // Scroll to top of content
+        document.querySelector('.main').scrollTop = 0;
+      }
+      if (navEl) navEl.classList.add('active');
+
+      if (id === 'operations') loadOperationsSnapshot();
+    }
+
     const ROLE_META = {
-      admin: { cls: 'rp-admin', label: 'Admin' },
-      organizer: { cls: 'rp-org', label: 'Organizer' },
-      staff: { cls: 'rp-staff', label: 'Staff' },
+      admin: { cls: 'rp-admin', label: 'Admin', color: '#7c3aed' },
+      organizer: { cls: 'rp-org', label: 'Organizer', color: '#0284c7' },
+      staff: { cls: 'rp-staff', label: 'Staff', color: '#16a34a' },
     };
 
     function renderTeam() {
       const tbody = document.getElementById('teamBody');
+      if (!tbody) return;
       if (!TEAM.length) {
-        tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;padding:32px;color:var(--ink-3)">No team members yet.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;padding:32px;color:var(--ink-4)">No team members yet.</td></tr>`;
         return;
       }
       tbody.innerHTML = TEAM.map(m => {
@@ -865,23 +771,21 @@
         return `
       <tr>
         <td>
-          <div class="member-cell">
-            <div class="m-av" style="background:${m.color}">${initials(m.name)}</div>
-            <div class="m-name">${escHtml(m.name)}</div>
+          <div style="display:flex;align-items:center;gap:10px">
+            <div style="width:32px;height:32px;border-radius:50%;background:${m.color};color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center">${initials(m.name)}</div>
+            <span style="font-size:14px;font-weight:500;color:var(--ink-0)">${escHtml(m.name)}</span>
           </div>
         </td>
-        <td><span class="role-pill ${r.cls}">${r.label}</span></td>
-        <td class="m-email-cell">${escHtml(m.email)}</td>
-        <td><span class="status-dot ${m.status}">${m.status === 'active' ? 'Active' : 'Pending invite'}</span></td>
+        <td><span style="font-size:11px;font-weight:600;padding:3px 8px;border-radius:99px;background:${r.color}15;color:${r.color};width:fit-content">${r.label}</span></td>
+        <td style="font-size:13px;color:var(--ink-3)">${escHtml(m.email)}</td>
         <td>
-          <div class="row-actions">
-            <select class="role-select" onchange="updateRole(${m.id}, this.value)">
-              <option value="admin" ${m.role === 'admin' ? 'selected' : ''}>Admin</option>
-              <option value="organizer" ${m.role === 'organizer' ? 'selected' : ''}>Organizer</option>
-              <option value="staff" ${m.role === 'staff' ? 'selected' : ''}>Staff</option>
-            </select>
-            <button class="ra-btn danger" onclick="removeMember(${m.id})">Remove</button>
+          <div style="display:flex;align-items:center;gap:6px">
+            <div style="width:7px;height:7px;border-radius:50%;background:${m.status === 'active' ? '#22c55e' : '#f59e0b'}"></div>
+            <span style="font-size:13px;color:${m.status === 'active' ? 'var(--emerald)' : '#d97706'}">${m.status === 'active' ? 'Active' : 'Pending'}</span>
           </div>
+        </td>
+        <td style="text-align:right">
+          ${m.role !== 'admin' ? `<span style="font-size:13px;color:var(--danger);cursor:pointer;font-weight:500" onclick="removeMember(${m.id})">Remove</span>` : ''}
         </td>
       </tr>`;
       }).join('');
@@ -896,8 +800,7 @@
       if (!m) return;
       m.role = newRole;
       renderTeam();
-      save('team'); // Trigger the "Saved" indicator near the card
-      console.log(`Updated user ${id} to role ${newRole}`);
+      save('team');
     }
 
     function removeMember(id) {
@@ -910,35 +813,17 @@
 
     renderTeam();
 
-    /* ── SETTINGS NAV ───────────────────────────────────────── */
-    function showSection(id, navEl) {
-      document.querySelectorAll('.settings-section').forEach(s => s.classList.remove('active'));
-      document.querySelectorAll('.snav-item').forEach(n => n.classList.remove('active'));
-      const sec = document.getElementById('sec-' + id);
-      if (sec) sec.classList.add('active');
-      navEl.classList.add('active');
-      if (id === 'operations') loadOperationsSnapshot();
-    }
-
-    function getSectionForQuery(query) {
-      const q = String(query || '').trim().toLowerCase();
-      if (!q) return '';
-      const sectionRules = [
-        { id: 'operations', words: ['operations', 'overview', 'analytics', 'attendee', 'event'] },
-        { id: 'general', words: ['general', 'name', 'location', 'description'] },
-        { id: 'event', words: ['visibility', 'capacity', 'waitlist', 'public', 'private'] },
-        { id: 'registration', words: ['registration', 'group', 'upgrade', 'verification'] },
-        { id: 'checkin', words: ['checkin', 'check-in', 'qr', 'manual check', 'vip lane'] },
-        { id: 'notifications', words: ['notification', 'email', 'sender', 'reminder', 'feedback'] },
-        { id: 'team', words: ['team', 'member', 'role', 'permission', 'invite'] },
-      ];
-      const match = sectionRules.find(rule => rule.words.some(word => q.includes(word)));
-      return match ? match.id : '';
-    }
-
     function applySettingsSearch(query) {
       const sectionId = getSectionForQuery(query);
       if (!sectionId) return;
+
+      // Detemine if section is Admin or Attendee
+      const adminSections = ['operations', 'general', 'event', 'team', 'notifications', 'danger'];
+      const attendeeSections = ['registration', 'checkin', 'live_updates'];
+
+      if (adminSections.includes(sectionId)) switchTab('admin');
+      else if (attendeeSections.includes(sectionId)) switchTab('attendee');
+
       const navEl = Array.from(document.querySelectorAll('.snav-item'))
         .find(item => (item.getAttribute('onclick') || '').includes(`'${sectionId}'`));
       if (navEl) showSection(sectionId, navEl);
@@ -957,11 +842,11 @@
     }
     setupGlobalSearch();
 
-    /* ── VISIBILITY TOGGLE ──────────────────────────────────── */
     function setVisibility(btn) {
       document.querySelectorAll('#visGroup .vis-opt').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
     }
+
 
     /* ── FETCH CURRENT EVENT DATA ───────────────────────────── */
     const currentEventId = localStorage.getItem('currentEventId');
@@ -1009,32 +894,32 @@
     const userData = normalizeUser(JSON.parse(localStorage.getItem('user') || '{}'));
     const displayName = userData.name || userData.email || 'Admin';
     setText('userName', displayName);
-    setText('userInitials', getInitials(displayName));
 
-    // Logout Binding
-    document.getElementById('logoutBtn').addEventListener('click', () => {
-      if (confirm('Are you sure you want to logout?')) {
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
-        localStorage.removeItem('currentEventId');
-        window.location.href = '/';
-      }
-    });
+
+    setText('userInitials', getInitials(displayName));
 
     async function fetchAdminEvents() {
       if (!token) return [];
-      const res = await fetch('/api/admin/events', {
-        headers: { 'Authorization': 'Bearer ' + token }
-      });
-      if (!res.ok) return [];
-      return parseEventsPayload(await res.json());
+      try {
+        const res = await fetch('/api/admin/events', {
+          headers: { 'Authorization': 'Bearer ' + token }
+        });
+        if (!res.ok) return [];
+        return parseEventsPayload(await res.json());
+      } catch (e) {
+        console.error('fetchAdminEvents error:', e);
+        return [];
+      }
     }
 
     // Update event badge count
     async function updateEventBadge() {
       try {
         const events = await fetchAdminEvents();
-        const badge = document.getElementById('eventBadge');
+        // Update dashboard ops count
+        setText('opsEventsCount', events.length.toLocaleString());
+
+        const badge = document.getElementById('sidebarEventCount');
         if (badge) {
           badge.textContent = String(events.length);
           badge.style.display = events.length > 0 ? '' : 'none';
@@ -1346,10 +1231,24 @@
       document.getElementById('sec-team').scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
 
+
     /* ── KEYBOARD SHORTCUTS ─────────────────────────────────── */
     document.addEventListener('keydown', e => {
       if (e.key === 'Escape') closeInvite();
     });
+
+    // Logout Binding
+    const logoutBtn = document.getElementById('logoutBtn');
+    if (logoutBtn) {
+      logoutBtn.addEventListener('click', () => {
+        if (confirm('Are you sure you want to logout?')) {
+          localStorage.removeItem('token');
+          localStorage.removeItem('user');
+          localStorage.removeItem('currentEventId');
+          window.location.href = '/';
+        }
+      });
+    }
 
     /* ── INJECT SPIN KEYFRAME ───────────────────────────────── */
     const style = document.createElement('style');

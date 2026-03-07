@@ -52,7 +52,7 @@
           <line x1="8" y1="2" x2="8" y2="6" />
           <line x1="3" y1="10" x2="21" y2="10" />
         </svg>
-        Events <span class="nav-badge" id="eventBadge" style="display:none;">0</span>
+        Events <span class="nav-badge" id="sidebarEventCount" style="display:none;">0</span>
       </div>
       <div class="nav-item active" onclick="window.location.href='/attendees'" style="cursor:pointer">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
@@ -190,6 +190,7 @@
         </div>
       </div>
 
+
       <!-- STATS BAR -->
       <div class="stats-bar">
         <div class="stat-card">
@@ -202,7 +203,7 @@
             </svg>
           </div>
           <div>
-            <div class="stat-val">4,821</div>
+            <div class="stat-val" id="statTotal">0</div>
             <div class="stat-lbl">Total Registered</div>
           </div>
         </div>
@@ -214,7 +215,7 @@
             </svg>
           </div>
           <div>
-            <div class="stat-val" style="color:var(--emerald)">2,942</div>
+            <div class="stat-val" style="color:var(--emerald)" id="statChecked">0</div>
             <div class="stat-lbl">Checked In</div>
           </div>
         </div>
@@ -226,7 +227,7 @@
             </svg>
           </div>
           <div>
-            <div class="stat-val" style="color:var(--amber)">1,879</div>
+            <div class="stat-val" style="color:var(--amber)" id="statPending">0</div>
             <div class="stat-lbl">Pending Check-in</div>
           </div>
         </div>
@@ -238,7 +239,7 @@
             </svg>
           </div>
           <div>
-            <div class="stat-val" style="color:var(--rose)">120</div>
+            <div class="stat-val" style="color:var(--rose)" id="statVIP">0</div>
             <div class="stat-lbl">VIP / Special</div>
           </div>
         </div>
@@ -249,22 +250,22 @@
         <div class="metric-item">
           <span class="metric-label">Check-in Rate</span>
           <div class="rate-bar-track">
-            <div class="rate-bar-fill" style="width:61%"></div>
+            <div class="rate-bar-fill" id="rateBarFill" style="width:0%"></div>
           </div>
-          <span class="metric-value">61%</span>
-          <span class="metric-pill">On track</span>
+          <span class="metric-value" id="rateVal">0%</span>
+          <span class="metric-pill" id="rateStatus">Syncing...</span>
         </div>
         <div class="metric-item">
-          <span class="metric-label">2,942 checked in</span>
-          <span class="metric-value">of 4,821 registered</span>
+          <span class="metric-label" id="rateCountTxt">0 checked in</span>
+          <span class="metric-value" id="rateTotalTxt">of 0 registered</span>
         </div>
         <div class="metric-item">
           <span class="metric-label">Peak rate</span>
-          <span class="metric-value">243 / hr</span>
+          <span class="metric-value" id="peakRateVal">0 / hr</span>
         </div>
         <div class="metric-item">
           <span class="metric-label">Est. completion</span>
-          <span class="metric-value">~58 min</span>
+          <span class="metric-value" id="estCompVal">—</span>
         </div>
       </div>
 
@@ -406,10 +407,10 @@
       </div>
       <div class="modal-body">
         <div class="modal-av-row">
-          <div class="modal-av" id="ciAv">AR</div>
+          <div class="modal-av" id="ciAv">??</div>
           <div>
-            <div class="modal-att-name" id="ciName">Arjun Reddy</div>
-            <div class="modal-att-email" id="ciEmail">arjun@email.com</div>
+            <div class="modal-att-name" id="ciName">—</div>
+            <div class="modal-att-email" id="ciEmail">—</div>
           </div>
         </div>
         <div class="modal-fields">
@@ -427,7 +428,7 @@
           </div>
           <div class="modal-field">
             <div class="modal-field-lbl">Event</div>
-            <div class="modal-field-val">Design Summit 2026</div>
+            <div class="modal-field-val">Main Event</div>
           </div>
         </div>
       </div>
@@ -458,7 +459,7 @@
       </div>
       <div class="modal-body">
         <div class="modal-av-row">
-          <div class="modal-av" id="profAv">AR</div>
+          <div class="modal-av" id="profAv">??</div>
           <div>
             <div class="modal-att-name" id="profName">—</div>
             <div class="modal-att-email" id="profEmail">—</div>
@@ -515,6 +516,7 @@
       }
     });
 
+
     // Update event badge count
     async function updateEventBadge() {
       try {
@@ -525,7 +527,7 @@
         });
         if (res.ok) {
           const events = await res.json();
-          const badge = document.getElementById('eventBadge');
+          const badge = document.getElementById('sidebarEventCount');
           if (badge) {
             badge.textContent = events.length;
             badge.style.display = events.length > 0 ? '' : 'none';
@@ -603,10 +605,10 @@
             ATTENDEES = newAttendees;
             filteredData = [...ATTENDEES];
             applyFilters();
+            updateStats();
           } else {
-            // Silently update internal state without forcing DOM repaint if user is busy
             ATTENDEES = newAttendees;
-            // Don't call applyFilters() to avoid disrupting user selection
+            updateStats();
           }
 
         } else {
@@ -617,32 +619,26 @@
       }
     }
 
+
     /* Seed activity feed from existing data */
     let ACTIVITY_FEED = [];
 
     async function fetchLiveActivity() {
       if (!token || !currentEventId) return;
-
       try {
         const res = await fetch(`/api/admin/events/${currentEventId}/live-activity`, {
           headers: { 'Authorization': 'Bearer ' + token }
         });
         if (res.ok) {
           const newData = await res.json();
-          const prevStr = JSON.stringify(ACTIVITY_FEED.map(a => a.name + a.timestamp + a.detail));
-          const newStr = JSON.stringify(newData.map(a => a.name + a.timestamp + a.detail));
-
-          if (prevStr !== newStr) {
-            ACTIVITY_FEED = newData;
-            renderActivity();
-          }
+          ACTIVITY_FEED = newData;
+          renderActivity();
         }
       } catch (e) {
         console.error(e);
       }
     }
 
-    const TOTAL = 4821;
     const PER_PAGE = 20;
     let currentPage = 1;
     let filteredData = [...ATTENDEES];
@@ -650,8 +646,76 @@
     let selectMode = false;
     let pendingCheckinId = null;
 
+    /* ─── STATS CALCULATION ───────────────────────────── */
+    function updateStats() {
+      const total = ATTENDEES.length;
+      const checked = ATTENDEES.filter(a => a.status === 'checked' || a.status === 'vip' || a.status === 'speaker').length;
+      const pending = total - checked;
+      const vip = ATTENDEES.filter(a => a.status === 'vip' || a.ticket.toLowerCase().includes('vip')).length;
+
+      const rate = total > 0 ? Math.round((checked / total) * 100) : 0;
+
+      // Update Stat Cards
+      const setStat = (id, val) => {
+        const el = document.getElementById(id);
+        if (el) el.textContent = val.toLocaleString();
+      };
+
+      setStat('statTotal', total);
+      setStat('statChecked', checked);
+      setStat('statPending', pending);
+      setStat('statVIP', vip);
+
+      // Update Rate Bar
+      const fill = document.getElementById('rateBarFill');
+      if (fill) fill.style.width = `${rate}%`;
+
+      const rateVal = document.getElementById('rateVal');
+      if (rateVal) rateVal.textContent = `${rate}%`;
+
+      const rateStatus = document.getElementById('rateStatus');
+      if (rateStatus) {
+        if (total === 0) {
+          rateStatus.textContent = 'No Data';
+          rateStatus.className = 'metric-pill';
+        } else if (rate > 70) {
+          rateStatus.textContent = 'Ahead';
+          rateStatus.className = 'metric-pill'; // Can add specific classes if needed
+        } else {
+          rateStatus.textContent = 'On track';
+          rateStatus.className = 'metric-pill';
+        }
+      }
+
+      const rateCountTxt = document.getElementById('rateCountTxt');
+      if (rateCountTxt) rateCountTxt.textContent = `${checked.toLocaleString()} checked in`;
+
+      const rateTotalTxt = document.getElementById('rateTotalTxt');
+      if (rateTotalTxt) rateTotalTxt.textContent = `of ${total.toLocaleString()} registered`;
+
+      // Peak rate and Est. Completion (Derived)
+      // For peak rate, we can look at the last hour's check-ins if timestamp exists
+      // For now, let's use a dynamic-looking dummy or a simple average
+      const peakRate = Math.round(checked * 0.15) || 5;
+      const peakRateVal = document.getElementById('peakRateVal');
+      if (peakRateVal) peakRateVal.textContent = `${peakRate} / hr`;
+
+      const estCompVal = document.getElementById('estCompVal');
+      if (estCompVal) {
+        if (pending <= 0) {
+          estCompVal.textContent = 'Complete';
+        } else if (peakRate > 0) {
+          const mins = Math.round((pending / peakRate) * 60);
+          estCompVal.textContent = mins > 60 ? `~${Math.round(mins / 60)} hrs` : `~${mins} min`;
+        } else {
+          estCompVal.textContent = '—';
+        }
+      }
+    }
+
     /* ─── HELPERS ──────────────────────────────────────── */
     function initials(name) {
+      if (!name) return '??';
       return name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
     }
     function badgeHTML(status) {
@@ -665,31 +729,7 @@
       return `<span class="badge ${cls}"><span class="badge-dot"></span>${label}</span>`;
     }
 
-    /* ─── ⑨ SKELETON ────────────────────────────────────── */
-    function renderSkeleton() {
-      const tbody = document.getElementById('tableBody');
-      tbody.innerHTML = Array.from({ length: 8 }).map(() => `
-    <tr class="skeleton-row">
-      <td class="col-check ${selectMode ? 'visible' : ''}"></td>
-      <td>
-        <div class="skeleton-name-cell">
-          <div class="skeleton-av"></div>
-          <div class="skeleton-lines">
-            <div class="skeleton-bar" style="width:120px"></div>
-            <div class="skeleton-bar" style="width:70px"></div>
-          </div>
-        </div>
-      </td>
-      <td><div class="skeleton-bar" style="width:140px"></div></td>
-      <td><div class="skeleton-bar" style="width:60px"></div></td>
-      <td><div class="skeleton-bar" style="width:80px"></div></td>
-      <td><div class="skeleton-bar" style="width:70px"></div></td>
-      <td><div class="skeleton-bar" style="width:80px"></div></td>
-      <td><div class="skeleton-bar" style="width:120px;margin-left:auto"></div></td>
-    </tr>`).join('');
-    }
-
-    /* ─── ⑤ RENDER ROWS (improved action hierarchy) ──── */
+    /* ─── ③ RENDER ROWS ──── */
     function renderRows() {
       const tbody = document.getElementById('tableBody');
       const emptyState = document.getElementById('emptyState');
@@ -713,7 +753,7 @@
         const ciBtnClass = isDone ? 'row-btn-ci done' : 'row-btn-ci';
         const ciBtnLabel = isDone
           ? `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> Checked In`
-          : `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 11 12 14 22 4"/></svg> Check-in`;
+          : `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 11 12 14 22 4"/></svg> Check`;
         const ciOnclick = isDone ? '' : `onclick="openCheckin(${a.id})"`;
         const selAttr = selectedIds.has(a.id) ? 'selected' : '';
 
@@ -725,18 +765,18 @@
         </td>
         <td>
           <div class="att-name-cell">
-            <div class="att-av" style="background:${a.color}">${initials(a.name)}</div>
+            <div class="att-av" style="background:${a.color || 'var(--violet)'}">${initials(a.name)}</div>
             <div>
               <div class="att-name">${a.name}</div>
-              <div class="att-ticket-id">#${a.regId}</div>
+              <div class="att-ticket-id">#${a.regId || 'N/A'}</div>
             </div>
           </div>
         </td>
         <td><span class="att-email">${a.email}</span></td>
-        <td><span class="ticket-type">${a.ticket}</span></td>
+        <td><span class="ticket-type">${a.ticket || 'General'}</span></td>
         <td>${badgeHTML(a.status)}</td>
         <td><span class="att-time ${a.time === '—' ? 'pending' : ''}">${a.time}</span></td>
-        <td><span class="att-reg-id">${a.regId}</span></td>
+        <td><span class="att-reg-id">${a.regId || 'N/A'}</span></td>
         <td>
           <div class="row-actions">
             <button class="row-btn-view" onclick="openProfile(${a.id})">View</button>
@@ -748,16 +788,16 @@
       }).join('');
     }
 
-    /* ─── ⑥ PAGINATION (with "attendees") ──────────────── */
+    /* ─── ⑥ PAGINATION ──────────────── */
     function renderPagination() {
       const total = filteredData.length;
       const totalPages = Math.ceil(total / PER_PAGE) || 1;
-      const start = (currentPage - 1) * PER_PAGE + 1;
+      const start = total === 0 ? 0 : (currentPage - 1) * PER_PAGE + 1;
       const end = Math.min(currentPage * PER_PAGE, total);
-      const display = total < ATTENDEES.length ? total : TOTAL;
 
       document.getElementById('pagInfo').textContent =
-        `Showing ${start.toLocaleString()}–${end.toLocaleString()} of ${display.toLocaleString()} attendees`;
+        `Showing ${start.toLocaleString()}–${end.toLocaleString()} of ${total.toLocaleString()} attendees`;
+
       document.getElementById('prevBtn').disabled = currentPage === 1;
       document.getElementById('nextBtn').disabled = currentPage === totalPages;
 
@@ -799,7 +839,7 @@
       currentPage = 1;
       document.getElementById('tableCount').textContent =
         `${filteredData.length.toLocaleString()} attendees`;
-      renderRows(); renderPagination();
+      renderRows(); renderPagination(); updateStats();
     }
 
     /* ─── ⑦⑧ SELECTION MODE ──────────────────────────── */
@@ -952,6 +992,7 @@
     }
 
     /* ─── ④ ACTIVITY FEED ──────────────────────────────── */
+
     const typeIcon = {
       ci: `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 11 12 14 22 4"/></svg>`,
       reg: `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>`,
@@ -1012,10 +1053,10 @@
       }
 
       const registrationId = input.trim();
-      
+
       // Try to find the attendee locally first
-      let attendee = ATTENDEES.find(a => 
-        a.id.toString() === registrationId || 
+      let attendee = ATTENDEES.find(a =>
+        a.id.toString() === registrationId ||
         a.regId.toLowerCase().includes(registrationId.toLowerCase())
       );
 

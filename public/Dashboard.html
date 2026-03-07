@@ -52,7 +52,7 @@
           <line x1="8" y1="2" x2="8" y2="6" />
           <line x1="3" y1="10" x2="21" y2="10" />
         </svg>
-        Events <span class="nav-badge">3</span>
+        Events <span class="nav-badge" id="sidebarEventCount" style="display:none;">0</span>
       </div>
       <div class="nav-item" onclick="window.location.href='/attendees'" style="cursor:pointer">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
@@ -337,6 +337,11 @@
           adminEvents = await pubRes.json();
         } else {
           adminEvents = await res.json();
+          const badge = document.getElementById('sidebarEventCount');
+          if (badge) {
+            badge.textContent = adminEvents.length;
+            badge.style.display = adminEvents.length > 0 ? '' : 'none';
+          }
         }
         const evSel = document.querySelector('.ev-sel span');
         if (adminEvents.length > 0) {
@@ -350,9 +355,10 @@
           }
           loadStats(currentEventId);
           loadRecentCheckins(currentEventId);
+
         } else {
-          evSel.textContent = 'No events yet';
-          document.querySelector('.ev-meta').textContent = 'Create your first event!';
+          // If no events, redirect to empty state page
+          window.location.href = '/emptypages.html';
         }
       } catch (e) {
         console.error('Failed to load events:', e);

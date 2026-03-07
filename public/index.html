@@ -526,11 +526,25 @@
       const user = JSON.parse(localStorage.getItem('user') || 'null');
       if (token && user) {
         const navActions = document.querySelector('.nav-actions');
-        navActions.innerHTML = `
-          <span style="font-size:14px;color:#333;font-weight:500">Hi, ${user.name || user.email}</span>
-          <button class="btn-fill-sm" onclick="window.location.href='/dashboard'">Dashboard</button>
-          <button class="btn-ghost-sm" onclick="localStorage.removeItem('token');localStorage.removeItem('user');window.location.reload()">Logout</button>
-        `;
+        if (navActions) {
+          navActions.innerHTML = `
+            <span style="font-size:14px;color:#333;font-weight:500">Hi, ${user.name || user.email}</span>
+            <button class="btn-fill-sm" onclick="window.location.href='/dashboard'">Dashboard</button>
+            <button class="btn-ghost-sm" onclick="localStorage.removeItem('token');localStorage.removeItem('user');window.location.reload()">Logout</button>
+          `;
+        }
+        
+        // Update Hero and CTA buttons
+        const heroBtn = document.querySelector('.btn-hero-p');
+        const ctaBtn = document.querySelector('.btn-cta-xl');
+        if (heroBtn) {
+          heroBtn.innerHTML = `Go to Dashboard <svg class="arrow" width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M2.5 7h9M7 2.5L11.5 7 7 11.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" /></svg>`;
+          heroBtn.onclick = () => window.location.href = '/dashboard';
+        }
+        if (ctaBtn) {
+          ctaBtn.innerHTML = `Go to Dashboard <svg class="arrow" width="15" height="15" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M2.5 7h9M7 2.5L11.5 7 7 11.5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" /></svg>`;
+          ctaBtn.onclick = () => window.location.href = '/dashboard';
+        }
       }
     })();
   </script>
