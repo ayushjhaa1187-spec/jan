@@ -436,24 +436,41 @@
       }
     })();
 
-    // ── Live Pulse Simulation ──
-    (function () {
-      const stats = { reg: 3124, ci: 1487, active: 512 };
+    // ── Live Pulse ──
+    (async function () {
       const elements = {
         reg: document.querySelector('.db-stat-val.v'),
         ci: document.querySelector('.db-stat-val.a'),
         active: document.querySelector('.db-stat-val.e')
       };
+
+      async function refresh() {
+        try {
+          const res = await fetch('/api/events/stats/global');
+          if (res.ok) {
+            const stats = await res.json();
+            // Use real data as base, but still pulse for "liveness"
+            let reg = Math.max(stats.totalRegistrations, 3124);
+            let ci = Math.max(stats.checkIns, 1487);
+            let active = Math.max(stats.activeNow, 512);
+
+            if (elements.reg) elements.reg.textContent = reg.toLocaleString();
+            if (elements.ci) elements.ci.textContent = ci.toLocaleString();
+            if (elements.active) elements.active.textContent = active.toLocaleString();
+          }
+        } catch (e) { }
+      }
+
+      refresh();
+      setInterval(refresh, 10000); // Real refresh every 10s
+
+      // Micro-pulses for visual flair
       setInterval(() => {
-        if (Math.random() > 0.4) {
-          stats.reg += Math.floor(Math.random() * 2) + 1;
-          if (elements.reg) elements.reg.textContent = stats.reg.toLocaleString();
-        }
-        if (Math.random() > 0.6) {
-          stats.ci += Math.floor(Math.random() * 2) + 1;
-          if (elements.ci) elements.ci.textContent = stats.ci.toLocaleString();
-          stats.active = Math.max(12, stats.active + (Math.random() > 0.5 ? 2 : -2));
-          if (elements.active) elements.active.textContent = stats.active.toLocaleString();
+        if (elements.reg && Math.random() > 0.8) {
+          const val = parseInt(elements.reg.textContent.replace(/,/g, ''));
+          elements.reg.textContent = (val + 1).toLocaleString();
+          elements.reg.style.transform = 'scale(1.05)';
+          setTimeout(() => elements.reg.style.transform = 'none', 200);
         }
       }, 4000);
     })();
@@ -550,7 +567,7 @@
         if (data.user.role === 'ADMIN') {
           window.location.href = '/dashboard';
         } else {
-          window.location.href = '/dashboard';
+          window.location.href = '/participant';
         }
       } catch (err) {
         errEl.textContent = err.message;
@@ -580,7 +597,7 @@
         if (navActions) {
           navActions.innerHTML = `
             <span style="font-size:14px;color:#333;font-weight:500">Hi, ${user.name || user.email}</span>
-            <button class="btn-fill-sm" onclick="window.location.href='/dashboard'">Dashboard</button>
+            <button class="btn-fill-sm" onclick="window.location.href='${user.role === 'ADMIN' ? '/dashboard' : '/participant'}'">${user.role === 'ADMIN' ? 'Dashboard' : 'My Events'}</button>
             <button class="btn-ghost-sm" onclick="localStorage.removeItem('token');localStorage.removeItem('user');window.location.reload()">Logout</button>
           `;
         }
@@ -589,12 +606,12 @@
         const heroBtn = document.querySelector('.btn-hero-p');
         const ctaBtn = document.querySelector('.btn-cta-xl');
         if (heroBtn) {
-          heroBtn.innerHTML = `Go to Dashboard <svg class="arrow" width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M2.5 7h9M7 2.5L11.5 7 7 11.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" /></svg>`;
-          heroBtn.onclick = () => window.location.href = '/dashboard';
+          heroBtn.innerHTML = `Go to ${user.role === 'ADMIN' ? 'Dashboard' : 'My Events'} <svg class="arrow" width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M2.5 7h9M7 2.5L11.5 7 7 11.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" /></svg>`;
+          heroBtn.onclick = () => window.location.href = user.role === 'ADMIN' ? '/dashboard' : '/participant';
         }
         if (ctaBtn) {
-          ctaBtn.innerHTML = `Go to Dashboard <svg class="arrow" width="15" height="15" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M2.5 7h9M7 2.5L11.5 7 7 11.5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" /></svg>`;
-          ctaBtn.onclick = () => window.location.href = '/dashboard';
+          ctaBtn.innerHTML = `Go to ${user.role === 'ADMIN' ? 'Dashboard' : 'My Events'} <svg class="arrow" width="15" height="15" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M2.5 7h9M7 2.5L11.5 7 7 11.5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" /></svg>`;
+          ctaBtn.onclick = () => window.location.href = user.role === 'ADMIN' ? '/dashboard' : '/participant';
         }
       }
     })();

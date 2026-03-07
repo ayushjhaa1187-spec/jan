@@ -713,6 +713,16 @@
       { id: 3, name: 'Arjun Reddy', email: 'arjun.reddy@mail.com', role: 'staff', status: 'active', color: '#0aaa6e' },
       { id: 4, name: 'Priya Sharma', email: 'priya@techpulse.com', role: 'organizer', status: 'pending', color: '#b030d8' },
     ];
+
+    // Personalize Admin if possible
+    (function () {
+      const storedUser = JSON.parse(localStorage.getItem('user') || 'null');
+      if (storedUser && storedUser.email) {
+        TEAM[0].name = storedUser.name || storedUser.email.split('@')[0];
+        TEAM[0].email = storedUser.email;
+      }
+    })();
+
     let nextId = 5;
 
     function initials(name) {
@@ -766,14 +776,19 @@
         tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;padding:32px;color:var(--ink-4)">No team members yet.</td></tr>`;
         return;
       }
+
+      const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
+
       tbody.innerHTML = TEAM.map(m => {
         const r = ROLE_META[m.role] || ROLE_META.staff;
+        const isSelf = m.email === currentUser.email;
+
         return `
-      <tr>
+      <tr style="${isSelf ? 'background: rgba(96,64,240,0.03)' : ''}">
         <td>
           <div style="display:flex;align-items:center;gap:10px">
             <div style="width:32px;height:32px;border-radius:50%;background:${m.color};color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center">${initials(m.name)}</div>
-            <span style="font-size:14px;font-weight:500;color:var(--ink-0)">${escHtml(m.name)}</span>
+            <span style="font-size:14px;font-weight:500;color:var(--ink-0)">${escHtml(m.name)}${isSelf ? ' <span style="font-weight:400;color:var(--ink-3);font-size:12px">(You)</span>' : ''}</span>
           </div>
         </td>
         <td><span style="font-size:11px;font-weight:600;padding:3px 8px;border-radius:99px;background:${r.color}15;color:${r.color};width:fit-content">${r.label}</span></td>
@@ -785,7 +800,7 @@
           </div>
         </td>
         <td style="text-align:right">
-          ${m.role !== 'admin' ? `<span style="font-size:13px;color:var(--danger);cursor:pointer;font-weight:500" onclick="removeMember(${m.id})">Remove</span>` : ''}
+          ${(m.role !== 'admin' && !isSelf) ? `<span style="font-size:13px;color:var(--danger);cursor:pointer;font-weight:500" onclick="removeMember(${m.id})">Remove</span>` : ''}
         </td>
       </tr>`;
       }).join('');

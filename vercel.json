@@ -51,6 +51,30 @@
             "dest": "/src/index.ts"
         },
         {
+            "src": "/profile",
+            "dest": "/src/index.ts"
+        },
+        {
+            "src": "/privacy",
+            "dest": "/src/index.ts"
+        },
+        {
+            "src": "/terms",
+            "dest": "/src/index.ts"
+        },
+        {
+            "src": "/status",
+            "dest": "/src/index.ts"
+        },
+        {
+            "src": "/participant",
+            "dest": "/src/index.ts"
+        },
+        {
+            "src": "/admin",
+            "dest": "/src/index.ts"
+        },
+        {
             "src": "/(.*)",
             "dest": "/src/index.ts"
         }

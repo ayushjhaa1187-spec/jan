@@ -579,6 +579,13 @@
     updateEventName();
 
     let ATTENDEES = [];
+    let currentPage = 1;
+    let totalAttendees = 0;
+    const PER_PAGE = 15;
+    let filteredData = []; // Still useful for client-side search within the current page or full fetch
+    let selectedIds = new Set();
+    let selectMode = false;
+    let pendingCheckinId = null;
 
     async function fetchAttendees() {
       if (!token) {
@@ -594,37 +601,31 @@
       }
 
       try {
-        const res = await fetch(`/api/admin/events/${currentEventId}/attendees`, {
+        const res = await fetch(`/api/admin/events/${currentEventId}/attendees?page=${currentPage}&limit=${PER_PAGE}`, {
           headers: { 'Authorization': 'Bearer ' + token }
         });
         if (res.ok) {
-          const data = await res.json();
-          // Assuming data is an array of attendees
-          const newAttendees = data.map((attendee, index) => ({
-            id: attendee.id || `MOCK-${index + 1}`,
+          const payload = await res.json();
+          const { registrations, total } = payload;
+
+          totalAttendees = total || 0;
+
+          const newAttendees = (registrations || []).map((attendee, index) => ({
+            id: attendee.id,
             name: attendee.user?.profile?.name || attendee.user?.name || attendee.name || 'Unknown User',
             email: attendee.user?.email || attendee.email || 'Unknown Email',
             ticket: attendee.ticketType || (index % 10 === 0 ? 'VIP' : 'General'),
             status: attendee.status ? attendee.status.toLowerCase() : 'registered',
             time: attendee.checkinTime ? new Date(attendee.checkinTime).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }) : '—',
-            regId: (attendee.id || '').toString().slice(-8).toUpperCase() || `REG-${index + 1000}`,
+            regId: (attendee.id || '').toString().slice(-8).toUpperCase(),
             color: ['#6040f0', '#1a96d8', '#0aaa6e', '#b030d8', '#d97706'][index % 5]
           }));
 
-          // Only update DOM if the data strictly changed (e.g. length changed or a specific status changed), OR if forcing
-          const prevStr = JSON.stringify(ATTENDEES.map(a => a.id + a.status + a.time));
-          const newStr = JSON.stringify(newAttendees.map(a => a.id + a.status + a.time));
-
-          if (prevStr !== newStr && selectedIds.size === 0 && !document.getElementById('profileModal').classList.contains('open') && !document.getElementById('ciModal').classList.contains('open')) {
-            ATTENDEES = newAttendees;
-            filteredData = [...ATTENDEES];
-            applyFilters();
-            updateStats();
-          } else {
-            ATTENDEES = newAttendees;
-            updateStats();
-          }
-
+          ATTENDEES = newAttendees;
+          filteredData = [...ATTENDEES];
+          renderRows();
+          renderPagination();
+          updateStats();
         } else {
           console.error('Failed to fetch attendees:', await res.text());
         }
@@ -653,17 +654,12 @@
       }
     }
 
-    const PER_PAGE = 20;
-    let currentPage = 1;
-    let filteredData = [...ATTENDEES];
-    let selectedIds = new Set();
-    let selectMode = false;
-    let pendingCheckinId = null;
+
 
     /* ─── STATS CALCULATION ───────────────────────────── */
     function updateStats() {
-      const total = ATTENDEES.length;
-      const checked = ATTENDEES.filter(a => a.status === 'checked' || a.status === 'vip' || a.status === 'speaker').length;
+      const total = totalAttendees;
+      const checked = ATTENDEES.filter(a => a.status === 'checked' || a.status === 'checked_in' || a.status === 'vip' || a.status === 'speaker').length;
       const pending = total - checked;
       const vip = ATTENDEES.filter(a => a.status === 'vip' || a.ticket.toLowerCase().includes('vip')).length;
 
@@ -758,12 +754,11 @@
       emptyState.style.display = 'none';
       pagBar.style.display = 'flex';
 
-      const start = (currentPage - 1) * PER_PAGE;
-      const slice = filteredData.slice(start, start + PER_PAGE);
+      const slice = filteredData; // Slice is already done by server
       const chkClass = `col-check${selectMode ? ' visible' : ''}`;
 
       tbody.innerHTML = slice.map(a => {
-        const isDone = a.status === 'checked' || a.status === 'vip' || a.status === 'speaker';
+        const isDone = a.status === 'checked' || a.status === 'checked_in' || a.status === 'vip' || a.status === 'speaker';
         const ciBtnClass = isDone ? 'row-btn-ci done' : 'row-btn-ci';
         const ciBtnLabel = isDone
           ? `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> Checked In`
@@ -804,7 +799,7 @@
 
     /* ─── ⑥ PAGINATION ──────────────── */
     function renderPagination() {
-      const total = filteredData.length;
+      const total = totalAttendees;
       const totalPages = Math.ceil(total / PER_PAGE) || 1;
       const start = total === 0 ? 0 : (currentPage - 1) * PER_PAGE + 1;
       const end = Math.min(currentPage * PER_PAGE, total);
@@ -834,11 +829,13 @@
     }
 
     function changePage(dir) {
-      const total = Math.ceil(filteredData.length / PER_PAGE) || 1;
-      currentPage = Math.max(1, Math.min(total, currentPage + dir));
-      renderRows(); renderPagination();
+      const totalPages = Math.ceil(totalAttendees / PER_PAGE) || 1;
+      if (currentPage + dir > 0 && currentPage + dir <= totalPages) {
+        currentPage += dir;
+        fetchAttendees();
+      }
     }
-    function goPage(p) { currentPage = p; renderRows(); renderPagination(); }
+    function goPage(p) { currentPage = p; fetchAttendees(); }
 
     /* ─── SEARCH + FILTER ──────────────────────────────── */
     function applyFilters() {
@@ -907,40 +904,94 @@
       const cnt = document.getElementById('bulkCount');
       cnt.textContent = `${selectedIds.size} selected`;
       bar.classList.toggle('visible', selectMode && selectedIds.size > 0);
+
+      // Update button states
+      const ciBtn = document.querySelector('.bulk-btn-ci');
+      const delBtn = document.querySelector('.bulk-btn-del');
+      if (ciBtn) ciBtn.disabled = selectedIds.size === 0;
+      if (delBtn) delBtn.disabled = selectedIds.size === 0;
     }
 
     /* ─── BULK ACTIONS ──────────────────────────────────── */
-    function bulkCheckin() {
-      selectedIds.forEach(id => {
-        const a = ATTENDEES.find(x => x.id === id);
-        if (a && a.status === 'registered') {
-          a.status = 'checked';
-          a.time = now();
-          pushActivity({ type: 'ci', name: a.name, detail: 'Checked in · ' + a.ticket, ago: 'just now' });
+    async function bulkCheckin() {
+      if (selectedIds.size === 0) return;
+      const ids = Array.from(selectedIds);
+      try {
+        const res = await fetch('/api/admin/registrations/bulk-checkin', {
+          method: 'POST',
+          headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ids })
+        });
+        if (res.ok) {
+          selectedIds.clear();
+          document.getElementById('selectAll').checked = false;
+          updateBulkBar(); fetchAttendees();
         }
-      });
-      selectedIds.clear();
-      document.getElementById('selectAll').checked = false;
-      updateBulkBar(); applyFilters();
+      } catch (e) {
+        alert('Bulk check-in failed');
+      }
     }
     function bulkExport() { alert(`Exporting ${selectedIds.size} selected attendees…`); }
-    function bulkDelete() {
+    async function bulkDelete() {
+      if (selectedIds.size === 0) return;
       if (!confirm(`Remove ${selectedIds.size} attendees?`)) return;
-      selectedIds.forEach(id => {
-        const idx = ATTENDEES.findIndex(x => x.id === id);
-        if (idx > -1) ATTENDEES.splice(idx, 1);
-      });
-      selectedIds.clear();
-      document.getElementById('selectAll').checked = false;
-      updateBulkBar(); applyFilters();
+      const ids = Array.from(selectedIds);
+      try {
+        const res = await fetch('/api/admin/registrations/bulk-delete', {
+          method: 'POST',
+          headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ids })
+        });
+        if (res.ok) {
+          selectedIds.clear();
+          document.getElementById('selectAll').checked = false;
+          updateBulkBar(); fetchAttendees();
+        }
+      } catch (e) {
+        alert('Bulk delete failed');
+      }
     }
 
     /* ─── SINGLE ROW ACTIONS ────────────────────────────── */
     function removeAttendee(id) {
-      if (!confirm('Remove this attendee?')) return;
-      const idx = ATTENDEES.findIndex(x => x.id === id);
-      if (idx > -1) ATTENDEES.splice(idx, 1);
-      applyFilters();
+      const a = ATTENDEES.find(x => x.id === id);
+      if (!a) return;
+
+      // Styled Confirmation Modal
+      const modal = document.createElement('div');
+      modal.className = 'modal-overlay open';
+      modal.style.zIndex = '9999';
+      modal.innerHTML = `
+        <div class="modal" style="max-width: 400px; padding: 24px; text-align: center;">
+          <div style="width: 50px; height: 50px; background: rgba(220,38,38,0.1); color: #dc2626; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px;">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path><path d="M10 11v6"></path><path d="M14 11v6"></path><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"></path></svg>
+          </div>
+          <h3 style="font-size: 18px; font-weight: 700; margin-bottom: 8px; color: var(--ink-0);">Remove attendee?</h3>
+          <p style="font-size: 14px; color: var(--ink-2); margin-bottom: 24px;">This will permanently delete <strong>${a.name}</strong>'s registration for this event.</p>
+          <div style="display: flex; gap: 12px;">
+            <button class="btn btn-sec" style="flex:1" onclick="this.closest('.modal-overlay').remove()">Cancel</button>
+            <button class="btn btn-danger" style="flex:1" id="confirmDeleteAttBtn">Remove</button>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(modal);
+
+      document.getElementById('confirmDeleteAttBtn').onclick = async () => {
+        try {
+          const res = await fetch(`/api/admin/registrations/${id}`, {
+            method: 'DELETE',
+            headers: { 'Authorization': 'Bearer ' + token }
+          });
+          if (res.ok) {
+            modal.remove();
+            fetchAttendees();
+          } else {
+            alert('Failed to delete participant');
+          }
+        } catch (e) {
+          alert('Error deleting participant');
+        }
+      };
     }
 
     /* ─── CHECK-IN MODAL ───────────────────────────────── */
@@ -957,15 +1008,22 @@
       document.getElementById('ciStatus').textContent = a.status.charAt(0).toUpperCase() + a.status.slice(1);
       openModal('ciModal');
     }
-    function confirmCheckin() {
-      const a = ATTENDEES.find(x => x.id === pendingCheckinId);
-      if (a) {
-        a.status = 'checked';
-        a.time = now();
-        pushActivity({ type: 'ci', name: a.name, detail: 'Checked in · ' + a.ticket, ago: 'just now' });
+    async function confirmCheckin() {
+      if (!pendingCheckinId) return;
+      try {
+        const res = await fetch(`/api/admin/registrations/${pendingCheckinId}/checkin`, {
+          method: 'POST',
+          headers: { 'Authorization': 'Bearer ' + token }
+        });
+        if (res.ok) {
+          closeModal('ciModal');
+          fetchAttendees();
+        } else {
+          alert('Check-in failed');
+        }
+      } catch (e) {
+        alert('Error during check-in');
       }
-      closeModal('ciModal');
-      applyFilters();
     }
 
     /* ─── PROFILE MODAL ─────────────────────────────────── */

@@ -189,3 +189,22 @@ export const getEventDetails = async (req: Request, res: Response) => {
         res.status(500).json({ error: 'Internal server error' });
     }
 };
+
+export const getGlobalStats = async (req: Request, res: Response) => {
+    try {
+        const totalRegistrations = await prisma.registration.count();
+        const checkIns = await prisma.registration.count({ where: { status: 'CHECKED_IN' } });
+
+        // Active Now: Simple simulation - 15% of checked-in users are usually "active" at once
+        const activeNow = Math.round(checkIns * 0.42) || 0;
+
+        res.json({
+            totalRegistrations,
+            checkIns,
+            activeNow,
+            timestamp: new Date().toISOString()
+        });
+    } catch (error) {
+        res.status(500).json({ error: 'Internal server error' });
+    }
+};

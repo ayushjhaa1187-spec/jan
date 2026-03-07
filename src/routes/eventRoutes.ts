@@ -2,6 +2,7 @@ import { Router } from 'express';
 import {
     getPublicEvents,
     getEventDetails,
+    getGlobalStats,
 } from '../controllers/eventController';
 import {
     registerForEvent,
@@ -16,6 +17,7 @@ const router = Router();
 
 // Public Routes
 router.get('/', getPublicEvents);
+router.get('/stats/global', getGlobalStats);
 router.get('/:id', getEventDetails);
 router.get('/:id/announcements', getEventAnnouncements);
 
