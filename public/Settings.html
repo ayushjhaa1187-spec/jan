@@ -244,7 +244,24 @@
         <!-- ══ PANELS ══ -->
 
         <!-- ══ PANELS ══ -->
-        <div class="settings-panels">
+        <div id="settingsEmptyState" style="display:none; text-align:center; padding: 100px 20px; flex: 1;">
+          <div
+            style="width: 64px; height: 64px; border-radius: 50%; background: rgba(96,64,240,0.1); color: var(--violet); display: flex; align-items: center; justify-content: center; margin: 0 auto 24px;">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="3" />
+              <path
+                d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
+            </svg>
+          </div>
+          <h2 style="font-size: 24px; font-weight: 700; color: var(--ink-0); margin-bottom: 12px;">Settings Unavailable
+          </h2>
+          <p style="font-size: 15px; color: var(--ink-3); max-width: 400px; margin: 0 auto 32px;">There are no events in
+            your workspace. You must create an event to configure settings for it.</p>
+          <button class="btn btn-pri btn-lg" onclick="window.location.href='/dashboard'">Create Event on
+            Dashboard</button>
+        </div>
+
+        <div class="settings-panels" id="settingsContent">
 
           <!-- ─────────────── SECTION: OPERATIONS HUB ─────────────── -->
           <section id="sec-operations" class="settings-section active">
@@ -442,9 +459,10 @@
                 <div class="link-card">
                   <div style="flex:1">
                     <div style="font-size:13px;font-weight:600;color:var(--ink-1)">Public Entry Point</div>
-                    <div class="link-display">circles.app/reg/ds26-3k8s-9q2p</div>
+                    <div class="link-display" id="registrationLink">Loading...</div>
                   </div>
-                  <button class="btn btn-secondary btn-sm" style="margin-left:16px">Copy Link</button>
+                  <button class="btn btn-secondary btn-sm" style="margin-left:16px" onclick="copyRegLink()">Copy
+                    Link</button>
                 </div>
               </div>
             </div>
@@ -646,7 +664,7 @@
 
         </div>
 
-        <!-- /settings-panels -->
+        <!-- /settingsContent -->
 
       </div>
       <!-- /settings-wrap -->
@@ -1019,6 +1037,15 @@
       if (!token) return;
       try {
         const events = await fetchAdminEvents();
+        if (events.length === 0) {
+          document.getElementById('settingsContent').style.display = 'none';
+          document.getElementById('settingsEmptyState').style.display = 'block';
+          return;
+        }
+
+        document.getElementById('settingsContent').style.display = 'block';
+        document.getElementById('settingsEmptyState').style.display = 'none';
+
         const selectedEvent = events.find(e => e.id === currentEventId) || events[0];
         if (!selectedEvent) return;
         activeEventId = selectedEvent.id;
@@ -1026,6 +1053,10 @@
         document.getElementById('ev-location').value = selectedEvent.venue || '';
         document.getElementById('ev-date').value = selectedEvent.startDate ? selectedEvent.startDate.split('T')[0] : '';
         document.getElementById('ev-desc').value = selectedEvent.description || '';
+
+        // Dynamically update the registration link
+        const currentUrl = window.location.origin;
+        document.getElementById('registrationLink').textContent = `${currentUrl}/register.html?event=${activeEventId}`;
       } catch (e) {
         console.error(e);
       }
