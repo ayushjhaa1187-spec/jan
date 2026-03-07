@@ -3,6 +3,7 @@ import prisma from '../utils/prisma';
 import { createTeamSchema, joinTeamSchema } from '../utils/validation';
 import crypto from 'crypto';
 import QRCode from 'qrcode';
+import { notificationService } from '../utils/notificationService';
 
 export const registerForEvent = async (req: Request, res: Response) => {
     try {
@@ -67,7 +68,7 @@ export const registerForEvent = async (req: Request, res: Response) => {
             },
             include: {
                 fieldValues: true,
-                user: { select: { profile: true } }
+                user: { select: { profile: true, email: true } }
             }
         });
 
@@ -79,6 +80,24 @@ export const registerForEvent = async (req: Request, res: Response) => {
                 message: `${registration.user.profile?.name || 'A user'} has registered for your event.`
             }
         });
+
+        const data = {
+            eventName: event.title,
+            name: registration.user.profile?.name || registration.user.email,
+            regId: registration.id.substring(0, 8).toUpperCase(),
+        };
+
+        const ticketEmail = `## Your Ticket — ${data.eventName}
+Hi ${data.name},
+You're registered! Show this QR code at the entrance.
+Reg ID: ${data.regId}
+Do not share this QR code. It is unique to your registration.`;
+
+        await notificationService.sendEmail(
+            registration.user.email,
+            `Your Ticket — ${data.eventName}`,
+            ticketEmail
+        );
 
         res.status(201).json({ message: 'Successfully registered for event', registration });
     } catch (error: any) {

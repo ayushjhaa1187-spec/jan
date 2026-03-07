@@ -573,7 +573,10 @@
       if (!tbody) return;
 
       if (attendees.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="8" style="padding:40px;text-align:center;color:var(--ink-3)">No registrations found</td></tr>';
+        const searchQuery = (document.getElementById('searchInput').value || '').trim();
+        const activeFilter = (document.getElementById('statusFilter').value || 'all').toUpperCase();
+        const msg = searchQuery || activeFilter !== 'ALL' ? 'No attendees match this filter.' : 'No registrations found yet.';
+        tbody.innerHTML = `<tr><td colspan="8" style="padding:40px;text-align:center;color:var(--ink-3)">${msg}</td></tr>`;
         return;
       }
 
