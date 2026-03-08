@@ -19,7 +19,9 @@
     --edge-2: rgba(255, 255, 255, 0.08);
     --violet: #6366F1;
     --violet-d: #4F46E5;
+    --violet-l: rgba(99, 102, 241, 0.12);
     --azure: #38BDF8;
+    --azure-l: rgba(56, 189, 248, 0.12);
     --emerald: #10B981;
     --rose: #F472B6;
     --grad: linear-gradient(135deg, #6366F1 0%, #3B82F6 100%);
@@ -27,7 +29,8 @@
     --font-d: 'Instrument Serif', Georgia, serif;
     --sidebar-w: 260px;
     --topbar-h: 72px;
-    --radius: 20px;
+    --radius: 12px;
+    --radius-lg: 16px;
     --pill: 9999px;
     --ease: cubic-bezier(0.16, 1, 0.3, 1);
     --danger: #EF4444;
@@ -66,20 +69,18 @@ body::after {
 
 /* ── Light Mode Palette ── */
 body.light-mode {
-    --ink-0: #111827;
-    --ink-1: #374151;
-    --ink-2: #4B5563;
-    --ink-3: #9CA3AF;
-    --ink-4: #E5E7EB;
-    --base: #F9FAFB;
-    --base-2: #F3F4F6;
-    --surface: rgba(255, 255, 255, 0.85);
+    --ink-0: #0F172A;
+    --ink-1: #334155;
+    --ink-2: #64748B;
+    --ink-3: #94A3B8;
+    --ink-4: #E2E8F0;
+    --base: #F8FAFC;
+    --base-2: #F1F5F9;
+    --surface: rgba(255, 255, 255, 0.9);
     --surface-2: #FFFFFF;
     --edge: rgba(0, 0, 0, 0.08);
     --edge-2: rgba(0, 0, 0, 0.12);
-    --violet: #4F46E5;
-    --violet-d: #3730A3;
-    --azure: #0EA5E9;
+    --violet-l: rgba(99, 102, 241, 0.08);
 }
 
 body.light-mode::after {

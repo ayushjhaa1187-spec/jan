@@ -89,8 +89,8 @@
 
 .snav-item.active {
   color: var(--violet);
-  font-weight: 700;
   background: var(--violet-l);
+  font-weight: 700;
 }
 
 .snav-item.active svg {
@@ -98,15 +98,14 @@
   color: var(--violet);
 }
 
-.snav-item.active::before {
+.snav-item.active::after {
   content: '';
   position: absolute;
-  left: 0;
-  top: 0;
-  bottom: 0;
-  width: 3px;
+  right: 12px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
   background: var(--violet);
-  border-radius: 0 2px 2px 0;
 }
 
 /* ─── Panels ─── */
@@ -144,14 +143,19 @@
 .card {
   background: var(--surface-2);
   border: 1px solid var(--edge-2);
-  border-radius: var(--radius);
+  border-radius: 12px;
   overflow: hidden;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.03);
-  transition: transform 0.2s;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  transition: all 0.2s ease;
+}
+
+.card:hover {
+  border-color: var(--violet);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.04);
 }
 
 .card-hdr {
-  padding: 24px 32px 20px;
+  padding: 32px 40px 24px;
   border-bottom: 1px solid var(--edge);
   display: flex;
   align-items: flex-start;
@@ -160,20 +164,21 @@
 }
 
 .card-title {
-  font-size: 14px;
-  font-weight: 700;
+  font-size: 16px;
+  font-weight: 800;
   color: var(--ink-0);
+  letter-spacing: -0.01em;
 }
 
 .card-sub {
-  font-size: 12px;
+  font-size: 13px;
   color: var(--ink-3);
-  margin-top: 2px;
-  line-height: 1.5;
+  margin-top: 4px;
+  line-height: 1.55;
 }
 
 .card-body {
-  padding: 0 32px;
+  padding: 0 40px 32px;
 }
 
 .card-footer {

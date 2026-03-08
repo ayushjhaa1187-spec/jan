@@ -768,7 +768,7 @@
                     <div class="link-display" id="attendeeRegLinkDisplay">Loading...</div>
                   </div>
                   <button class="btn btn-secondary btn-sm" style="margin-left:16px"
-                    onclick="copyRegLink()">Copy</button>
+                    onclick="copyRegLink(true)">Copy</button>
                 </div>
               </div>
             </div>
@@ -910,7 +910,7 @@
 
       if (!TEAM || !TEAM.length) {
         TEAM = [
-          { id: 1, name: 'Ayush Kumar Jha', email: 'ayush@circles.app', role: 'admin', status: 'active', color: '#6366F1' },
+          { id: 1, name: 'CoCreate Admin', email: 'admin@cocreate.app', role: 'admin', status: 'active', color: '#6366F1' },
           { id: 2, name: 'Jahnvi Chauhan', email: 'jahnvi@circles.app', role: 'organizer', status: 'active', color: '#38BDF8' },
         ];
       }
@@ -1092,12 +1092,21 @@
       }
     }
 
-    function copyRegLink() {
+    function copyRegLink(isPersonal = false) {
       if (!activeEventId) return;
-      const link = `${window.location.origin}/register.html?event=${activeEventId}`;
+      let link = `${window.location.origin}/register.html?event=${activeEventId}`;
+
+      if (isPersonal) {
+        const personalLink = document.getElementById('attendeeRegLinkDisplay')?.textContent;
+        if (personalLink && personalLink !== 'Loading...') {
+          link = personalLink;
+        }
+      }
+
       navigator.clipboard.writeText(link);
+      const msg = isPersonal ? 'Personal invite link copied!' : 'Event link copied! Sharing is caring.';
       if (window.CirclesGlobalSearch?.showToast) {
-        window.CirclesGlobalSearch.showToast('Event link copied! Sharing is caring.', 'success');
+        window.CirclesGlobalSearch.showToast(msg, 'success');
       }
     }
 
@@ -1625,7 +1634,7 @@
 
     /* ── BROADCAST ENGINE ───────────────────────────────────── */
     /* ── BROADCAST ENGINE ───────────────────────────────────── */
-    function pushBroadcast() {
+    async function pushBroadcast() {
       const msg = document.getElementById('broadcastMsg').value.trim();
       if (!msg) {
         if (window.CirclesGlobalSearch?.showToast) window.CirclesGlobalSearch.showToast('Please enter a message to broadcast.', 'info');
@@ -1637,35 +1646,32 @@
       btn.disabled = true;
       btn.textContent = 'Pushing...';
 
-      setTimeout(() => {
-        if (window.CirclesGlobalSearch?.showToast) {
-          window.CirclesGlobalSearch.showToast('Broadcast sent successfully to all active nodes.', 'success');
+      try {
+        const res = await fetch(`/api/events/${activeEventId}/announcements`, {
+          method: 'POST',
+          headers: {
+            'Authorization': 'Bearer ' + token,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ message: msg })
+        });
+
+        if (res.ok) {
+          if (window.CirclesGlobalSearch?.showToast) {
+            window.CirclesGlobalSearch.showToast('Broadcast sent successfully!', 'success');
+          }
+          document.getElementById('broadcastMsg').value = '';
+          if (typeof loadActivityFeed === 'function') loadActivityFeed();
+        } else {
+          throw new Error('Failed to push');
         }
-        document.getElementById('broadcastMsg').value = '';
+      } catch (err) {
+        console.error(err);
+        if (window.CirclesGlobalSearch?.showToast) window.CirclesGlobalSearch.showToast('Failed to send broadcast.', 'error');
+      } finally {
         btn.disabled = false;
         btn.textContent = originalText;
-
-        // Persist for attendee announcements
-        const storageKey = `circles_announcements_${activeEventId || 'global'}`;
-        const existing = JSON.parse(localStorage.getItem(storageKey) || '[]');
-        existing.unshift({ msg, id: Date.now(), time: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }) });
-        localStorage.setItem(storageKey, JSON.stringify(existing.slice(0, 10))); // Max 10
-
-        renderAnnouncements();
-
-        // Add to activity feed
-        const feed = document.getElementById('activityFeed');
-        if (feed) {
-          const row = document.createElement('div');
-          row.className = 'activity-feed-row animate-fade';
-          row.innerHTML = `
-            <div class="activity-dot" style="background:var(--azure)"></div>
-            <div class="activity-text"><strong>Broadcast:</strong> "${msg}" pushed to live mobile dashboard.</div>
-            <div class="activity-time">Just now</div>
-          `;
-          feed.prepend(row);
-        }
-      }, 1200);
+      }
     }
 
     function renderAnnouncements() {
@@ -1696,16 +1702,27 @@
 
     /* ── ATTENDEE SETTINGS LOGIC ───────────────────────────── */
     async function fetchAttendeeData() {
-      if (!activeEventId) return;
+      if (!token || !activeEventId) return;
       try {
         const res = await fetch('/api/auth/me/registrations', { headers: { 'Authorization': 'Bearer ' + token } });
         const data = await res.json();
 
-        // Find if I'm registered for THIS specific event
         const reg = (data.registrations || []).find(r => r.eventId === activeEventId);
         const myTeam = (data.teams || []).find(tm => tm.team?.eventId === activeEventId);
 
         renderAttendeeTeamHub(reg, myTeam);
+
+        // Update Personal Invite Link Display
+        const display = document.getElementById('attendeeRegLinkDisplay');
+        if (display && reg) {
+          let link = `${window.location.origin}/register.html?event=${activeEventId}`;
+          if (myTeam && myTeam.team?.inviteCode) {
+            link += `&team=${myTeam.team.inviteCode}`;
+          }
+          display.textContent = link;
+        } else if (display) {
+          display.textContent = 'Register to generate link';
+        }
       } catch (err) {
         console.error('Attendee data fetch failed', err);
       }

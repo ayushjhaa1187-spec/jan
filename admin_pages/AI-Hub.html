@@ -276,12 +276,20 @@
               <div class="broadcast-text" id="polishedDraft"></div>
             </div>
           </div>
-          <div class="ai-card-ftr">
+          <div class="ai-card-ftr" style="display:flex; gap:12px; flex-wrap:wrap">
             <button class="btn-ai btn-ai-primary" id="genBroadcastBtn" onclick="generateBroadcast()">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
                 <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
               </svg>
               Draft Professional Message
+            </button>
+            <button class="btn-ai btn-ai-secondary" id="pushBroadcastBtn" onclick="pushLiveBroadcast()"
+              style="display:none; border-color:var(--emerald); color:var(--emerald)">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <path d="M22 2L11 13" />
+                <polygon points="22 2 15 22 11 13 2 9 22 2" />
+              </svg>
+              Push Broadcast Live
             </button>
           </div>
         </div>
@@ -426,13 +434,59 @@
           output += '💬 WhatsApp:\n' + (data.whatsapp_body || '');
         }
         draftEl.textContent = output;
+
+        // Save the shortest professional version for direct push
+        window._latestDraftBody = data.whatsapp_body || data.email_body || output;
+        document.getElementById('pushBroadcastBtn').style.display = 'flex';
       } catch (err) {
         console.error(err);
         resultBox.style.display = 'block';
         draftEl.textContent = '❌ ' + (err.message || 'AI unavailable. Please try again.');
+        document.getElementById('pushBroadcastBtn').style.display = 'none';
       } finally {
         btn.disabled = false;
         btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg> Draft Professional Message';
+      }
+    }
+
+    // ── Push Live Broadcast ──
+    async function pushLiveBroadcast() {
+      if (!window._latestDraftBody) return alert('No draft available to push. Generate one first.');
+      if (!activeEventId) return alert('No event selected.');
+
+      const btn = document.getElementById('pushBroadcastBtn');
+      btn.disabled = true;
+      btn.innerHTML = 'Pushing...';
+
+      try {
+        const res = await fetch(`/api/events/${activeEventId}/announcements`, {
+          method: 'POST',
+          headers: {
+            'Authorization': 'Bearer ' + token,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ message: window._latestDraftBody })
+        });
+
+        if (!res.ok) throw new Error('Failed to push broadcast');
+
+        if (window.CirclesGlobalSearch?.showToast) {
+          window.CirclesGlobalSearch.showToast('Broadcast instantly deployed to all participants!', 'success');
+        } else {
+          alert('Broadcast instantly deployed to all participants!');
+        }
+        btn.innerHTML = '✓ Pushed Successfully';
+        setTimeout(() => {
+          document.getElementById('aiIntent').value = '';
+          document.getElementById('broadcastResult').style.display = 'none';
+          btn.style.display = 'none';
+          btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 2L11 13" /><polygon points="22 2 15 22 11 13 2 9 22 2" /></svg> Push Broadcast Live';
+        }, 3000);
+      } catch (err) {
+        console.error(err);
+        alert('Failed to send broadcast.');
+        btn.innerHTML = 'Retry Push';
+        btn.disabled = false;
       }
     }
 

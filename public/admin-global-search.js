@@ -128,7 +128,7 @@
   }
 
   let toastTimeout;
-  function showToast(message, type = 'success', duration = 5000) {
+  function showToast(message, type = 'success', duration = 15000) {
     let toast = document.getElementById('global-toast');
     if (!toast) {
       toast = document.createElement('div');
@@ -235,7 +235,7 @@
       document.addEventListener('click', closeEventPopover);
     }
 
-    // 2. Notifications Popup
+    // 2. Notifications Popup — loads REAL data from API
     const notifToggles = document.querySelectorAll('.icon-btn[aria-label="Notifications"]');
     if (notifToggles.length > 0) {
       const notifPopover = document.createElement('div');
@@ -244,30 +244,59 @@
       notifPopover.innerHTML = `
         <div class="popover-header">
           <span>Notifications</span>
-          <span style="font-size: 11px; color: var(--violet); cursor: pointer;" onclick="document.getElementById('notifList').innerHTML='<div style=\\'padding:32px;text-align:center;color:var(--ink-4)\\'>All caught up.</div>'">Mark all read</span>
+          <span style="font-size: 11px; color: var(--violet); cursor: pointer;" id="markAllRead">Mark all read</span>
         </div>
         <div id="notifList" style="padding-bottom: 8px;">
-          <div class="popover-item">
-            <div class="popover-item-icon" style="background: rgba(34,197,94,0.1); color: var(--emerald);">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-            </div>
-            <div class="popover-item-content">
-              <div class="popover-item-title">Event Successfully Published</div>
-              <div class="popover-item-sub">2 mins ago</div>
-            </div>
-          </div>
-           <div class="popover-item">
-            <div class="popover-item-icon" style="background: rgba(96,64,240,0.1); color: var(--violet);">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /></svg>
-            </div>
-            <div class="popover-item-content">
-              <div class="popover-item-title">New Team Member Joined</div>
-              <div class="popover-item-sub">Jahnvi was added as Organizer.</div>
-            </div>
-          </div>
+          <div style="padding:32px;text-align:center;color:var(--ink-3);font-size:13px">Loading...</div>
         </div>
       `;
       document.body.appendChild(notifPopover);
+
+      document.getElementById('markAllRead').addEventListener('click', () => {
+        document.getElementById('notifList').innerHTML = '<div style="padding:32px;text-align:center;color:var(--ink-3)">All caught up.</div>';
+      });
+
+      let notifLoaded = false;
+      async function loadNotifications() {
+        const list = document.getElementById('notifList');
+        try {
+          const token = localStorage.getItem('token');
+          const res = await fetch('/api/users/me/notifications', { headers: { 'Authorization': 'Bearer ' + token } });
+          if (!res.ok) throw new Error('Failed');
+          const data = await res.json();
+          const notifs = Array.isArray(data) ? data : (data.notifications || []);
+
+          if (notifs.length === 0) {
+            list.innerHTML = '<div style="padding:32px;text-align:center;color:var(--ink-3);font-size:13px">No notifications yet.</div>';
+            return;
+          }
+
+          list.innerHTML = notifs.slice(0, 10).map(n => {
+            const ago = timeAgo(n.createdAt);
+            const isGreen = (n.title || '').toLowerCase().includes('check') || (n.title || '').toLowerCase().includes('success');
+            return `<div class="popover-item">
+              <div class="popover-item-icon" style="background:${isGreen ? 'rgba(34,197,94,0.1)' : 'rgba(96,64,240,0.1)'};color:${isGreen ? 'var(--emerald)' : 'var(--violet)'}">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">${isGreen ? '<polyline points="20 6 9 17 4 12"/>' : '<path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/>'}</svg>
+              </div>
+              <div class="popover-item-content">
+                <div class="popover-item-title">${n.title || 'Notification'}</div>
+                <div class="popover-item-sub">${n.message || ago}</div>
+              </div>
+            </div>`;
+          }).join('');
+        } catch (e) {
+          list.innerHTML = '<div style="padding:32px;text-align:center;color:var(--ink-3);font-size:13px">Could not load notifications.</div>';
+        }
+      }
+
+      function timeAgo(dateStr) {
+        if (!dateStr) return '';
+        const diff = Math.floor((Date.now() - new Date(dateStr).getTime()) / 1000);
+        if (diff < 60) return 'Just now';
+        if (diff < 3600) return Math.floor(diff / 60) + ' mins ago';
+        if (diff < 86400) return Math.floor(diff / 3600) + ' hours ago';
+        return Math.floor(diff / 86400) + ' days ago';
+      }
 
       const closeNotifPopover = () => notifPopover.classList.remove('show');
 
@@ -277,10 +306,11 @@
           const rect = toggle.getBoundingClientRect();
           notifPopover.style.top = (rect.bottom + 12) + 'px';
           notifPopover.style.right = (window.innerWidth - rect.right - 10) + 'px';
-          notifPopover.style.left = 'auto'; // pin to right
+          notifPopover.style.left = 'auto';
 
           if (notifPopover.classList.toggle('show')) {
             document.getElementById('eventPopover')?.classList.remove('show');
+            if (!notifLoaded) { loadNotifications(); notifLoaded = true; }
           }
         });
       });
@@ -291,7 +321,7 @@
 
   // ── Theme Engine ──
   function initTheme() {
-    const savedTheme = localStorage.getItem('circles-admin-theme') || 'dark';
+    const savedTheme = localStorage.getItem('circles-admin-theme') || 'light';
     if (savedTheme === 'light') {
       document.body.classList.add('light-mode');
     }
@@ -322,17 +352,36 @@
     }
   }
 
+  async function checkUnreadNotifications() {
+    const token = localStorage.getItem('token');
+    if (!token) return;
+    try {
+      const res = await fetch('/api/users/me/notifications', { headers: { 'Authorization': 'Bearer ' + token } });
+      if (res.ok) {
+        const data = await res.json();
+        const notifs = Array.isArray(data) ? data : (data.notifications || []);
+        const hasUnread = notifs.some(n => !n.read);
+        const dots = document.querySelectorAll('.notif-dot');
+        dots.forEach(dot => {
+          dot.style.display = hasUnread ? 'block' : 'none';
+        });
+      }
+    } catch (e) { }
+  }
+
   window.CirclesGlobalSearch = {
     attach,
     storeQuery,
     getInitialQuery,
     resolveRouteForQuery,
     normalizeRoute,
-    showToast
+    showToast,
+    checkUnreadNotifications
   };
 
   document.addEventListener('DOMContentLoaded', () => {
     initGlobalPopups();
     initTheme();
+    checkUnreadNotifications();
   });
 })();
