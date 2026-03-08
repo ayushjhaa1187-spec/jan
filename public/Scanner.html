@@ -57,8 +57,15 @@
         }
 
         @keyframes ambientFloat {
-            0%, 100% { transform: translate(0, 0); }
-            50% { transform: translate(-30px, 20px); }
+
+            0%,
+            100% {
+                transform: translate(0, 0);
+            }
+
+            50% {
+                transform: translate(-30px, 20px);
+            }
         }
 
         .container {
@@ -257,8 +264,15 @@
         }
 
         @keyframes slideUp {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         .result-card--success {
@@ -435,9 +449,17 @@
         }
 
         @media (max-width: 480px) {
-            .header h1 { font-size: 22px; }
-            .controls { flex-direction: column; }
-            .manual-input__row { flex-direction: column; }
+            .header h1 {
+                font-size: 22px;
+            }
+
+            .controls {
+                flex-direction: column;
+            }
+
+            .manual-input__row {
+                flex-direction: column;
+            }
         }
     </style>
 </head>
@@ -446,7 +468,10 @@
     <div class="container">
         <div class="header">
             <a href="/" class="header__logo">
-                <div class="header__logo-icon">⚡</div>
+                <svg width="32" height="32" viewBox="0 0 26 26" fill="none">
+                    <circle cx="13" cy="13" r="10.5" stroke="#FFFFFF" stroke-width="2" />
+                    <circle cx="13" cy="13" r="2.2" fill="#FFFFFF" />
+                </svg>
                 <span class="header__logo-text">Circles</span>
             </a>
             <h1>QR Check-in Scanner</h1>
@@ -473,7 +498,7 @@
             <div class="manual-input__title">Manual Check-in</div>
             <div class="manual-input__row">
                 <input type="text" id="manual-reg-id" class="manual-input__field"
-                    placeholder="Enter Registration ID...">
+                    placeholder="Enter Registration ID (e.g. reg_...)">
                 <button class="btn btn--primary" style="flex:0; padding: 12px 24px;" onclick="manualCheckIn()">
                     Check In
                 </button>
@@ -708,4 +733,3 @@
 </body>
 
 </html>
-
