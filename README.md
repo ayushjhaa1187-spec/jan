@@ -53,15 +53,16 @@ sequenceDiagram
     participant Database
     participant Participant
 
-    Admin->>System: "Create Event (Settings, Custom Fields)"
+    Admin->>System: "Create Event (Settings)"
     System->>Database: "Persist Event Schema"
-    Participant->>System: "Register or Form Team"
-    System->>Database: "Validate & Commit Registration"
-    System-->>Participant: "Issue Ticket (QR Code)"
+    Participant->>System: "Registration Submitted"
+    System->>Database: "Validate & Commit"
+    System-->>Participant: "Issue QR Ticket"
     Participant->>Admin: "Entry Scan"
-    Admin->>System: "Scan QR (Auth & Check-in)"
+    Admin->>System: "Scan QR for Check-in"
     System->>Database: "Update Check-in State"
-    System-->>Admin: "Update Analytics (Live Pulse)"
+    System-->>Admin: "Update Analytics"
+
 ```
 
 
