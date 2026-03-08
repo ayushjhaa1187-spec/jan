@@ -887,9 +887,8 @@
           showToast('🎉 Event Published Successfully!');
           setTimeout(() => window.location.reload(), 1500);
         } else {
-          const err = await res.json();
-          console.error('[Dashboard] API Error:', err);
-          showToast('Failed: ' + (err.error || 'Check fields'));
+          const errorData = await res.json();
+          showToast(`Error: ${errorData.message || res.statusText}`);
           if (submitBtn) {
             submitBtn.disabled = false;
             submitBtn.innerHTML = 'Create & Publish';

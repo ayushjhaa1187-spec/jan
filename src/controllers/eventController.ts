@@ -4,18 +4,23 @@ import { eventSchema } from '../utils/validation';
 
 export const createEvent = async (req: Request, res: Response) => {
     try {
+        console.log('[EventController] Creating event with body:', JSON.stringify(req.body));
         const validatedData = eventSchema.parse(req.body);
         const userId = req.user?.id;
-        if (!userId) return res.status(401).json({ error: 'Unauthorized' });
+        if (!userId) {
+            console.warn('[EventController] Create failed: No userId in request');
+            return res.status(401).json({ error: 'Unauthorized' });
+        }
 
-        const { schedules, customFields, ...rest } = validatedData;
+        const { schedules, customFields, startDate, endDate, registrationStart, registrationEnd, ...rest } = validatedData;
+
         const event = await prisma.event.create({
             data: {
                 ...rest,
-                startDate: new Date(rest.startDate),
-                endDate: new Date(rest.endDate),
-                registrationStart: new Date(rest.registrationStart),
-                registrationEnd: new Date(rest.registrationEnd),
+                startDate: new Date(startDate),
+                endDate: new Date(endDate),
+                registrationStart: new Date(registrationStart),
+                registrationEnd: new Date(registrationEnd),
                 creatorId: userId,
                 schedules: schedules ? {
                     create: schedules.map((s: any) => ({
@@ -34,12 +39,18 @@ export const createEvent = async (req: Request, res: Response) => {
             }
         });
 
+        console.log('[EventController] Event created successfully:', event.id);
         res.status(201).json(event);
     } catch (error: any) {
+        console.error('[EventController] Create error:', error);
         if (error.name === 'ZodError') {
             return res.status(400).json({ error: 'Validation error', details: error.errors });
         }
-        res.status(500).json({ error: 'Internal server error', msg: error.message });
+        res.status(500).json({
+            error: 'Internal server error',
+            message: error.message,
+            code: error.code // Prisma error code if available
+        });
     }
 };
 
