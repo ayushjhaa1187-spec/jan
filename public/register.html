@@ -221,7 +221,8 @@
         <form id="registerForm">
             <div class="form-group">
                 <label for="name">Full Name</label>
-                <input type="text" id="name" placeholder="John Doe" required />
+                <input type="text" id="name" placeholder="Ayush Jha" required />
+
             </div>
 
             <div class="form-group">
@@ -263,7 +264,7 @@
     <script>
         // Role selector click handling
         document.querySelectorAll('.role-option').forEach(option => {
-            option.addEventListener('click', function() {
+            option.addEventListener('click', function () {
                 document.querySelectorAll('.role-option').forEach(o => o.classList.remove('selected'));
                 this.classList.add('selected');
                 this.querySelector('input').checked = true;
@@ -271,7 +272,7 @@
         });
 
         // Form submission
-        document.getElementById('registerForm').addEventListener('submit', async function(e) {
+        document.getElementById('registerForm').addEventListener('submit', async function (e) {
             e.preventDefault();
 
             const name = document.getElementById('name').value.trim();
@@ -327,4 +328,3 @@
 </body>
 
 </html>
-

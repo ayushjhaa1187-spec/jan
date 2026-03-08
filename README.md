@@ -127,8 +127,8 @@ npm run dev
 Circles was designed and developed by **Team CoCreate**:
 
 -   **Ayush Jha** — Full Stack Development & Architecture
--   **[Member Name]** — [Work Contribution]
--   **[Member Name]** — [Work Contribution]
+-   **Jahnvi Chauhan** — UI/UX Design & Frontend Development
 
 *Circles — Built for the next generation of event management.*
+
 
