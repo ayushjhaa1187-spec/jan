@@ -13,6 +13,8 @@ import {
     getEventStats,
     sendEventReminder,
     getLiveActivity,
+    getAllEventsStats,
+    getEventRecommendations,
 } from '../controllers/dashboardController';
 
 const router = Router();
@@ -93,7 +95,9 @@ router.get('/dashboard', authenticate, requireAdmin, (req, res, next) => {
         res.status(500).json({ error: 'Failed to load dashboard data' });
     }
 });
+router.get('/all-stats', authenticate, requireAdmin, getAllEventsStats);
 router.get('/:id/live-activity', authenticate, requireAdmin, getLiveActivity);
+router.get('/:id/recommendations', authenticate, requireAdmin, getEventRecommendations);
 router.post('/:id/reminders', authenticate, requireAdmin, sendEventReminder);
 
 export default router;
