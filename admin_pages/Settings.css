@@ -458,7 +458,6 @@ input[type="date"].f-input {
   border-radius: 99px;
   background: var(--base-2);
   border: 1px solid var(--edge-2);
-  transition: background .2s, border-color .2s;
 }
 
 .t-track::after {
@@ -470,10 +469,12 @@ input[type="date"].f-input {
   width: 15px;
   height: 15px;
   border-radius: 50%;
-  background: #fff;
+  background: var(--base);
   box-shadow: 0 1px 4px rgba(0, 0, 0, .18);
   transition: left .2s cubic-bezier(.4, 0, .2, 1), box-shadow .2s;
 }
+
+
 
 .toggle input:checked+.t-track {
   background: var(--violet);
@@ -579,7 +580,7 @@ input[type="date"].f-input {
 
 .role-select:hover {
   border-color: var(--violet);
-  background: #fff;
+  background: var(--surface-2);
   transform: translateY(-1px);
   box-shadow: var(--shadow-md);
 }

@@ -427,7 +427,7 @@
     position: absolute;
     inset: 18px;
     border-radius: 50%;
-    background: rgba(255, 255, 255, 0.8);
+    background: var(--surface);
     border: 1px solid rgba(96, 64, 240, 0.1);
     box-shadow: 0 8px 32px rgba(96, 64, 240, 0.1);
     display: flex;
@@ -657,7 +657,7 @@
     left: 50%;
     transform: translateX(-50%) translateY(100px);
     background: var(--ink-0);
-    color: #fff;
+    color: var(--base);
     padding: 12px 24px;
     border-radius: 12px;
     font-weight: 700;

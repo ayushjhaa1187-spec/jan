@@ -6,23 +6,23 @@
 @import url('https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600;700;800&display=swap');
 
 :root {
-    --ink-0: #111827;
-    --ink-1: #374151;
-    --ink-2: #6B7280;
-    --ink-3: #9CA3AF;
-    --ink-4: #E5E7EB;
-    --base: #FFFFFF;
-    --base-2: #F9FAFB;
-    --surface: rgba(255, 255, 255, 0.9);
-    --surface-2: #FFFFFF;
-    --edge: #E5E7EB;
-    --edge-2: #D1D5DB;
+    --ink-0: #F9FAFB;
+    --ink-1: #E5E7EB;
+    --ink-2: #9CA3AF;
+    --ink-3: #6B7280;
+    --ink-4: #374151;
+    --base: #0B0E14;
+    --base-2: #11141B;
+    --surface: rgba(17, 20, 27, 0.85);
+    --surface-2: #161922;
+    --edge: rgba(255, 255, 255, 0.08);
+    --edge-2: rgba(255, 255, 255, 0.12);
     --violet: #2563EB;
     --violet-d: #1D4ED8;
     --azure: #3B82F6;
     --emerald: #10B981;
     --rose: #EC4899;
-    --grad: linear-gradient(135deg, #111827 0%, #2563EB 100%);
+    --grad: linear-gradient(135deg, #6040F0 0%, #1A96D8 100%);
     --font-u: 'Inter', system-ui, sans-serif;
     --font-d: 'Instrument Serif', Georgia, serif;
     --sidebar-w: 260px;
@@ -30,7 +30,7 @@
     --radius: 20px;
     --pill: 9999px;
     --ease: cubic-bezier(0.4, 0, 0.2, 1);
-    --danger: #DC2626;
+    --danger: #EF4444;
 }
 
 *,
@@ -218,7 +218,7 @@ body::after {
 
 .topbar {
     height: var(--topbar-h);
-    background: rgba(255, 255, 255, 0.85);
+    background: var(--surface);
     backdrop-filter: blur(28px) saturate(200%);
     -webkit-backdrop-filter: blur(28px) saturate(200%);
     border-bottom: 1px solid var(--edge);

@@ -2,27 +2,8 @@
    CIRCLES — UNIFIED DESIGN TOKENS
 ══════════════════════════════════════════════════ */
 :root {
-  --ink-0: #111827;
-  --ink-1: #374151;
-  --ink-2: #6B7280;
-  --ink-3: #9CA3AF;
-  --ink-4: #E5E7EB;
-  --base: #FFFFFF;
-  --base-2: #F9FAFB;
-  --surface: rgba(255, 255, 255, 0.9);
-  --surface-2: #FFFFFF;
-  --edge: #E5E7EB;
-  --edge-2: #D1D5DB;
-  --violet: #2563EB;
   --violet-l: rgba(37, 99, 235, 0.08);
-  --violet-d: #1D4ED8;
-  --azure: #3B82F6;
-  --emerald: #10B981;
-  --rose: #EC4899;
   --amber: #F59E0B;
-  --danger: #DC2626;
-  --grad: linear-gradient(135deg, #111827 0%, #2563EB 100%);
-  --font-u: 'Inter', system-ui, sans-serif;
   --sidebar-w: 260px;
   --topbar-h: 72px;
   --radius: 20px;
@@ -836,7 +817,7 @@ body::after {
   width: 15px;
   height: 15px;
   border-radius: 50%;
-  background: #fff;
+  background: var(--base);
   box-shadow: 0 1px 4px rgba(0, 0, 0, .18);
   transition: left .2s cubic-bezier(.4, 0, .2, 1);
 }
