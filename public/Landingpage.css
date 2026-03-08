@@ -2,35 +2,36 @@
      TOKENS
   ═══════════════════════════════════════════════════════ */
 :root {
-  --ink-0: #0d0c1a;
-  --ink-1: rgba(13, 12, 26, 0.72);
-  --ink-2: rgba(13, 12, 26, 0.46);
-  --ink-3: rgba(13, 12, 26, 0.30);
-  --ink-4: rgba(13, 12, 26, 0.10);
+  --ink-0: #111827;
+  --ink-1: #374151;
+  --ink-2: #6B7280;
+  --ink-3: #9CA3AF;
+  --ink-4: #E5E7EB;
 
-  --base: #f4f3fb;
-  --base-2: #eceaf7;
-  --surface: rgba(255, 255, 255, 0.75);
-  --surface-2: rgba(255, 255, 255, 0.96);
-  --edge: rgba(13, 12, 26, 0.08);
-  --edge-2: rgba(13, 12, 26, 0.14);
+  --base: #FFFFFF;
+  --base-2: #F9FAFB;
+  --surface: rgba(255, 255, 255, 0.9);
+  --surface-2: #FFFFFF;
+  --edge: #E5E7EB;
+  --edge-2: #D1D5DB;
 
-  --violet: #6040f0;
-  --violet-d: #4a28d0;
-  --azure: #1a96d8;
-  --emerald: #0aaa6e;
-  --rose: #b030d8;
+  --violet: #2563EB;
+  --violet-d: #1D4ED8;
+  --azure: #3B82F6;
+  --emerald: #10B981;
+  --rose: #EC4899;
 
-  --grad: linear-gradient(128deg, #6040f0 0%, #1a96d8 100%);
-  --grad-text: linear-gradient(112deg, #6040f0 0%, #1a96d8 100%);
-  --grad-subtle: linear-gradient(128deg, rgba(96, 64, 240, 0.7) 0%, rgba(26, 150, 216, 0.7) 100%);
+  --grad: linear-gradient(135deg, #111827 0%, #2563EB 100%);
+  --grad-text: linear-gradient(135deg, #111827 0%, #2563EB 100%);
+  --grad-subtle: linear-gradient(135deg, rgba(17, 24, 39, 0.8) 0%, rgba(37, 99, 235, 0.8) 100%);
 
-  --font-d: 'Instrument Serif', Georgia, serif;
-  --font-u: 'Geist', system-ui, sans-serif;
+  --font-d: 'Inter', system-ui, sans-serif;
+  --font-u: 'Inter', system-ui, sans-serif;
 
   --ease: cubic-bezier(0.4, 0, 0.2, 1);
   --spring: cubic-bezier(0.34, 1.56, 0.64, 1);
-  --r: 14px;
+  --r: 20px;
+  --pill: 9999px;
 }
 
 /* ═══════════════════════════════════════════════════════
@@ -132,17 +133,17 @@ nav {
 }
 
 .btn-ghost-sm {
-  padding: 7px 16px;
+  padding: 8px 20px;
   font-family: var(--font-u);
-  font-size: 0.8rem;
-  font-weight: 500;
-  color: var(--ink-1);
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--ink-0);
   background: transparent;
   border: 1px solid var(--edge-2);
-  border-radius: 8px;
+  border-radius: var(--pill);
   cursor: pointer;
   letter-spacing: -0.01em;
-  transition: background 0.18s var(--ease), color 0.18s var(--ease), border-color 0.18s var(--ease);
+  transition: all 0.2s var(--ease);
 }
 
 .btn-ghost-sm:hover {
@@ -152,19 +153,17 @@ nav {
 }
 
 .btn-fill-sm {
-  padding: 7px 18px;
+  padding: 8px 24px;
   font-family: var(--font-u);
-  font-size: 0.8rem;
-  font-weight: 600;
+  font-size: 0.85rem;
+  font-weight: 700;
   color: #fff;
   background: var(--grad);
   border: none;
-  border-radius: 8px;
+  border-radius: var(--pill);
   cursor: pointer;
   letter-spacing: -0.01em;
-  transition: transform 0.18s var(--ease), box-shadow 0.18s var(--ease), opacity 0.18s var(--ease);
-  position: relative;
-  overflow: hidden;
+  transition: all 0.2s var(--ease);
 }
 
 .btn-fill-sm:hover {
@@ -351,19 +350,19 @@ nav {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  padding: 15px 32px;
+  padding: 16px 36px;
   font-family: var(--font-u);
-  font-size: 0.9rem;
-  font-weight: 600;
+  font-size: 0.95rem;
+  font-weight: 700;
   color: #fff;
   background: var(--grad);
   border: none;
-  border-radius: var(--r);
+  border-radius: var(--pill);
   cursor: pointer;
   letter-spacing: -0.01em;
   position: relative;
   overflow: hidden;
-  transition: transform 0.22s var(--ease), box-shadow 0.22s var(--ease);
+  transition: all 0.25s var(--ease);
 }
 
 .btn-hero-p::after {
@@ -395,18 +394,18 @@ nav {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  padding: 15px 32px;
+  padding: 16px 36px;
   font-family: var(--font-u);
-  font-size: 0.9rem;
-  font-weight: 500;
-  color: var(--ink-1);
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--ink-0);
   background: var(--surface);
   border: 1px solid var(--edge-2);
-  border-radius: var(--r);
+  border-radius: var(--pill);
   cursor: pointer;
   letter-spacing: -0.01em;
   backdrop-filter: blur(8px);
-  transition: background 0.2s var(--ease), border-color 0.2s var(--ease), transform 0.2s var(--ease);
+  transition: all 0.2s var(--ease);
 }
 
 .btn-hero-s:hover {
@@ -461,15 +460,11 @@ nav {
 }
 
 .dashboard {
-  background: rgba(255, 255, 255, 0.97);
-  border: 1px solid rgba(13, 12, 26, 0.10);
-  border-radius: 20px;
+  background: #FFFFFF;
+  border: 1px solid var(--edge);
+  border-radius: 24px;
   overflow: hidden;
-  box-shadow:
-    0 0 0 1px rgba(96, 64, 240, 0.06),
-    0 2px 6px rgba(13, 12, 26, 0.06),
-    0 16px 50px rgba(13, 12, 26, 0.12),
-    0 50px 100px rgba(13, 12, 26, 0.07);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
   position: relative;
 }
 

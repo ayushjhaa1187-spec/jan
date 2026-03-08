@@ -7,23 +7,22 @@
   <title>My Events — Circles</title>
   <style>
     :root {
-      --ink-0: #0d0c1a;
-      --ink-1: rgba(13, 12, 26, 0.85);
-      --ink-2: rgba(13, 12, 26, 0.65);
-      --base: #f4f3fb;
-      --base-2: #eceaf7;
-      --surface: rgba(255, 255, 255, 0.80);
-      --surface-2: rgba(255, 255, 255, 0.97);
-      --edge: rgba(13, 12, 26, 0.08);
-      --edge-2: rgba(13, 12, 26, 0.14);
-      --violet: #6040f0;
-      --violet-l: rgba(96, 64, 240, 0.09);
-      --grad: linear-gradient(128deg, #6040f0 0%, #1a96d8 100%);
-      --font-d: 'Instrument Serif', Georgia, serif;
-      --font-u: 'Geist', system-ui, sans-serif;
-      --nav-h: 68px;
-      --radius: 14px;
-      --shadow-md: 0 4px 20px rgba(13, 12, 26, 0.09);
+      --ink-0: #111827;
+      --ink-1: #374151;
+      --ink-2: #6B7280;
+      --base: #F9FAFB;
+      --base-2: #F3F4F6;
+      --surface: #FFFFFF;
+      --surface-2: #FFFFFF;
+      --edge: #E5E7EB;
+      --edge-2: #D1D5DB;
+      --violet: #2563EB;
+      --grad: linear-gradient(135deg, #111827 0%, #2563EB 100%);
+      --font-u: 'Inter', system-ui, sans-serif;
+      --nav-h: 72px;
+      --radius: 20px;
+      --pill: 9999px;
+      --shadow-md: 0 10px 40px rgba(0, 0, 0, 0.08);
     }
 
     body {
@@ -49,6 +48,9 @@
     }
 
     .nav-brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
       font-weight: 700;
       font-size: 15px;
       text-decoration: none;
@@ -224,7 +226,13 @@
 
 <body>
   <nav class="topnav">
-    <a href="/" class="nav-brand">Circles</a>
+    <a href="/" class="nav-brand">
+      <svg width="22" height="22" viewBox="0 0 26 26" fill="none">
+        <circle cx="13" cy="13" r="10.5" stroke="#111827" stroke-width="2" />
+        <circle cx="13" cy="13" r="2.2" fill="#111827" />
+      </svg>
+      Circles
+    </a>
     <div class="nav-spacer"></div>
     <div class="nav-links">
       <a href="/participant" class="nav-link active">My Events</a>
