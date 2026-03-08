@@ -654,17 +654,37 @@
     async function confirmCheckin(attendeeId) {
       const btn = document.querySelector('.btn-confirm-ci');
       btn.disabled = true;
-      btn.textContent = 'Checking in...';
+      btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="animation:spin .6s linear infinite"><circle cx="12" cy="12" r="10" stroke-dasharray="50" stroke-dashoffset="20"/></svg> Checking in...';
 
       try {
-        await api(`/admin/registrations/${attendeeId}/checkin`, { method: 'POST' });
+        const result = await api(`/admin/registrations/${attendeeId}/checkin`, { method: 'POST' });
         closeModal('ciModal');
+
+        // Immediately update local attendee data so table re-renders with new status
+        const attendee = currentAttendees.find(a => a.id === attendeeId);
+        if (attendee) {
+          attendee.status = 'CHECKED_IN';
+          attendee.checkinTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        }
+
+        // Re-render table with updated data
+        loadAttendeeTable(currentAttendees);
+
+        // Show success toast
+        const toastEl = document.createElement('div');
+        toastEl.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#0aaa6e;color:#fff;padding:12px 24px;border-radius:30px;font-size:13px;font-weight:600;z-index:9999;box-shadow:0 8px 28px rgba(0,0,0,.2);animation:toastIn .3s ease';
+        toastEl.textContent = '✓ ' + (attendee ? attendee.name : 'Attendee') + ' checked in successfully';
+        document.body.appendChild(toastEl);
+        setTimeout(() => toastEl.remove(), 3000);
+
+        // Refresh the full dashboard data in background (stats, activity feed)
         loadDashboard();
+        loadActivityFeed();
       } catch (e) {
-        alert('Check-in failed');
+        alert('Check-in failed: ' + (e.message || 'Unknown error'));
       } finally {
         btn.disabled = false;
-        btn.textContent = 'Confirm Check-in';
+        btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg> Confirm Check-in';
       }
     }
 
@@ -801,7 +821,23 @@
           method: 'POST',
           body: JSON.stringify({ ids })
         });
+        // Update local data immediately
+        ids.forEach(id => {
+          const att = currentAttendees.find(a => a.id === id);
+          if (att) {
+            att.status = 'CHECKED_IN';
+            att.checkinTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+          }
+        });
+        loadAttendeeTable(currentAttendees);
+        toggleSelectMode(); // exit select mode
+        const toastEl = document.createElement('div');
+        toastEl.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#0aaa6e;color:#fff;padding:12px 24px;border-radius:30px;font-size:13px;font-weight:600;z-index:9999;box-shadow:0 8px 28px rgba(0,0,0,.2);animation:toastIn .3s ease';
+        toastEl.textContent = '✓ ' + ids.length + ' attendee(s) checked in successfully';
+        document.body.appendChild(toastEl);
+        setTimeout(() => toastEl.remove(), 3000);
         loadDashboard();
+        loadActivityFeed();
       } catch (e) {
         alert('Bulk check-in failed');
       }

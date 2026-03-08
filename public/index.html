@@ -367,7 +367,105 @@
         transform: scale(1) translateY(0);
       }
     }
+
+    /* ── Dark Mode Flash ── */
+    .darkmode-flash {
+      position: fixed;
+      inset: 0;
+      z-index: 99999;
+      pointer-events: none;
+      background: #0d0c1a;
+      opacity: 0;
+      transition: opacity 0.6s ease;
+    }
+
+    .darkmode-flash.active {
+      opacity: 1;
+    }
+
+    .darkmode-flash.fade-out {
+      opacity: 0;
+      transition: opacity 1.2s ease;
+    }
+
+    .darkmode-flash-content {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      text-align: center;
+      color: #fff;
+      opacity: 0;
+      transition: opacity 0.4s ease 0.3s;
+    }
+
+    .darkmode-flash.active .darkmode-flash-content {
+      opacity: 1;
+    }
+
+    .darkmode-flash-content h2 {
+      font-family: 'Instrument Serif', serif;
+      font-size: 2.4rem;
+      font-weight: 400;
+      margin-bottom: 8px;
+      background: linear-gradient(135deg, #6040f0, #1a96d8);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .darkmode-flash-content p {
+      font-size: 14px;
+      color: rgba(255, 255, 255, 0.5);
+    }
+
+    .darkmode-flash .flash-ring {
+      width: 80px;
+      height: 80px;
+      border: 2px solid rgba(96, 64, 240, 0.4);
+      border-radius: 50%;
+      margin: 0 auto 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      animation: ringPulse 1.5s ease infinite;
+    }
+
+    @keyframes ringPulse {
+
+      0%,
+      100% {
+        transform: scale(1);
+        opacity: 0.6;
+      }
+
+      50% {
+        transform: scale(1.1);
+        opacity: 1;
+      }
+    }
+
+    .flash-check {
+      width: 32px;
+      height: 32px;
+      stroke: #6040f0;
+      stroke-width: 2.5;
+      fill: none;
+    }
   </style>
+
+  <!-- Dark Mode Flash Overlay -->
+  <div class="darkmode-flash" id="darkFlash">
+    <div class="darkmode-flash-content">
+      <div class="flash-ring">
+        <svg class="flash-check" viewBox="0 0 24 24">
+          <polyline points="20 6 9 17 4 12" />
+        </svg>
+      </div>
+      <h2>Welcome back.</h2>
+      <p>Signing you in…</p>
+    </div>
+  </div>
 
   <!-- ══════════════════ JS: PARALLAX + AUTH ══════════════════ -->
   <footer
@@ -626,10 +724,37 @@
           }
         }
 
-        if (data.user.role === 'ADMIN') {
-          window.location.href = '/dashboard';
+        // ── Dark Mode Flash on Sign-In ──
+        // Only trigger once per sign-in, never persist to darkmode
+        sessionStorage.setItem('circles_signin_flash', 'pending');
+        closeAuthModal();
+
+        const flash = document.getElementById('darkFlash');
+        if (flash) {
+          flash.classList.add('active');
+          const userName = data.user.name || data.user.email.split('@')[0];
+          const h2 = flash.querySelector('h2');
+          if (h2) h2.textContent = `Welcome back, ${userName}.`;
+
+          setTimeout(() => {
+            flash.classList.add('fade-out');
+            setTimeout(() => {
+              flash.classList.remove('active', 'fade-out');
+              sessionStorage.removeItem('circles_signin_flash');
+              if (data.user.role === 'ADMIN') {
+                window.location.href = '/dashboard';
+              } else {
+                window.location.href = '/participant';
+              }
+            }, 1200);
+          }, 1800);
         } else {
-          window.location.href = '/participant';
+          // Fallback if flash element missing
+          if (data.user.role === 'ADMIN') {
+            window.location.href = '/dashboard';
+          } else {
+            window.location.href = '/participant';
+          }
         }
       } catch (err) {
         errEl.textContent = err.message;
