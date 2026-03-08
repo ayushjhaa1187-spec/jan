@@ -4,737 +4,383 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Circles QR Scanner — Scan participant QR codes for event check-in.">
-    <title>QR Scanner — Circles</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
-        rel="stylesheet">
+    <title>Circles — QR Scanner</title>
+    <link rel="stylesheet" href="/admin-shared.css">
     <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
     <style>
-        :root {
-            --bg-primary: #0a0e1a;
-            --bg-secondary: #111827;
-            --bg-card: rgba(17, 24, 39, 0.8);
-            --accent: #6366f1;
-            --accent-light: #818cf8;
-            --accent-glow: rgba(99, 102, 241, 0.3);
-            --success: #10b981;
-            --success-glow: rgba(16, 185, 129, 0.3);
-            --warning: #f59e0b;
-            --error: #ef4444;
-            --error-glow: rgba(239, 68, 68, 0.3);
-            --text-primary: #f9fafb;
-            --text-secondary: #9ca3af;
-            --border: rgba(255, 255, 255, 0.08);
-        }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-            background: var(--bg-primary);
-            color: var(--text-primary);
-            min-height: 100vh;
-            overflow-x: hidden;
-        }
-
-        body::before {
-            content: '';
-            position: fixed;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: radial-gradient(circle at 30% 20%, var(--accent-glow), transparent 40%),
-                radial-gradient(circle at 70% 80%, rgba(139, 92, 246, 0.15), transparent 40%);
-            z-index: 0;
-            animation: ambientFloat 20s ease-in-out infinite;
-        }
-
-        @keyframes ambientFloat {
-
-            0%,
-            100% {
-                transform: translate(0, 0);
-            }
-
-            50% {
-                transform: translate(-30px, 20px);
-            }
-        }
-
-        .container {
-            position: relative;
-            z-index: 1;
+        .scanner-view {
             max-width: 600px;
             margin: 0 auto;
-            padding: 24px 16px;
-        }
-
-        .header {
-            text-align: center;
-            margin-bottom: 32px;
-        }
-
-        .header__logo {
-            display: inline-flex;
-            align-items: center;
-            gap: 10px;
-            text-decoration: none;
-            margin-bottom: 16px;
-        }
-
-        .header__logo-icon {
-            width: 36px;
-            height: 36px;
-            background: linear-gradient(135deg, var(--accent), #8b5cf6);
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 18px;
-        }
-
-        .header__logo-text {
-            font-size: 22px;
-            font-weight: 700;
-            background: linear-gradient(135deg, var(--text-primary), var(--accent-light));
-            -webkit-background-clip: text;
-            background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        .header h1 {
-            font-size: 28px;
-            font-weight: 800;
-            margin-bottom: 8px;
-            letter-spacing: -0.5px;
-        }
-
-        .header p {
-            color: var(--text-secondary);
-            font-size: 14px;
-        }
-
-        .scanner-card {
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: 20px;
-            padding: 24px;
-            backdrop-filter: blur(20px);
-            margin-bottom: 24px;
-            overflow: hidden;
-        }
-
-        .scanner-card__title {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            font-size: 16px;
-            font-weight: 600;
-            margin-bottom: 16px;
-        }
-
-        .scanner-card__title span {
-            font-size: 20px;
+            width: 100%;
         }
 
         #reader {
             width: 100%;
-            border-radius: 12px;
+            border-radius: var(--radius);
             overflow: hidden;
+            border: 1px solid var(--edge);
+            background: var(--base-2);
         }
 
-        #reader video {
-            border-radius: 12px;
-        }
-
-        .controls {
-            display: flex;
-            gap: 12px;
-            margin-bottom: 24px;
-        }
-
-        .btn {
-            flex: 1;
-            padding: 14px 20px;
-            border: none;
-            border-radius: 12px;
-            font-family: 'Inter', sans-serif;
-            font-size: 14px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
+        .history-card {
             display: flex;
             align-items: center;
-            justify-content: center;
-            gap: 8px;
-        }
-
-        .btn--primary {
-            background: linear-gradient(135deg, var(--accent), #8b5cf6);
-            color: #fff;
-            box-shadow: 0 4px 20px var(--accent-glow);
-        }
-
-        .btn--primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 30px var(--accent-glow);
-        }
-
-        .btn--secondary {
-            background: rgba(255, 255, 255, 0.06);
-            color: var(--text-primary);
-            border: 1px solid var(--border);
-        }
-
-        .btn--secondary:hover {
-            background: rgba(255, 255, 255, 0.1);
-        }
-
-        .btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-            transform: none !important;
-        }
-
-        .manual-input {
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: 20px;
-            padding: 24px;
-            backdrop-filter: blur(20px);
-            margin-bottom: 24px;
-        }
-
-        .manual-input__title {
-            font-size: 14px;
-            font-weight: 600;
-            color: var(--text-secondary);
-            margin-bottom: 12px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-
-        .manual-input__row {
-            display: flex;
             gap: 12px;
-        }
-
-        .manual-input__field {
-            flex: 1;
             padding: 12px 16px;
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid var(--border);
-            border-radius: 10px;
-            color: var(--text-primary);
-            font-family: 'Inter', sans-serif;
-            font-size: 14px;
-            transition: border-color 0.3s;
+            border-bottom: 1px solid var(--edge);
         }
 
-        .manual-input__field:focus {
-            outline: none;
-            border-color: var(--accent);
-            box-shadow: 0 0 0 3px var(--accent-glow);
+        .history-card:last-child {
+            border-bottom: none;
         }
 
-        .manual-input__field::placeholder {
-            color: var(--text-secondary);
-        }
-
-        .result-card {
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: 20px;
-            padding: 24px;
-            backdrop-filter: blur(20px);
-            margin-bottom: 24px;
-            display: none;
-            animation: slideUp 0.4s ease;
-        }
-
-        .result-card.show {
-            display: block;
-        }
-
-        @keyframes slideUp {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .result-card--success {
-            border-color: var(--success);
-            box-shadow: 0 0 30px var(--success-glow);
-        }
-
-        .result-card--error {
-            border-color: var(--error);
-            box-shadow: 0 0 30px var(--error-glow);
-        }
-
-        .result-card--warning {
-            border-color: var(--warning);
-        }
-
-        .result-card__status {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            margin-bottom: 16px;
-        }
-
-        .result-card__icon {
-            width: 48px;
-            height: 48px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 24px;
-        }
-
-        .result-card__icon--success {
-            background: rgba(16, 185, 129, 0.15);
-        }
-
-        .result-card__icon--error {
-            background: rgba(239, 68, 68, 0.15);
-        }
-
-        .result-card__icon--warning {
-            background: rgba(245, 158, 11, 0.15);
-        }
-
-        .result-card__label {
-            font-size: 18px;
-            font-weight: 700;
-        }
-
-        .result-card__sublabel {
-            font-size: 13px;
-            color: var(--text-secondary);
-        }
-
-        .result-card__details {
-            display: grid;
-            gap: 12px;
-        }
-
-        .result-card__detail {
-            display: flex;
-            justify-content: space-between;
-            padding: 10px 14px;
-            background: rgba(255, 255, 255, 0.03);
-            border-radius: 10px;
-        }
-
-        .result-card__detail-label {
-            font-size: 13px;
-            color: var(--text-secondary);
-        }
-
-        .result-card__detail-value {
-            font-size: 13px;
-            font-weight: 600;
-        }
-
-        .history {
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: 20px;
-            padding: 24px;
-            backdrop-filter: blur(20px);
-        }
-
-        .history__title {
-            font-size: 14px;
-            font-weight: 600;
-            color: var(--text-secondary);
-            margin-bottom: 16px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-
-        .history__list {
-            list-style: none;
-            display: grid;
-            gap: 8px;
-        }
-
-        .history__item {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 12px 14px;
-            background: rgba(255, 255, 255, 0.03);
-            border-radius: 10px;
-            animation: slideUp 0.3s ease;
-        }
-
-        .history__dot {
+        .status-dot {
             width: 8px;
             height: 8px;
             border-radius: 50%;
-            flex-shrink: 0;
         }
 
-        .history__dot--success {
-            background: var(--success);
+        .status-success {
+            background: var(--emerald);
+            box-shadow: 0 0 8px var(--emerald);
         }
 
-        .history__dot--error {
-            background: var(--error);
+        .status-error {
+            background: var(--danger);
+            box-shadow: 0 0 8px var(--danger);
         }
 
-        .history__text {
+        .manual-box {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .manual-box input {
             flex: 1;
-            font-size: 13px;
         }
 
-        .history__time {
-            font-size: 12px;
-            color: var(--text-secondary);
-        }
-
-        .history__empty {
+        .result-overlay {
+            position: absolute;
+            inset: 0;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+            border-radius: var(--radius);
+            animation: fadeIn 0.3s ease;
             text-align: center;
-            padding: 20px;
-            color: var(--text-secondary);
-            font-size: 14px;
+            padding: 40px;
         }
 
-        .toast {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            padding: 14px 20px;
-            border-radius: 12px;
-            font-size: 14px;
-            font-weight: 500;
-            color: #fff;
-            z-index: 9999;
-            transform: translateX(120%);
-            transition: transform 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-            max-width: 340px;
+        .result-overlay.success {
+            border: 2px solid var(--emerald);
         }
 
-        .toast.show {
-            transform: translateX(0);
+        .result-overlay.error {
+            border: 2px solid var(--danger);
         }
 
-        .toast--success {
-            background: var(--success);
-        }
-
-        .toast--error {
-            background: var(--error);
-        }
-
-        .toast--warning {
-            background: var(--warning);
-            color: #000;
-        }
-
-        @media (max-width: 480px) {
-            .header h1 {
-                font-size: 22px;
-            }
-
-            .controls {
-                flex-direction: column;
-            }
-
-            .manual-input__row {
-                flex-direction: column;
-            }
+        .ico-large {
+            font-size: 48px;
+            margin-bottom: 16px;
         }
     </style>
+    <script>
+        if (!localStorage.getItem('token')) {
+            window.location.href = '/';
+        }
+    </script>
 </head>
 
 <body>
-    <div class="container">
-        <div class="header">
-            <a href="/" class="header__logo">
-                <svg width="32" height="32" viewBox="0 0 26 26" fill="none">
+
+    <!-- ══════════════════════ SIDEBAR ══════════════════════ -->
+    <aside class="sidebar">
+        <div class="sidebar-logo">
+            <a href="/" class="nav-logo">
+                <svg class="logo-svg" viewBox="0 0 26 26" fill="none">
                     <defs>
-                        <linearGradient id="lg-nav" x1="2" y1="2" x2="24" y2="24" gradientUnits="userSpaceOnUse">
+                        <linearGradient id="lg-sb" x1="2" y1="2" x2="24" y2="24" gradientUnits="userSpaceOnUse">
                             <stop stop-color="#6040f0" />
                             <stop offset="1" stop-color="#1a96d8" />
                         </linearGradient>
                     </defs>
-                    <circle cx="13" cy="13" r="10.5" stroke="url(#lg-nav)" stroke-width="1.6" />
-                    <circle cx="13" cy="13" r="6" stroke="url(#lg-nav)" stroke-width="1.2" opacity=".55" />
-                    <circle cx="13" cy="13" r="2.2" fill="url(#lg-nav)" />
+                    <circle cx="13" cy="13" r="10.5" stroke="url(#lg-sb)" stroke-width="1.6" />
+                    <circle cx="13" cy="13" r="6" stroke="url(#lg-sb)" stroke-width="1.2" opacity=".55" />
+                    <circle cx="13" cy="13" r="2.2" fill="url(#lg-sb)" />
                 </svg>
-                <span class="header__logo-text">Circles</span>
+                Circles
             </a>
-            <h1>QR Check-in Scanner</h1>
-            <p>Scan participant QR codes to check them in instantly</p>
         </div>
-
-        <div class="scanner-card" id="scanner-card">
-            <div class="scanner-card__title">
-                <span>📷</span> Camera Scanner
+        <nav class="sidebar-nav">
+            <div class="nav-lbl">Main</div>
+            <div class="nav-item" onclick="window.location.href='/dashboard'">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <rect x="3" y="3" width="7" height="7" rx="1" />
+                    <rect x="14" y="3" width="7" height="7" rx="1" />
+                    <rect x="3" y="14" width="7" height="7" rx="1" />
+                    <rect x="14" y="14" width="7" height="7" rx="1" />
+                </svg>
+                Dashboard
             </div>
-            <div id="reader"></div>
-        </div>
-
-        <div class="controls">
-            <button class="btn btn--primary" id="btn-start" onclick="startScanner()">
-                <span>📷</span> Start Scanner
-            </button>
-            <button class="btn btn--secondary" id="btn-stop" onclick="stopScanner()" disabled>
-                <span>⏹️</span> Stop
-            </button>
-        </div>
-
-        <div class="manual-input">
-            <div class="manual-input__title">Manual Check-in</div>
-            <div class="manual-input__row">
-                <input type="text" id="manual-reg-id" class="manual-input__field"
-                    placeholder="Enter Registration ID (e.g. reg_...)">
-                <button class="btn btn--primary" style="flex:0; padding: 12px 24px;" onclick="manualCheckIn()">
-                    Check In
+            <div class="nav-item" onclick="window.location.href='/events'">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <rect x="3" y="4" width="18" height="18" rx="2" />
+                    <line x1="16" y1="2" x2="16" y2="6" />
+                    <line x1="8" y1="2" x2="8" y2="6" />
+                    <line x1="3" y1="10" x2="21" y2="10" />
+                </svg>
+                Events
+            </div>
+            <div class="nav-item" onclick="window.location.href='/attendees'">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                    <circle cx="9" cy="7" r="4" />
+                </svg>
+                Attendees
+            </div>
+            <div class="nav-lbl">Management</div>
+            <div class="nav-item active" onclick="window.location.href='/scanner'">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
+                    <circle cx="12" cy="13" r="4" />
+                </svg>
+                Scanner
+            </div>
+            <div class="nav-item" onclick="window.location.href='/analytics'">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
+                </svg>
+                Analytics
+            </div>
+            <div class="nav-item" onclick="window.location.href='/settings'">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <circle cx="12" cy="12" r="3" />
+                    <path
+                        d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68V9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
+                </svg>
+                Settings
+            </div>
+        </nav>
+        <div class="sidebar-footer">
+            <div class="sb-user">
+                <div class="av-sm" id="userInitials">AD</div>
+                <div style="flex:1;min-width:0">
+                    <div class="u-name" id="userName">Admin</div>
+                    <div class="u-role">Event Admin</div>
+                </div>
+                <button id="logoutBtn" class="icon-btn" style="color:var(--danger); margin-left: auto;">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2.5">
+                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                        <polyline points="16 17 21 12 16 7" />
+                        <line x1="21" y1="12" x2="9" y2="12" />
+                    </svg>
                 </button>
             </div>
         </div>
+    </aside>
 
-        <div class="result-card" id="result-card">
-            <div class="result-card__status">
-                <div class="result-card__icon" id="result-icon"></div>
-                <div>
-                    <div class="result-card__label" id="result-label"></div>
-                    <div class="result-card__sublabel" id="result-sublabel"></div>
+    <!-- ══════════════════════ MAIN ══════════════════════ -->
+    <div class="main">
+        <header class="topbar">
+            <div class="topbar-ev">
+                <div class="ev-sel">
+                    <span id="eventName">Select Event</span>
+                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                        <polyline points="6 9 12 15 18 9" />
+                    </svg>
+                </div>
+                <div class="ev-meta">
+                    Operations • QR Check-in System
                 </div>
             </div>
-            <div class="result-card__details" id="result-details"></div>
-        </div>
+            <div class="tb-actions">
+                <button class="icon-btn">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2.5">
+                        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+                        <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+                    </svg>
+                    <span class="notif-dot"></span>
+                </button>
+            </div>
+        </header>
 
-        <div class="history">
-            <div class="history__title">Scan History</div>
-            <ul class="history__list" id="history-list">
-                <li class="history__empty">No scans yet. Start the scanner to begin check-ins.</li>
-            </ul>
-        </div>
+        <main class="content">
+            <div class="page-hdr animate-fade">
+                <div>
+                    <h1 class="page-title">QR Scanner</h1>
+                    <div class="page-sub">Scan participant codes for instant check-in performance</div>
+                </div>
+                <div class="hdr-actions">
+                    <button class="btn btn-sec" id="btn-stop" onclick="stopScanner()" disabled>Stop</button>
+                    <button class="btn btn-pri" id="btn-start" onclick="startScanner()">Start Camera</button>
+                </div>
+            </div>
+
+            <div class="two-col stagger-entry">
+                <!-- Scanner Panel -->
+                <div class="panel" style="position: relative;">
+                    <div class="panel-hdr">
+                        <div class="panel-title">Camera View</div>
+                    </div>
+                    <div class="panel-body">
+                        <div id="reader"></div>
+
+                        <div class="manual-box">
+                            <input type="text" id="manual-reg-id" class="f-input"
+                                placeholder="Manual Registration ID...">
+                            <button class="btn btn-sec" onclick="manualCheckIn()">Check-in</button>
+                        </div>
+                    </div>
+
+                    <!-- Result Overlay -->
+                    <div id="resultOverlay" class="result-overlay" style="display:none;">
+                        <div class="ico-large" id="resultIcon">✓</div>
+                        <h2 id="resultTitle">Checked In</h2>
+                        <p id="resultSub" class="u-role">Participant Name</p>
+                        <button class="btn btn-pri" style="margin-top:24px" onclick="hideResult()">Continue
+                            Scanning</button>
+                    </div>
+                </div>
+
+                <!-- History Panel -->
+                <div class="panel">
+                    <div class="panel-hdr">
+                        <div class="panel-title">Recent Activity</div>
+                    </div>
+                    <div class="panel-body" id="history-list" style="padding:0">
+                        <div style="padding:40px; text-align:center; color:var(--ink-3)">No scans in this session</div>
+                    </div>
+                </div>
+            </div>
+        </main>
     </div>
 
-    <div class="toast" id="toast"></div>
+    <div id="toast" class="toast"></div>
 
     <script>
+        const token = localStorage.getItem('token');
+        const user = JSON.parse(localStorage.getItem('user') || '{}');
         let html5QrCode = null;
         let isScanning = false;
-        const scanHistory = [];
+        let scanHistory = [];
 
-        function getToken() {
-            return localStorage.getItem('token');
-        }
-
-        function checkAuth() {
-            const token = getToken();
-            if (!token) {
-                showToast('Please log in first to use the scanner.', 'error');
-                setTimeout(() => {
-                    window.location.href = '/login';
-                }, 2000);
-                return false;
-            }
-            return true;
+        // Init UI
+        if (user.profile) {
+            document.getElementById('userName').textContent = user.profile.name;
+            document.getElementById('userInitials').textContent = user.profile.name.substring(0, 2).toUpperCase();
         }
 
         async function startScanner() {
-            if (!checkAuth()) return;
             if (isScanning) return;
-
-            const btnStart = document.getElementById('btn-start');
-            const btnStop = document.getElementById('btn-stop');
-
             try {
                 html5QrCode = new Html5Qrcode("reader");
                 await html5QrCode.start(
                     { facingMode: "environment" },
-                    { fps: 10, qrbox: { width: 250, height: 250 }, aspectRatio: 1.0 },
+                    { fps: 15, qrbox: { width: 280, height: 280 }, aspectRatio: 1.0 },
                     onScanSuccess,
-                    onScanFailure
+                    (err) => { }
                 );
                 isScanning = true;
-                btnStart.disabled = true;
-                btnStop.disabled = false;
-                showToast('Scanner active — point at a QR code', 'success');
+                document.getElementById('btn-start').disabled = true;
+                document.getElementById('btn-stop').disabled = false;
+                showToast('Camera active', 'success');
             } catch (err) {
-                showToast('Camera access denied or not available', 'error');
-                console.error('Scanner error:', err);
+                showToast('Camera access denied', 'error');
             }
         }
 
         async function stopScanner() {
-            if (!isScanning || !html5QrCode) return;
-
-            try {
-                await html5QrCode.stop();
-                html5QrCode.clear();
-            } catch (e) {
-                console.warn('Stop error:', e);
-            }
-
+            if (!isScanning) return;
+            await html5QrCode.stop();
             isScanning = false;
             document.getElementById('btn-start').disabled = false;
             document.getElementById('btn-stop').disabled = true;
-            showToast('Scanner stopped', 'warning');
         }
 
         async function onScanSuccess(decodedText) {
-            if (html5QrCode && isScanning) {
-                await html5QrCode.pause(true);
-            }
+            if (isScanning) await html5QrCode.pause(true);
 
+            let regId = decodedText.trim();
             try {
                 const data = JSON.parse(decodedText);
-                if (data.registrationId) {
-                    await performCheckIn(data.registrationId, data);
-                } else {
-                    showResult('error', 'Invalid QR Code', 'QR code does not contain valid registration data.');
-                    addToHistory('Invalid QR code scanned', false);
-                }
-            } catch (e) {
-                if (decodedText.length > 10) {
-                    await performCheckIn(decodedText.trim(), null);
-                } else {
-                    showResult('error', 'Invalid QR Code', 'Could not parse QR code data.');
-                    addToHistory('Invalid QR code format', false);
-                }
-            }
+                if (data.registrationId) regId = data.registrationId;
+            } catch (e) { }
 
-            setTimeout(async () => {
-                if (html5QrCode && isScanning) {
-                    try { await html5QrCode.resume(); } catch (e) { }
-                }
-            }, 3000);
+            await performCheckIn(regId);
         }
 
-        function onScanFailure(error) { }
-
-        async function performCheckIn(registrationId, qrData) {
-            const token = getToken();
-            if (!token) {
-                showResult('error', 'Not Authenticated', 'Please log in to perform check-ins.');
-                return;
-            }
-
+        async function performCheckIn(registrationId) {
             try {
-                const response = await fetch(`/api/admin/registrations/${registrationId}/checkin`, {
+                const res = await fetch(`/api/admin/registrations/${registrationId}/checkin`, {
                     method: 'POST',
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json'
-                    }
+                    headers: { 'Authorization': 'Bearer ' + token }
                 });
+                const result = await res.json();
 
-                const result = await response.json();
-
-                if (response.ok) {
-                    const name = qrData?.participantName || 'Participant';
-                    const event = qrData?.eventName || '';
-                    showResult('success', '✓ Checked In!', `${name} has been successfully checked in.`, [
-                        { label: 'Participant', value: name },
-                        { label: 'Event', value: event },
-                        { label: 'Registration ID', value: registrationId.substring(0, 12) + '...' },
-                        { label: 'Time', value: new Date().toLocaleTimeString() },
-                    ]);
-                    addToHistory(`${name} checked in`, true);
-                    showToast('Check-in successful! ✓', 'success');
+                if (res.ok) {
+                    showResult('success', 'Checked In', result.registration?.user?.profile?.name || 'Participant');
+                    addToHistory(result.registration?.user?.profile?.name || 'Participant', true);
                 } else {
-                    const errorMsg = result.error || result.message || 'Check-in failed';
-                    showResult('error', 'Check-in Failed', errorMsg, [
-                        { label: 'Registration ID', value: registrationId.substring(0, 12) + '...' },
-                        { label: 'Reason', value: errorMsg },
-                    ]);
-                    addToHistory(`Check-in failed: ${errorMsg}`, false);
-                    showToast(errorMsg, 'error');
+                    showResult('error', 'Check-in Failed', result.error || 'Invalid Registration');
+                    addToHistory('Scan Failed', false);
                 }
             } catch (err) {
-                showResult('error', 'Network Error', 'Could not reach the server. Check your connection.');
-                addToHistory('Network error during check-in', false);
-                showToast('Network error — please retry', 'error');
+                showToast('Network error', 'error');
             }
+        }
+
+        function showResult(type, title, sub) {
+            const overlay = document.getElementById('resultOverlay');
+            overlay.className = 'result-overlay ' + type;
+            document.getElementById('resultIcon').textContent = type === 'success' ? '✓' : '✗';
+            document.getElementById('resultTitle').textContent = title;
+            document.getElementById('resultSub').textContent = sub;
+            overlay.style.display = 'flex';
+        }
+
+        function hideResult() {
+            document.getElementById('resultOverlay').style.display = 'none';
+            if (isScanning) html5QrCode.resume();
+        }
+
+        function addToHistory(name, success) {
+            scanHistory.unshift({ name, success, time: new Date().toLocaleTimeString([], { timeStyle: 'short' }) });
+            const list = document.getElementById('history-list');
+            list.innerHTML = scanHistory.slice(0, 10).map(h => `
+        <div class="history-card">
+          <div class="status-dot ${h.success ? 'status-success' : 'status-error'}"></div>
+          <div style="flex:1">
+            <div style="font-weight:600; font-size:14px">${h.name}</div>
+            <div style="font-size:12px; color:var(--ink-2)">${h.time}</div>
+          </div>
+        </div>
+      `).join('');
         }
 
         async function manualCheckIn() {
-            if (!checkAuth()) return;
-
-            const regId = document.getElementById('manual-reg-id').value.trim();
-            if (!regId) {
-                showToast('Please enter a registration ID', 'warning');
-                return;
-            }
-
-            await performCheckIn(regId, null);
+            const id = document.getElementById('manual-reg-id').value.trim();
+            if (!id) return;
+            await performCheckIn(id);
             document.getElementById('manual-reg-id').value = '';
         }
 
-        function showResult(type, label, sublabel, details) {
-            const card = document.getElementById('result-card');
-            const icon = document.getElementById('result-icon');
-            const labelEl = document.getElementById('result-label');
-            const sublabelEl = document.getElementById('result-sublabel');
-            const detailsEl = document.getElementById('result-details');
-
-            card.className = 'result-card show result-card--' + type;
-            icon.className = 'result-card__icon result-card__icon--' + type;
-
-            icon.textContent = type === 'success' ? '✓' : type === 'error' ? '✗' : '⚠';
-            labelEl.textContent = label;
-            sublabelEl.textContent = sublabel;
-
-            if (details && details.length > 0) {
-                detailsEl.innerHTML = details.map(d => `
-                    <div class="result-card__detail">
-                        <span class="result-card__detail-label">${d.label}</span>
-                        <span class="result-card__detail-value">${d.value}</span>
-                    </div>
-                `).join('');
-            } else {
-                detailsEl.innerHTML = '';
-            }
+        function showToast(msg, type) {
+            const t = document.getElementById('toast');
+            t.textContent = msg;
+            t.className = 'toast show ' + type;
+            setTimeout(() => t.className = 'toast', 3000);
         }
 
-        function addToHistory(text, success) {
-            scanHistory.unshift({ text, success, time: new Date().toLocaleTimeString() });
-
-            const list = document.getElementById('history-list');
-            list.innerHTML = scanHistory.slice(0, 20).map(item => `
-                <li class="history__item">
-                    <div class="history__dot history__dot--${item.success ? 'success' : 'error'}"></div>
-                    <span class="history__text">${item.text}</span>
-                    <span class="history__time">${item.time}</span>
-                </li>
-            `).join('');
-        }
-
-        function showToast(message, type) {
-            const toast = document.getElementById('toast');
-            toast.textContent = message;
-            toast.className = `toast toast--${type} show`;
-
-            setTimeout(() => {
-                toast.classList.remove('show');
-            }, 3000);
-        }
-
-        document.getElementById('manual-reg-id').addEventListener('keydown', (e) => {
-            if (e.key === 'Enter') manualCheckIn();
+        document.getElementById('logoutBtn').addEventListener('click', () => {
+            localStorage.clear();
+            window.location.href = '/';
         });
     </script>
 </body>
