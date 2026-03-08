@@ -545,8 +545,8 @@
         }
 
         feedList.innerHTML = feedData.slice(0, 6).map(act => {
-          const name = act.name || 'Unknown';
-          const initials = name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
+          const name = String(act.name || 'Participant').trim() || 'Participant';
+          const initials = name.split(' ').filter(w => w).map(w => w[0]).join('').toUpperCase().slice(0, 2);
           const isCheckedIn = act.type === 'ci';
           const colors = ['#6040f0', '#1a96d8', '#0aaa6e', '#b030d8'];
           const color = colors[Math.floor(Math.random() * colors.length)];
@@ -796,7 +796,7 @@
       </div>
       <div class="modal-ftr" style="padding: 20px 28px 28px; display: flex; gap: 12px;">
         <button class="btn btn-sec" style="flex:1" onclick="closeModal()">Cancel</button>
-        <button class="btn btn-pri" style="flex:1" onclick="createEvent()">Create & Publish</button>
+        <button class="btn btn-pri" id="submitEventBtn" style="flex:1" onclick="createEvent()">Create & Publish</button>
       </div>
     </div>
   </div>
@@ -812,20 +812,41 @@
       const mb = document.getElementById('modalBackdrop');
       if (mb) mb.classList.remove('open');
     }
+
+    // Handle Type Selection
+    function initTypeBtns() {
+      document.querySelectorAll('.type-btn').forEach(btn => {
+        btn.addEventListener('click', function () {
+          document.querySelectorAll('.type-btn').forEach(b => b.classList.remove('active'));
+          this.classList.add('active');
+        });
+      });
+    }
+    initTypeBtns();
+
     async function createEvent() {
-      const title = document.getElementById('evTitle').value.trim();
-      const venue = document.getElementById('evVenue').value.trim();
-      const btn = document.querySelector('.modal-ftr .btn-pri');
-      if (!title) return showToast('Please enter an event title');
+      const titleEl = document.getElementById('evTitle');
+      const venueEl = document.getElementById('evVenue');
+      const capacityEl = document.getElementById('evCapacity');
+      const btn = document.getElementById('submitEventBtn');
+
+      if (!titleEl || !titleEl.value.trim()) return showToast('Please enter an event title');
+
+      const title = titleEl.value.trim();
+      const venue = venueEl ? venueEl.value.trim() : 'Venue TBD';
+      const capacity = capacityEl ? (parseInt(capacityEl.value) || 500) : 500;
+      const type = document.querySelector('.type-btn.active')?.textContent.trim() || 'Conference';
+
       const payload = {
-        title, venue: venue || 'Venue TBD',
+        title,
+        venue: venue || 'Venue TBD',
         startDate: new Date(Date.now() + 7 * 86400000).toISOString(),
         endDate: new Date(Date.now() + 7 * 86400000 + 4 * 3600000).toISOString(),
         registrationStart: new Date().toISOString(),
         registrationEnd: new Date(Date.now() + 7 * 86400000).toISOString(),
         description: 'New event from dashboard',
-        capacity: parseInt(document.getElementById('evCapacity').value) || 500,
-        tags: document.querySelector('.type-btn.active')?.textContent.trim() || 'General'
+        capacity: capacity,
+        tags: type
       };
       if (btn) { btn.disabled = true; btn.innerHTML = 'Publishing...'; }
       try {
