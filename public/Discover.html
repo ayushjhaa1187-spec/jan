@@ -5,6 +5,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width,initial-scale=1.0">
     <title>Discover Events — Circles</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet" />
     <style>
         :root {
             --ink-0: #111827;
@@ -17,6 +21,7 @@
             --edge: #E5E7EB;
             --edge-2: #D1D5DB;
             --violet: #2563EB;
+            --violet-soft: rgba(37, 99, 235, 0.08);
             --grad: linear-gradient(135deg, #111827 0%, #2563EB 100%);
             --font-u: 'Inter', system-ui, sans-serif;
             --nav-h: 72px;
@@ -102,10 +107,10 @@
         }
 
         .title {
-            font-family: var(--font-d);
-            font-size: 42px;
+            font-size: 48px;
             margin-bottom: 8px;
-            font-weight: 400;
+            font-weight: 800;
+            letter-spacing: -0.04em;
         }
 
         .title span {
@@ -138,13 +143,14 @@
         }
 
         .card-img {
-            height: 160px;
-            background: #eef2ff;
+            height: 180px;
+            background: #fdfdfd;
+            border-bottom: 1px solid var(--edge);
             display: flex;
             align-items: center;
             justify-content: center;
             color: var(--violet);
-            opacity: 0.5;
+            opacity: 0.8;
         }
 
         .card-body {
@@ -156,17 +162,28 @@
         }
 
         .card-title {
-            font-family: var(--font-d);
-            font-size: 24px;
-            font-weight: 400;
+            font-size: 28px;
+            font-weight: 800;
+            letter-spacing: -0.02em;
         }
 
         .card-meta {
-            font-size: 12px;
+            font-size: 14px;
             color: var(--ink-2);
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .meta-item {
             display: flex;
             align-items: center;
             gap: 6px;
+        }
+
+        .meta-item svg {
+            opacity: 0.6;
         }
 
         .card-foot {
@@ -255,19 +272,35 @@
             const myIds = (myData.registrations || []).map(r => r.eventId);
 
             const grid = document.getElementById('grid');
-            grid.innerHTML = evs.map(e => {
+            grid.innerHTML = (evs || []).map(e => {
                 const reg = myIds.includes(e.id);
-                const d = new Date(e.startDate).toLocaleDateString();
+                const d = new Date(e.startDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
                 return `
           <div class="card">
-            <div class="card-img"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg></div>
-            <div class="card-body">
-              <h3 class="card-title">${e.title}</h3>
-              <div class="card-meta">${d} • ${e.venue || 'Virtual'}</div>
+            <div class="card-img" style="background: linear-gradient(to bottom right, #f8fafc, #eff6ff)">
+                <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2">
+                    <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+                </svg>
             </div>
-            <div class="card-foot">
-              <span style="font-weight:600; color:var(--ink-2)">\${reg?'Already Registered':'Available'}</span>
-              \${reg ? '<a href="/participant" class="btn btn-pri" style="background:#0aaa6e">Ticket</a>' : '<button class="btn btn-pri" onclick="regEv(\\''+e.id+'\\')">Register</button>'}
+            <div class="card-body" style="padding: 32px">
+              <h3 class="card-title" style="margin-bottom: 20px">${e.title}</h3>
+              <div class="card-meta">
+                  <div class="meta-item">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                      ${d}
+                  </div>
+                  <div class="meta-item">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                      ${e.venue || 'Virtual'}
+                  </div>
+              </div>
+            </div>
+            <div class="card-foot" style="padding: 24px 32px">
+              <span style="font-weight:700; color:var(--violet); font-size:14px; letter-spacing: 0.02em">${reg ? 'REGISTERED' : 'AVAILABLE'}</span>
+              ${reg ?
+                        '<a href="/participant" class="btn btn-pri" style="background:#059669">Go to Event</a>' :
+                        `<button class="btn btn-pri" onclick="regEv('${e.id}')">Reserve Spot</button>`
+                    }
             </div>
           </div>
         `;
