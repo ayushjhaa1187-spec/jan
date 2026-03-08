@@ -607,6 +607,25 @@
         localStorage.setItem('token', data.token);
         localStorage.setItem('user', JSON.stringify(data.user));
 
+        // Handle auto-registration for events from shared links
+        const params = new URLSearchParams(window.location.search);
+        const eventId = params.get('event');
+
+        if (eventId && data.user.role === 'PARTICIPANT') {
+          try {
+            await fetch(`/api/events/${eventId}/register`, {
+              method: 'POST',
+              headers: {
+                'Authorization': 'Bearer ' + data.token,
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({ fieldValues: [] })
+            });
+          } catch (regErr) {
+            console.error('Auto-registration failed', regErr);
+          }
+        }
+
         if (data.user.role === 'ADMIN') {
           window.location.href = '/dashboard';
         } else {
@@ -617,6 +636,14 @@
         errEl.style.display = "block";
       }
     }
+
+    // Auto-open modal if requested
+    (function () {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('login') === 'true') {
+        setTimeout(() => openAuthModal('login'), 500);
+      }
+    })();
 
     // Close modal on overlay click
     document.getElementById('authOverlay').addEventListener('click', function (e) {

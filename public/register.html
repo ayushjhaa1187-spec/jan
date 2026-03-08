@@ -262,6 +262,25 @@
     </div>
 
     <script>
+        const params = new URLSearchParams(window.location.search);
+        const eventId = params.get('event');
+
+        if (eventId) {
+            // Auto select participant role
+            document.querySelectorAll('.role-option').forEach(o => o.classList.remove('selected'));
+            document.getElementById('roleParticipant').classList.add('selected');
+            document.querySelector('input[value="PARTICIPANT"]').checked = true;
+
+            // Fetch event info (optional but better UX)
+            fetch(`/api/events/${eventId}`)
+                .then(r => r.json())
+                .then(data => {
+                    if (data && data.title) {
+                        document.querySelector('.register-header p').textContent = `Join "${data.title}" on Circles`;
+                    }
+                }).catch(e => console.error(e));
+        }
+
         // Role selector click handling
         document.querySelectorAll('.role-option').forEach(option => {
             option.addEventListener('click', function () {
@@ -313,9 +332,17 @@
                     throw new Error(data.error || 'Registration failed');
                 }
 
-                // Success - redirect to login or directly login
-                alert('Account created successfully! Please sign in.');
-                window.location.href = '/';
+                // If eventId is present, we need to log them in first to get a token
+                // OR the server handles it (unlikely without change).
+                // For MVP: redirect to login with the eventId preserved.
+
+                if (eventId) {
+                    alert('Account created! Now sign in to join the event.');
+                    window.location.href = `/?login=true&event=${eventId}`;
+                } else {
+                    alert('Account created successfully! Please sign in.');
+                    window.location.href = '/';
+                }
             } catch (err) {
                 errorEl.textContent = err.message;
                 errorEl.classList.add('show');

@@ -132,6 +132,24 @@
         </div>
       </div>
       <div class="tb-actions">
+        <button class="icon-btn" id="themeToggle" aria-label="Toggle Theme">
+          <svg class="moon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+            stroke-width="2.5">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+          </svg>
+          <svg class="sun" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+            stroke-width="2.5" style="display:none;">
+            <circle cx="12" cy="12" r="5" />
+            <line x1="12" y1="1" x2="12" y2="3" />
+            <line x1="12" y1="21" x2="12" y2="23" />
+            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
+            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
+            <line x1="1" y1="12" x2="3" y2="12" />
+            <line x1="21" y1="12" x2="23" y2="12" />
+            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
+            <line x1="18.36" y1="4.22" x2="19.78" y2="5.64" />
+          </svg>
+        </button>
         <button class="icon-btn" aria-label="Notifications">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
             <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
@@ -186,7 +204,7 @@
                 <path
                   d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
               </svg>
-              General
+              General Settings
             </div>
             <div class="snav-item" onclick="showSection('event', this)">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
@@ -195,7 +213,15 @@
                 <line x1="8" y1="2" x2="8" y2="6" />
                 <line x1="3" y1="10" x2="21" y2="10" />
               </svg>
-              Event Settings
+              Event Logic
+            </div>
+            <div class="snav-item" onclick="showSection('admin_broadcast', this)">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <circle cx="12" cy="12" r="2" />
+                <path
+                  d="M16.24 7.76a6 6 0 0 1 0 8.49m-8.48-.01a6 6 0 0 1 0-8.49m11.31-2.82a10 10 0 0 1 0 14.14m-14.14 0a10 10 0 0 1 0-14.14" />
+              </svg>
+              Live Broadcast
             </div>
             <div class="snav-item" onclick="showSection('team', this)">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
@@ -211,39 +237,50 @@
                 <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
                 <path d="M13.73 21a2 2 0 0 1-3.46 0" />
               </svg>
-              Notifications
+              Admin Alerts
+            </div>
+            <div class="snav-item" onclick="showSection('admin_share', this)">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8m-11-4 3-3 3 3m-3-3v12" />
+              </svg>
+              Share & Visibility
             </div>
           </div>
 
           <!-- Attendee Navigation Group -->
           <div id="navAttendee" class="settings-nav-group">
-            <div class="snav-item" onclick="showSection('registration', this)">
+            <div class="snav-item" onclick="showSection('attendee_team', this)">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-                <polyline points="14 2 14 8 20 8" />
-                <line x1="9" y1="13" x2="15" y2="13" />
-                <line x1="9" y1="17" x2="15" y2="17" />
+                <path d="M5 17H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2h-1" />
+                <rect x="8" y="13" width="8" height="8" rx="1.5" />
+                <path d="M16 7a4 4 0 1 1-8 0 4 4 0 0 1 8 0z" />
               </svg>
-              Registration
+              My Networking Team
             </div>
-            <div class="snav-item" onclick="showSection('checkin', this)">
+            <div class="snav-item" onclick="showSection('attendee_share', this)">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                <polyline points="9 11 12 14 22 4" />
-                <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
+                <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8m-11-4 3-3 3 3m-3-3v12" />
               </svg>
-              Check-in
+              Share & Invite
             </div>
-            <div class="snav-item" onclick="showSection('live_updates', this)">
+            <div class="snav-item" onclick="showSection('attendee_ticket', this)">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                <path d="M5 12a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v0a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1v0z" />
-                <circle cx="12" cy="7" r="1" />
-                <circle cx="12" cy="17" r="1" />
-                <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07" />
+                <rect x="2" y="7" width="20" height="10" rx="2" />
+                <line x1="15" y1="7" x2="15" y2="17" />
+                <line x1="9" y1="7" x2="9" y2="17" />
               </svg>
-              Live Updates
+              My Ticket & QR
+            </div>
+            <div class="snav-item" onclick="showSection('attendee_announcements', this)">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+                <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+              </svg>
+              Announcements
             </div>
           </div>
         </div>
+        <div id="registrationLinkAnchor" style="display:none" data-link=""></div>
         <!-- /settings-nav -->
 
         <!-- /settings-nav -->
@@ -627,8 +664,8 @@
             </div>
           </section>
 
-          <!-- ─────────────── SECTION: LIVE UPDATES ─────────────── -->
-          <section id="sec-live_updates" class="settings-section">
+          <!-- ─────────────── SECTION: ADMIN BROADCAST ─────────────── -->
+          <section id="sec-admin_broadcast" class="settings-section">
             <div class="card">
               <div class="card-head-refined">
                 <div class="card-title">Live Broadcast Engine</div>
@@ -651,21 +688,113 @@
                 <div class="card-sub">Live feed of server-side events and attendee interactions.</div>
               </div>
               <div class="card-body" id="activityFeed">
-                <div class="activity-feed-row">
-                  <div class="activity-dot" style="background:var(--violet)"></div>
-                  <div class="activity-text"><strong>System:</strong> Event profile updated via Admin panel.</div>
-                  <div class="activity-time">2m ago</div>
+                <div style="font-size:12px; color:var(--ink-3); text-align:center; padding:20px;">No recent activity
+                  logs.</div>
+              </div>
+            </div>
+          </section>
+
+          <!-- ─────────────── SECTION: ADMIN SHARE ─────────────── -->
+          <section id="sec-admin_share" class="settings-section">
+            <div class="card">
+              <div class="card-head-refined">
+                <div class="card-title">Global Share Controls</div>
+                <div class="card-sub">Manage external registration links and visibility.</div>
+              </div>
+              <div class="card-body">
+                <div class="link-card">
+                  <div style="flex:1">
+                    <div style="font-size:13px;font-weight:600;color:var(--ink-1)">Event Registration Link</div>
+                    <div class="link-display" id="adminRegLinkDisplay">Loading...</div>
+                  </div>
+                  <button class="btn btn-secondary btn-sm" style="margin-left:16px" onclick="copyRegLink()">Copy
+                    Link</button>
                 </div>
-                <div class="activity-feed-row">
-                  <div class="activity-dot" style="background:var(--emerald)"></div>
-                  <div class="activity-text"><strong>Attendee:</strong> New registration confirmed (Ticket #8192).</div>
-                  <div class="activity-time">5m ago</div>
+              </div>
+            </div>
+          </section>
+
+          <!-- ─────────────── SECTION: ATTENDEE TEAM ─────────────── -->
+          <section id="sec-attendee_team" class="settings-section">
+            <div class="card">
+              <div class="card-head-refined">
+                <div class="card-title">My Event Team</div>
+                <div class="card-sub">Join a sub-group or create your own networking circle.</div>
+              </div>
+              <div class="card-body">
+                <div style="text-align:center; padding:40px 20px;">
+                  <div
+                    style="width:56px; height:56px; border-radius:50%; background:var(--base-2); display:flex; align-items:center; justify-content:center; margin:0 auto 20px; color:var(--violet)">
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                      <circle cx="9" cy="7" r="4" />
+                      <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+                      <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                    </svg>
+                  </div>
+                  <h3 style="font-size:17px; color:var(--ink-0); margin-bottom:8px;">Find your Circle</h3>
+                  <p style="font-size:13px; color:var(--ink-3); margin-bottom:24px;">Connect with other attendees for
+                    better networking.</p>
+                  <div style="display:flex; justify-content:center; gap:12px;">
+                    <button class="btn btn-primary"
+                      onclick="window.CirclesGlobalSearch.showToast('Logic for sub-groups coming in v1.2', 'info')">Create
+                      Team</button>
+                    <button class="btn btn-secondary"
+                      onclick="window.CirclesGlobalSearch.showToast('Searching for nearby circles...', 'info')">Join
+                      Team</button>
+                  </div>
                 </div>
-                <div class="activity-feed-row">
-                  <div class="activity-dot" style="background:var(--azure)"></div>
-                  <div class="activity-text"><strong>Server:</strong> Dashboard metrics force-synced successfully.</div>
-                  <div class="activity-time">12m ago</div>
+              </div>
+            </div>
+          </section>
+
+          <!-- ─────────────── SECTION: ATTENDEE SHARE ─────────────── -->
+          <section id="sec-attendee_share" class="settings-section">
+            <div class="card">
+              <div class="card-head-refined">
+                <div class="card-title">Invite Friends</div>
+                <div class="card-sub">Share this event link directly to social platforms.</div>
+              </div>
+              <div class="card-body">
+                <div class="link-card">
+                  <div style="flex:1">
+                    <div style="font-size:13px;font-weight:600;color:var(--ink-1)">Your Personal Invite Link</div>
+                    <div class="link-display" id="attendeeRegLinkDisplay">Loading...</div>
+                  </div>
+                  <button class="btn btn-secondary btn-sm" style="margin-left:16px"
+                    onclick="copyRegLink()">Copy</button>
                 </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- ─────────────── SECTION: ATTENDEE TICKET ─────────────── -->
+          <section id="sec-attendee_ticket" class="settings-section">
+            <div class="card">
+              <div class="card-head-refined">
+                <div class="card-title">My Entry Pass</div>
+                <div class="card-sub">Your digital ticket and unique QR code for entry.</div>
+              </div>
+              <div class="card-body" style="text-align:center; padding:32px;">
+                <button class="btn btn-primary" id="myTicketBtn" onclick="generateQR()" style="width:200px">Show My QR
+                  Code</button>
+                <p style="font-size:12px; color:var(--ink-3); margin-top:16px;">Scan this at the registration desk for
+                  instant check-in.</p>
+              </div>
+            </div>
+          </section>
+
+          <!-- ─────────────── SECTION: ATTENDEE ANNOUNCEMENTS ─────────────── -->
+          <section id="sec-attendee_announcements" class="settings-section">
+            <div class="card">
+              <div class="card-head-refined">
+                <div class="card-title">Live Announcements</div>
+                <div class="card-sub">Important updates and broadcasts from event organizers.</div>
+              </div>
+              <div class="card-body" id="announcementFeed">
+                <!-- Rendered from localStorage -->
+                <div style="text-align:center; padding:40px; color:var(--ink-3); font-size:13px;">Waiting for organizers
+                  to go live...</div>
               </div>
             </div>
           </section>
@@ -796,6 +925,34 @@
     }
 
 
+    /* ── THEME ENGINE ────────────────────────────────────────── */
+    (function () {
+      const themeToggle = document.getElementById('themeToggle');
+      if (!themeToggle) return;
+
+      const moon = themeToggle.querySelector('.moon');
+      const sun = themeToggle.querySelector('.sun');
+
+      function updateThemeUI(isLight) {
+        document.body.classList.toggle('light-mode', isLight);
+        if (moon) moon.style.display = isLight ? 'none' : 'block';
+        if (sun) sun.style.display = isLight ? 'block' : 'none';
+      }
+
+      // Init
+      const savedTheme = localStorage.getItem('circles_theme');
+      const isLight = savedTheme === 'light';
+      updateThemeUI(isLight);
+
+      themeToggle.addEventListener('click', () => {
+        const currentlyLight = document.body.classList.contains('light-mode');
+        const nextLight = !currentlyLight;
+        localStorage.setItem('circles_theme', nextLight ? 'light' : 'dark');
+        updateThemeUI(nextLight);
+      });
+    })();
+
+
     /* --- ADMIN / ATTENDEE TAB SWITCHER --- */
     function switchTab(tab) {
       // Toggle buttons
@@ -808,7 +965,7 @@
       if (group) group.classList.add('active');
 
       // Default section for tab
-      const defaultSection = tab === 'admin' ? 'operations' : 'registration';
+      const defaultSection = tab === 'admin' ? 'operations' : 'attendee_team';
       const defaultNav = group.querySelector('.snav-item');
       showSection(defaultSection, defaultNav);
     }
@@ -935,11 +1092,11 @@
     }
 
     function copyRegLink() {
-      const link = document.getElementById('registrationLink').textContent;
-      if (link && link !== 'Loading...') {
+      const link = document.getElementById('registrationLinkAnchor')?.dataset.link;
+      if (link) {
         navigator.clipboard.writeText(link);
         if (window.CirclesGlobalSearch?.showToast) {
-          window.CirclesGlobalSearch.showToast('Registration link copied to clipboard.', 'success');
+          window.CirclesGlobalSearch.showToast('Event link copied! Land them on your world.', 'success');
         }
       }
     }
@@ -951,8 +1108,8 @@
       if (!sectionId) return;
 
       // Detemine if section is Admin or Attendee
-      const adminSections = ['operations', 'general', 'event', 'team', 'notifications', 'danger'];
-      const attendeeSections = ['registration', 'checkin', 'live_updates'];
+      const adminSections = ['operations', 'general', 'event', 'team', 'notifications', 'admin_broadcast', 'admin_share'];
+      const attendeeSections = ['attendee_team', 'attendee_share', 'attendee_ticket', 'attendee_announcements'];
 
       if (adminSections.includes(sectionId)) switchTab('admin');
       else if (attendeeSections.includes(sectionId)) switchTab('attendee');
@@ -1109,9 +1266,15 @@
         document.getElementById('ev-date').value = selectedEvent.startDate ? selectedEvent.startDate.split('T')[0] : '';
         document.getElementById('ev-desc').value = selectedEvent.description || '';
 
-        // Dynamically update the registration link
         const currentUrl = window.location.origin;
-        document.getElementById('registrationLink').textContent = `${currentUrl}/register.html?event=${activeEventId}`;
+        const fullLink = `${currentUrl}/register.html?event=${activeEventId}`;
+        const adminDisplay = document.getElementById('adminRegLinkDisplay');
+        const attendeeDisplay = document.getElementById('attendeeRegLinkDisplay');
+        if (adminDisplay) adminDisplay.textContent = fullLink;
+        if (attendeeDisplay) attendeeDisplay.textContent = fullLink;
+
+        // Internal reference for copyRegLink
+        document.getElementById('registrationLinkAnchor').dataset.link = fullLink;
       } catch (e) {
         console.error(e);
       }
@@ -1415,6 +1578,7 @@
     }
 
     /* ── BROADCAST ENGINE ───────────────────────────────────── */
+    /* ── BROADCAST ENGINE ───────────────────────────────────── */
     function pushBroadcast() {
       const msg = document.getElementById('broadcastMsg').value.trim();
       if (!msg) {
@@ -1435,6 +1599,14 @@
         btn.disabled = false;
         btn.textContent = originalText;
 
+        // Persist for attendee announcements
+        const storageKey = `circles_announcements_${activeEventId || 'global'}`;
+        const existing = JSON.parse(localStorage.getItem(storageKey) || '[]');
+        existing.unshift({ msg, id: Date.now(), time: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }) });
+        localStorage.setItem(storageKey, JSON.stringify(existing.slice(0, 10))); // Max 10
+
+        renderAnnouncements();
+
         // Add to activity feed
         const feed = document.getElementById('activityFeed');
         if (feed) {
@@ -1449,6 +1621,32 @@
         }
       }, 1200);
     }
+
+    function renderAnnouncements() {
+      const feed = document.getElementById('announcementFeed');
+      if (!feed) return;
+      const storageKey = `circles_announcements_${activeEventId || 'global'}`;
+      const data = JSON.parse(localStorage.getItem(storageKey) || '[]');
+
+      if (data.length === 0) {
+        feed.innerHTML = `<div style="text-align:center; padding:40px; color:var(--ink-3); font-size:13px;">Waiting for organizers to go live...</div>`;
+        return;
+      }
+
+      feed.innerHTML = data.map(item => `
+          <div class="activity-feed-row animate-fade" style="border-bottom: 1px solid var(--edge); padding: 12px 0;">
+            <div class="activity-dot" style="background:var(--violet)"></div>
+            <div style="flex:1">
+               <div style="font-size:14px; color:var(--ink-0); line-height:1.4;">${item.msg}</div>
+               <div style="font-size:11px; color:var(--ink-3); margin-top:4px;">Official Broadcast • ${item.time}</div>
+            </div>
+          </div>
+       `).join('');
+    }
+
+    // Initial render and periodic refresh for demo "live" feel
+    setTimeout(renderAnnouncements, 800);
+    setInterval(renderAnnouncements, 5000);
 
 
     /* ── KEYBOARD SHORTCUTS ─────────────────────────────────── */
