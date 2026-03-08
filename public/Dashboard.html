@@ -197,13 +197,13 @@
       </div>
     </div>
 
-    <main class="content" id="dashboardContent">
-      <div class="page-hdr">
+    <main class="content animate-fade" id="dashboardContent">
+      <div class="page-hdr animate-fade-down">
         <div class="animate-fade">
           <h1 class="page-title">Dashboard</h1>
           <div class="page-sub">Operational overview · Live view</div>
         </div>
-        <div class="hdr-actions">
+        <div class="hdr-actions stagger-entry">
           <button class="btn btn-sec" id="exportCsvBtn">Export CSV</button>
           <button class="btn btn-pri" id="checkinBtn">Check-in Mode</button>
         </div>
@@ -264,10 +264,10 @@
         </div>
       </div>
 
-      <div class="two-col">
-        <div class="panel">
+      <div class="two-col" style="margin-top:24px">
+        <div class="panel animate-zoom">
           <div class="panel-hdr">
-            <div class="panel-title">Check-in Activity</div>
+            <h2 class="panel-title">Check-in Velocity</h2>
             <div class="chart-tabs">
               <button class="chart-tab active">Live</button>
               <button class="chart-tab">Hourly</button>
@@ -285,10 +285,10 @@
           </div>
         </div>
 
-        <div class="panel">
+        <div class="panel animate-zoom" style="animation-delay: 0.2s">
           <div class="panel-hdr">
-            <div class="panel-title">Recent Check-ins</div>
-            <span class="feed-live-lbl">LIVE FEED</span>
+            <h2 class="panel-title">Live Activity Feed</h2>
+            <div class="feed-live-lbl animate-pulse">● LIVE</div>
           </div>
           <div class="feed-list">
             <div class="feed-item">
@@ -766,7 +766,7 @@
 
   <!-- ── Create Event Modal ── -->
   <div class="backdrop" id="modalBackdrop">
-    <div class="modal">
+    <div class="modal animate-zoom">
       <div class="modal-hdr"
         style="padding: 24px 28px 18px; border-bottom: 1px solid var(--edge); display: flex; align-items: flex-start; justify-content: space-between;">
         <div>

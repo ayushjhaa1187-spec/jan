@@ -17,6 +17,13 @@
 
 <body>
 
+  <!-- ══════════════════════ MODAL ══════════════════════ -->
+  <div class="modal-overlay" id="modalOverlay" onclick="handleOverlayClick(event)">
+    <div class="modal animate-zoom">
+      <!-- Modal content will be loaded here -->
+    </div>
+  </div>
+
   <!-- ══════════════════════ SIDEBAR ══════════════════════ -->
   <aside class="sidebar">
     <div class="sidebar-logo">
@@ -151,10 +158,10 @@
     </header>
 
     <!-- Content -->
-    <main class="content">
+    <main class="content animate-fade">
 
       <!-- Page Header -->
-      <div class="page-hdr">
+      <div class="page-hdr animate-fade-down">
         <div class="animate-fade">
           <div class="page-title">Events</div>
           <div class="page-sub">Create and manage your events</div>
@@ -171,7 +178,7 @@
       </div>
 
       <!-- Filter Bar -->
-      <div class="filter-bar">
+      <div class="filter-bar animate-zoom">
         <div class="filter-tabs">
           <button class="filter-tab active" data-filter="all" onclick="setFilter(this)">All Events</button>
           <button class="filter-tab" data-filter="live" onclick="setFilter(this)">Live</button>
@@ -221,7 +228,7 @@
 
   <!-- ══════════════════════ MODAL ══════════════════════ -->
   <div class="modal-overlay" id="modalOverlay" onclick="handleOverlayClick(event)">
-    <div class="modal">
+    <div class="modal animate-zoom">
       <div class="modal-hdr">
         <div class="modal-title">Create New Event</div>
         <button class="modal-close" onclick="closeModal()">

@@ -142,10 +142,10 @@
       </div>
     </header>
 
-    <main class="content">
+    <main class="content animate-fade">
 
       <!-- ── Empty State Hero (Hidden by default) ── -->
-      <div id="analyticsEmptyState" style="display:none; text-align:center; padding: 100px 20px;">
+      <div id="analyticsEmptyState" class="animate-fade" style="display:none; text-align:center; padding: 100px 20px;">
         <div
           style="width: 64px; height: 64px; border-radius: 50%; background: rgba(96,64,240,0.1); color: var(--violet); display: flex; align-items: center; justify-content: center; margin: 0 auto 24px;">
           <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -160,7 +160,7 @@
 
       <div id="analyticsContent">
         <!-- ① PAGE HEADER -->
-        <div class="page-hdr">
+        <div class="page-hdr animate-fade-down">
           <div class="animate-fade">
             <div class="page-title">Analytics</div>
             <div class="page-event-name" id="pageEventName">Select an event from Dashboard</div>
@@ -258,7 +258,7 @@
         </div>
 
         <!-- ③ ATTENDANCE FUNNEL -->
-        <div class="panel animate-fade">
+        <div class="panel animate-zoom">
           <div class="panel-hdr">
             <div>
               <div class="panel-title">Attendance Funnel</div>
@@ -625,7 +625,7 @@
         <!-- Live Status + Activity Feed stacked -->
         <div style="display:flex;flex-direction:column;gap:20px">
 
-          <div class="panel">
+          <div class="panel animate-zoom" style="animation-delay:0.3s">
             <div class="panel-hdr">
               <div>
                 <div class="panel-title">Live Event Status</div>
@@ -671,9 +671,11 @@
           </div>
 
         </div>
+      </div>
 
-        <!-- ⑨ ALL EVENTS ANALYTICS TABLE -->
-        <div class="panel" style="margin-top: 28px;">
+      <!-- ⑨ ALL EVENTS ANALYTICS TABLE -->
+      <div class="two-col" style="margin-top:24px">
+        <div class="panel animate-zoom" style="animation-delay:0.2s">
           <div class="panel-hdr">
             <div>
               <div class="panel-title">All Events Performance Breakdown</div>
