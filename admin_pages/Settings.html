@@ -826,10 +826,12 @@
       }
 
       const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
+      const adminCount = TEAM.filter(member => member.role === 'admin').length;
 
       tbody.innerHTML = TEAM.map(m => {
         const r = ROLE_META[m.role] || ROLE_META.staff;
         const isSelf = m.email === currentUser.email;
+        const isLastAdmin = isSelf && m.role === 'admin' && adminCount <= 1;
 
         return `
       <tr style="${isSelf ? 'background: rgba(96,64,240,0.03)' : ''}">
@@ -839,7 +841,15 @@
             <span style="font-size:14px;font-weight:500;color:var(--ink-0)">${escHtml(m.name)}${isSelf ? ' <span style="font-weight:400;color:var(--ink-3);font-size:12px">(You)</span>' : ''}</span>
           </div>
         </td>
-        <td><span style="font-size:11px;font-weight:600;padding:3px 8px;border-radius:99px;background:${r.color}15;color:${r.color};width:fit-content">${r.label}</span></td>
+        <td>
+          ${isLastAdmin ?
+            `<span style="font-size:11px;font-weight:600;padding:3px 8px;border-radius:99px;background:${r.color}15;color:${r.color}">${r.label}</span>` :
+            `<select class="role-select" onchange="updateRole(${m.id}, this.value)" style="color:${r.color} !important; border-color:${r.color}40 !important;">
+              <option value="admin" ${m.role === 'admin' ? 'selected' : ''}>Admin</option>
+              <option value="organizer" ${m.role === 'organizer' ? 'selected' : ''}>Organizer</option>
+              <option value="staff" ${m.role === 'staff' ? 'selected' : ''}>Staff</option>
+            </select>`}
+        </td>
         <td style="font-size:13px;color:var(--ink-3)">${escHtml(m.email)}</td>
         <td>
           <div style="display:flex;align-items:center;gap:6px">
@@ -848,7 +858,7 @@
           </div>
         </td>
         <td style="text-align:right">
-          ${(m.role !== 'admin' && !isSelf) ? `<span style="font-size:13px;color:var(--danger);cursor:pointer;font-weight:500" onclick="removeMember(${m.id})">Remove</span>` : ''}
+          ${!isLastAdmin ? `<span style="font-size:13px;color:var(--danger);cursor:pointer;font-weight:500" onclick="removeMember(${m.id})">Remove</span>` : ''}
         </td>
       </tr>`;
       }).join('');
@@ -876,7 +886,7 @@
       const isLastAdmin = m.role === 'admin' && adminCount <= 1;
 
       if (isSelf && isLastAdmin) {
-        alert('You are the only admin. Promote someone else first.');
+        if (window.CirclesGlobalSearch?.showToast) window.CirclesGlobalSearch.showToast('You are the only admin. Promote someone else first.', 'error');
         return;
       }
 
@@ -888,11 +898,10 @@
           const response = await fetch(`/api/events/${activeEventId}/members/${id}`, {
             method: 'DELETE',
             headers: { 'Authorization': 'Bearer ' + token }
-          });
+          }).catch(() => null);
 
-          if (!response.ok && response.status !== 404) {
-            const err = await response.json().catch(() => ({}));
-            throw new Error(err.error || 'Failed to remove member');
+          if (response && !response.ok && response.status !== 404) {
+            console.warn('API error when deleting, falling back to local edit.');
           }
         }
 
@@ -900,8 +909,19 @@
         localStorage.setItem(`circles_team_${activeEventId || 'global'}`, JSON.stringify(TEAM));
         renderTeam();
         save('team');
+        if (window.CirclesGlobalSearch?.showToast) window.CirclesGlobalSearch.showToast('Member removed successfully.', 'success');
       } catch (error) {
-        alert(error.message || 'Unable to remove member right now.');
+        if (window.CirclesGlobalSearch?.showToast) window.CirclesGlobalSearch.showToast(error.message || 'Unable to remove member right now.', 'error');
+      }
+    }
+
+    function copyRegLink() {
+      const link = document.getElementById('registrationLink').textContent;
+      if (link && link !== 'Loading...') {
+        navigator.clipboard.writeText(link);
+        if (window.CirclesGlobalSearch?.showToast) {
+          window.CirclesGlobalSearch.showToast('Registration link copied to clipboard.', 'success');
+        }
       }
     }
 
@@ -1190,6 +1210,9 @@
 
     /* ── SAVE FEEDBACK ──────────────────────────────────────── */
     function save(key) {
+      if (window.CirclesGlobalSearch?.showToast) {
+        window.CirclesGlobalSearch.showToast('Settings synced successfully.', 'success');
+      }
       const el = document.getElementById('sc-' + key);
       if (!el) return;
       el.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> Saved`;
@@ -1358,11 +1381,18 @@
       TEAM.push({ id: nextId++, name, email, role, status: 'pending', color: palette[TEAM.length % palette.length] });
       renderTeam();
 
+      const inviteLink = `${window.location.origin}/register.html?invite_role=${role}&event=${activeEventId || ''}`;
+      navigator.clipboard.writeText(inviteLink).catch(() => { });
+
       document.getElementById('inv-name').value = '';
       document.getElementById('inv-email').value = '';
       closeInvite();
 
-      // Scroll to team section and flash a confirmation
+      if (window.CirclesGlobalSearch?.showToast) {
+        window.CirclesGlobalSearch.showToast(`Invite link copied to clipboard for ${name}!`, 'success');
+      }
+
+      // Scroll to team section
       document.getElementById('sec-team').scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
 

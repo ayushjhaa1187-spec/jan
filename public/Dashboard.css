@@ -649,33 +649,3 @@
     display: flex;
     gap: 12px;
 }
-
-/* ── Toast ── */
-.toast {
-    position: fixed;
-    bottom: 32px;
-    left: 50%;
-    transform: translateX(-50%) translateY(100px);
-    background: var(--ink-0);
-    color: var(--base);
-    padding: 12px 24px;
-    border-radius: 12px;
-    font-weight: 700;
-    font-size: 13px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    box-shadow: var(--shadow-lg);
-    transition: transform .3s cubic-bezier(.18, .89, .32, 1.28);
-    z-index: 2000;
-}
-
-.toast.show {
-    transform: translateX(-50%) translateY(0);
-}
-
-.toast svg {
-    width: 16px;
-    height: 16px;
-    color: var(--emerald);
-}

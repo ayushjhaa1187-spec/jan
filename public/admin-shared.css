@@ -580,3 +580,156 @@ body::after {
         padding: 0;
     }
 }
+
+/* ── Global Toast Notification ── */
+.toast {
+    position: fixed;
+    bottom: 32px;
+    left: 50%;
+    transform: translateX(-50%) translateY(150px);
+    background: var(--ink-0);
+    color: var(--base);
+    padding: 14px 28px;
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: 13.5px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.25);
+    transition: transform .35s cubic-bezier(.18, .89, .32, 1.28), opacity .35s;
+    z-index: 10000;
+    opacity: 0;
+    pointer-events: none;
+    font-family: var(--font-u);
+}
+
+.toast.show {
+    transform: translateX(-50%) translateY(0);
+    opacity: 1;
+    pointer-events: all;
+}
+
+.toast.success svg {
+    color: var(--emerald);
+}
+
+.toast.error svg {
+    color: var(--danger);
+}
+
+.toast.info svg {
+    color: var(--azure);
+}
+
+/* ── Global Popovers (Event Selector & Notifications) ── */
+.global-popover {
+    position: absolute;
+    top: 60px;
+    right: 20px;
+    background: var(--surface);
+    border: 1px solid var(--edge-2);
+    border-radius: 12px;
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.4);
+    width: 320px;
+    z-index: 9999;
+    opacity: 0;
+    transform: translateY(-10px);
+    pointer-events: none;
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    max-height: 480px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+}
+
+.global-popover.show {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: all;
+}
+
+.popover-header {
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--edge-2);
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--ink-0);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: sticky;
+    top: 0;
+    background: rgba(13, 12, 26, 0.85);
+    backdrop-filter: blur(8px);
+    z-index: 2;
+}
+
+.popover-item {
+    padding: 14px 20px;
+    border-bottom: 1px solid var(--edge);
+    cursor: pointer;
+    transition: background 0.15s;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.popover-item:hover {
+    background: var(--surface-2);
+}
+
+.popover-item:last-child {
+    border-bottom: none;
+}
+
+.popover-item.active {
+    background: rgba(96, 64, 240, 0.08);
+}
+
+.popover-item-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    background: var(--surface-2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--violet);
+    flex-shrink: 0;
+}
+
+.popover-item-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.popover-item-title {
+    font-size: 13.5px;
+    font-weight: 600;
+    color: var(--ink-0);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-bottom: 3px;
+}
+
+.popover-item-sub {
+    font-size: 12px;
+    color: var(--ink-3);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Scrollbar for popovers */
+.global-popover::-webkit-scrollbar {
+    width: 6px;
+}
+
+.global-popover::-webkit-scrollbar-thumb {
+    background: var(--edge-2);
+    border-radius: 4px;
+}
