@@ -38,6 +38,13 @@
     </div>
 
     <nav class="sidebar-nav">
+      <div class="nav-lbl">Personal</div>
+      <div class="nav-item" onclick="window.location.href='/participant'" style="cursor:pointer">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
+        </svg>
+        My Journey
+      </div>
       <div class="nav-lbl">Main</div>
       <div class="nav-item" onclick="window.location.href='/dashboard'" style="cursor:pointer">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
@@ -706,7 +713,7 @@
                 <div class="card-title">My Event Team</div>
                 <div class="card-sub">Join a sub-group or create your own networking circle.</div>
               </div>
-              <div class="card-body">
+              <div class="card-body" id="attendeeTeamContent">
                 <div style="text-align:center; padding:40px 20px;">
                   <div
                     style="width:56px; height:56px; border-radius:50%; background:var(--base-2); display:flex; align-items:center; justify-content:center; margin:0 auto 20px; color:var(--violet)">
@@ -721,12 +728,8 @@
                   <p style="font-size:13px; color:var(--ink-3); margin-bottom:24px;">Connect with other attendees for
                     better networking.</p>
                   <div style="display:flex; justify-content:center; gap:12px;">
-                    <button class="btn btn-primary"
-                      onclick="window.CirclesGlobalSearch.showToast('Logic for sub-groups coming in v1.2', 'info')">Create
-                      Team</button>
-                    <button class="btn btn-secondary"
-                      onclick="window.CirclesGlobalSearch.showToast('Searching for nearby circles...', 'info')">Join
-                      Team</button>
+                    <button class="btn btn-primary" onclick="attendeeTeamOp('create')">Create Team</button>
+                    <button class="btn btn-secondary" onclick="attendeeTeamOp('join')">Join Team</button>
                   </div>
                 </div>
               </div>
@@ -761,8 +764,12 @@
                 <div class="card-sub">Your digital ticket and unique QR code for entry.</div>
               </div>
               <div class="card-body" style="text-align:center; padding:32px;">
-                <button class="btn btn-primary" id="myTicketBtn" onclick="generateQR()" style="width:200px">Show My QR
-                  Code</button>
+                <div id="settingsQR"
+                  style="margin: 0 auto 20px; width: 200px; height: 200px; display: flex; align-items: center; justify-content: center; background: var(--base-2); border-radius: 12px; border: 1px dashed var(--edge-2);">
+                  <span style="font-size: 11px; color: var(--ink-3);">QR Code will appear here</span>
+                </div>
+                <button class="btn btn-primary" id="myTicketBtn" onclick="generateSettingsQR()" style="width:200px">Show
+                  My QR Code</button>
                 <p style="font-size:12px; color:var(--ink-3); margin-top:16px;">Scan this at the registration desk for
                   instant check-in.</p>
               </div>
@@ -1244,7 +1251,11 @@
         if (attendeeDisplay) attendeeDisplay.textContent = fullLink;
 
         // Internal reference for copyRegLink
-        document.getElementById('registrationLinkAnchor').dataset.link = fullLink;
+        const anchor = document.getElementById('registrationLinkAnchor');
+        if (anchor) anchor.dataset.link = fullLink;
+
+        // Fetch attendee specific data (registrations / teams)
+        fetchAttendeeData();
       } catch (e) {
         console.error(e);
       }
@@ -1617,6 +1628,114 @@
     // Initial render and periodic refresh for demo "live" feel
     setTimeout(renderAnnouncements, 800);
     setInterval(renderAnnouncements, 5000);
+
+    /* ── ATTENDEE SETTINGS LOGIC ───────────────────────────── */
+    async function fetchAttendeeData() {
+      if (!activeEventId) return;
+      try {
+        const res = await fetch('/api/auth/me/registrations', { headers: { 'Authorization': 'Bearer ' + token } });
+        const data = await res.json();
+
+        // Find if I'm registered for THIS specific event
+        const reg = (data.registrations || []).find(r => r.eventId === activeEventId);
+        const myTeam = (data.teams || []).find(tm => tm.team?.eventId === activeEventId);
+
+        renderAttendeeTeamHub(reg, myTeam);
+      } catch (err) {
+        console.error('Attendee data fetch failed', err);
+      }
+    }
+
+    function renderAttendeeTeamHub(reg, myTeam) {
+      const container = document.getElementById('attendeeTeamContent');
+      if (!container) return;
+
+      if (!reg) {
+        container.innerHTML = `
+          <div style="text-align:center; padding:40px 20px;">
+            <p style="color:var(--ink-2); margin-bottom:16px;">You are not registered as a participant for this event.</p>
+            <button class="btn btn-primary" onclick="window.location.href='/discover'">Discover & Register</button>
+          </div>
+        `;
+        return;
+      }
+
+      if (myTeam) {
+        container.innerHTML = `
+          <div style="padding: 20px">
+            <div style="background:var(--base-2); padding: 20px; border-radius:12px; border:1px solid var(--edge-2);">
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+                <span style="font-size:12px; font-weight:700; color:var(--violet); text-transform:uppercase;">ACTIVE TEAM</span>
+                <span style="font-size:11px; color:var(--ink-3);">${myTeam.team.members.length} Members</span>
+              </div>
+              <h4 style="font-size:20px; font-weight:800; color:var(--ink-0); margin-bottom:8px;">${myTeam.team.name}</h4>
+              <div style="font-size:13px; color:var(--ink-2); margin-bottom:20px;">Invite Code: <strong style="color:var(--violet); font-family:monospace">${myTeam.team.inviteCode}</strong></div>
+              <button class="btn btn-secondary btn-sm" style="width:100%" onclick="window.location.href='/participant'">View Team Workspace</button>
+            </div>
+          </div>
+        `;
+      } else {
+        container.innerHTML = `
+          <div style="text-align:center; padding:40px 20px;">
+            <div style="width:56px; height:56px; border-radius:50%; background:var(--base-2); display:flex; align-items:center; justify-content:center; margin:0 auto 20px; color:var(--violet)">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            </div>
+            <h3 style="font-size:17px; color:var(--ink-0); margin-bottom:8px;">Connect & Collaborate</h3>
+            <p style="font-size:13px; color:var(--ink-3); margin-bottom:24px;">Create or join a team to network with other participants.</p>
+            <div style="display:flex; justify-content:center; gap:12px;">
+              <button class="btn btn-primary" onclick="attendeeTeamOp('create')">Create Team</button>
+              <button class="btn btn-secondary" onclick="attendeeTeamOp('join')">Join Team</button>
+            </div>
+          </div>
+        `;
+      }
+    }
+
+    async function attendeeTeamOp(op) {
+      if (op === 'create') {
+        const name = prompt('Enter a name for your team:');
+        if (!name) return;
+        const res = await fetch(`/api/events/${activeEventId}/teams`, {
+          method: 'POST',
+          headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name })
+        });
+        if (res.ok) {
+          window.CirclesGlobalSearch.showToast('Team created successfully!', 'success');
+          fetchAttendeeData();
+        } else {
+          const d = await res.json();
+          alert(d.error || 'Failed to create team');
+        }
+      } else if (op === 'join') {
+        const inviteCode = prompt('Enter team invite code:');
+        if (!inviteCode) return;
+        const res = await fetch('/api/teams/join', {
+          method: 'POST',
+          headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ inviteCode })
+        });
+        if (res.ok) {
+          window.CirclesGlobalSearch.showToast('Successfully joined team!', 'success');
+          fetchAttendeeData();
+        } else {
+          const d = await res.json();
+          alert(d.error || 'Failed to join team');
+        }
+      }
+    }
+
+    async function generateSettingsQR() {
+      const res = await fetch(`/api/events/${activeEventId}/ticket/qr`, { headers: { 'Authorization': 'Bearer ' + token } });
+      const data = await res.json();
+      const qrBox = document.getElementById('settingsQR');
+      if (qrBox && data.qrCode) {
+        qrBox.innerHTML = `<img src="${data.qrCode}" style="width:180px; height:180px;">`;
+        window.CirclesGlobalSearch.showToast('Ticket QR Generated!', 'success');
+      } else {
+        alert('You must be registered as a participant to see your ticket.');
+      }
+    }
 
 
     /* ── KEYBOARD SHORTCUTS ─────────────────────────────────── */
