@@ -345,11 +345,8 @@
                     <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
                 </svg>
             </div>
-            <div style="padding: 32px; position: relative;">
-                <button class="btn-icon" style="position: absolute; top: 24px; right: 24px;" title="Share Event" onclick="shareEv('${e.id}', '${e.title.replace(/'/g, "\\'")}')">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8m-11-4 3-3 3 3m-3-3v12"/></svg>
-                </button>
-                <h3 style="font-size: 24px; font-weight: 800; letter-spacing: -0.02em; margin-bottom: 12px; padding-right: 40px;">${e.title}</h3>
+            <div style="padding: 32px;">
+                <h3 style="font-size: 24px; font-weight: 800; letter-spacing: -0.02em; margin-bottom: 12px;">${e.title}</h3>
                 <div style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 24px;">
                     <div style="display: flex; align-items: center; gap: 8px; font-size: 14px; color: var(--ink-2); font-weight: 500;">
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
@@ -361,10 +358,16 @@
                     </div>
                 </div>
                 
-                <div style="display:flex; gap:10px;">
-                  <button class="btn btn-pri" style="flex:1" onclick="viewT('${e.id}', '${e.title}')">View Ticket</button>
-                  ${canTeam && !myTeam ? `<button class="btn btn-sec" onclick="teamOp('${e.id}', 'options')">Team</button>` : ''}
-                  ${myTeam ? `<button class="btn btn-sec" onclick="teamOp('${e.id}', 'view', '${myTeam.team.id}')">My Team</button>` : ''}
+                <div style="display:flex; flex-direction: column; gap:10px;">
+                  <div style="display:flex; gap:10px;">
+                    <button class="btn btn-pri" style="flex:1" onclick="viewT('${e.id}', '${e.title}')">View Ticket</button>
+                    ${canTeam && !myTeam ? `<button class="btn btn-sec" style="flex:1" onclick="teamOp('${e.id}', 'options')">Team</button>` : ''}
+                    ${myTeam ? `<button class="btn btn-sec" style="flex:1" onclick="teamOp('${e.id}', 'view', '${myTeam.team.id}')">My Team</button>` : ''}
+                  </div>
+                  <button class="btn btn-sec" style="width:100%; justify-content: center; background: var(--violet-soft); color: var(--violet); border: 1px solid var(--edge-2);" onclick="shareEv('${e.id}', '${e.title.replace(/'/g, "\\'")}')">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="margin-right:8px"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8m-11-4 3-3 3 3m-3-3v12"/></svg>
+                    Share link with friends
+                  </button>
                 </div>
 
                 ${myTeam ? `

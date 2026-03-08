@@ -1075,12 +1075,11 @@
     }
 
     function copyRegLink() {
-      const link = document.getElementById('registrationLinkAnchor')?.dataset.link;
-      if (link) {
-        navigator.clipboard.writeText(link);
-        if (window.CirclesGlobalSearch?.showToast) {
-          window.CirclesGlobalSearch.showToast('Event link copied! Land them on your world.', 'success');
-        }
+      if (!activeEventId) return;
+      const link = `${window.location.origin}/register.html?event=${activeEventId}`;
+      navigator.clipboard.writeText(link);
+      if (window.CirclesGlobalSearch?.showToast) {
+        window.CirclesGlobalSearch.showToast('Event link copied! Sharing is caring.', 'success');
       }
     }
 

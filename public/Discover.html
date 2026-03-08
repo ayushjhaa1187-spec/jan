@@ -310,11 +310,8 @@
                     <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
                 </svg>
             </div>
-            <div class="card-body" style="padding: 32px; position: relative;">
-              <button class="btn-icon" style="position: absolute; top: 24px; right: 24px;" title="Share Event" onclick="shareEv('${e.id}', '${e.title.replace(/'/g, "\\'")}')">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8m-11-4 3-3 3 3m-3-3v12"/></svg>
-              </button>
-              <h3 class="card-title" style="margin-bottom: 20px; padding-right: 40px;">${e.title}</h3>
+            <div class="card-body" style="padding: 32px;">
+              <h3 class="card-title" style="margin-bottom: 20px;">${e.title}</h3>
               <div class="card-meta">
                   <div class="meta-item">
                       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
@@ -326,8 +323,14 @@
                   </div>
               </div>
             </div>
-            <div class="card-foot" style="padding: 24px 32px">
-              <span style="font-weight:700; color:var(--violet); font-size:14px; letter-spacing: 0.02em">${reg ? 'REGISTERED' : 'AVAILABLE'}</span>
+            <div class="card-foot" style="padding: 24px 32px; display: flex; align-items: center; justify-content: space-between; gap: 12px;">
+              <div style="display: flex; align-items: center; gap: 12px;">
+                 <span style="font-weight:700; color:var(--violet); font-size:13px; letter-spacing: 0.05em">${reg ? 'REGISTERED' : 'AVAILABLE'}</span>
+                 <button class="btn btn-sec" style="padding: 8px 16px; font-size: 12px; background: var(--base-2); color: var(--ink-1); border: 1px solid var(--edge);" onclick="shareEv('${e.id}', '${e.title.replace(/'/g, "\\'")}')">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="margin-right: 4px; vertical-align: middle;"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8m-11-4 3-3 3 3m-3-3v12"/></svg>
+                    Share
+                 </button>
+              </div>
               ${reg ?
                         '<a href="/participant" class="btn btn-pri" style="background:#059669">Go to Event</a>' :
                         `<button class="btn btn-pri" onclick="regEv('${e.id}')">Reserve Spot</button>`
