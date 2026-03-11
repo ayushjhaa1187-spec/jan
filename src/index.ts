@@ -39,7 +39,7 @@ app.use(express.json());
 
 // Load Swagger document
 try {
-    const swaggerPath = path.join(process.cwd(), 'swagger.yaml');
+    const swaggerPath = path.join(__dirname, '..', 'swagger.yaml');
     const swaggerDocument = YAML.load(swaggerPath);
     // Swagger UI Endpoint
     app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
@@ -66,14 +66,15 @@ app.use('/api/ai', aiRoutes);
 app.get('/api/users/me/notifications', authenticate, getNotifications);
 
 // Static file serving from 'public' and 'admin_pages'
-const publicPath = path.resolve(process.cwd(), 'public');
-const adminPagesPath = path.resolve(process.cwd(), 'admin_pages');
+const appRoot = path.join(__dirname, '..');
+const publicPath = path.resolve(appRoot, 'public');
+const adminPagesPath = path.resolve(appRoot, 'admin_pages');
 app.use(express.static(publicPath));
 app.use(express.static(adminPagesPath));
 
 // Also serve with folder prefix for hardcoded links
 app.use('/admin_pages', express.static(adminPagesPath));
-app.use('/participant_pages', express.static(path.resolve(process.cwd(), 'participant_pages')));
+app.use('/participant_pages', express.static(path.resolve(appRoot, 'participant_pages')));
 app.use('/public', express.static(publicPath));
 
 // Explicit Frontend Routes
@@ -125,7 +126,7 @@ app.get('/status', (req, res) => {
 
 // Participant Pages
 app.get('/participant', (req, res) => {
-    res.sendFile(path.join(process.cwd(), 'participant_pages', 'MyEvents.html'));
+    res.sendFile(path.join(appRoot, 'participant_pages', 'MyEvents.html'));
 });
 
 app.get('/discover', (req, res) => {

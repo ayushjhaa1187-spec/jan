@@ -200,7 +200,10 @@ export const joinTeam = async (req: Request, res: Response) => {
         if (error.name === 'ZodError') {
             return res.status(400).json({ errors: error.errors });
         }
-        res.status(500).json({ error: error.message || 'Internal server error' });
+        if (error.message === 'Invalid invite code' || error.message === 'Team is already full') {
+            return res.status(400).json({ error: error.message });
+        }
+        res.status(500).json({ error: 'Internal server error' });
     }
 };
 
