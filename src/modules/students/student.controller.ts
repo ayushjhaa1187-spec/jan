@@ -1,12 +1,23 @@
 import { NextFunction, Request, Response } from 'express';
+import AppError from '../../utils/AppError';
 import { success } from '../../utils/apiResponse';
 import { studentService } from './student.service';
 import { createStudentSchema, transferClassSchema, updateStudentSchema } from './student.validation';
 
+
+const getUserId = (req: Request): string => {
+  const userId = req.user?.id;
+  if (!userId) {
+    throw new AppError('Unauthorized', 401);
+  }
+
+  return userId;
+};
+
 export const createStudent = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const payload = createStudentSchema.parse(req.body);
-    const data = await studentService.createStudent(payload);
+    const data = await studentService.createStudent(payload, getUserId(req));
     return res.status(201).json(success(data, 'Student created successfully'));
   } catch (err) {
     return next(err);
@@ -39,7 +50,7 @@ export const getStudentById = async (req: Request, res: Response, next: NextFunc
 export const updateStudent = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const payload = updateStudentSchema.parse(req.body);
-    const data = await studentService.updateStudent(String(req.params.id), payload);
+    const data = await studentService.updateStudent(String(req.params.id), payload, getUserId(req));
     return res.json(success(data, 'Student updated successfully'));
   } catch (err) {
     return next(err);
@@ -48,7 +59,7 @@ export const updateStudent = async (req: Request, res: Response, next: NextFunct
 
 export const deleteStudent = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    await studentService.deleteStudent(String(req.params.id));
+    await studentService.deleteStudent(String(req.params.id), getUserId(req));
     return res.json(success(null, 'Student deleted successfully'));
   } catch (err) {
     return next(err);
@@ -58,7 +69,7 @@ export const deleteStudent = async (req: Request, res: Response, next: NextFunct
 export const transferStudentClass = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const payload = transferClassSchema.parse(req.body);
-    const data = await studentService.transferClass(String(req.params.id), payload);
+    const data = await studentService.transferClass(String(req.params.id), payload, getUserId(req));
     return res.json(success(data, 'Student transferred successfully'));
   } catch (err) {
     return next(err);

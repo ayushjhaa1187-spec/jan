@@ -2,6 +2,7 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import prisma from '../../utils/prisma';
 import { AuthTokenPayload, AuthenticatedUser, LoginInput, TokenPair } from './auth.types';
+import { logAudit } from '../../utils/auditLogger';
 
 const ACCESS_TOKEN_TTL = '15m';
 const REFRESH_TOKEN_TTL = '7d';
@@ -142,6 +143,14 @@ export const authService = {
     const refreshToken = signRefreshToken(payload);
     await persistRefreshToken(authUser.id, refreshToken);
 
+    void logAudit({
+      userId: authUser.id,
+      action: 'USER_LOGIN',
+      entity: 'AUTH',
+      entityId: authUser.id,
+      details: { email: authUser.email },
+    });
+
     return {
       user: authUser,
       tokens: { accessToken, refreshToken },
@@ -167,12 +176,26 @@ export const authService = {
       permissions: authUser.permissions,
     });
 
+    void logAudit({
+      userId: authUser.id,
+      action: 'REFRESH_TOKEN',
+      entity: 'AUTH',
+      entityId: authUser.id,
+    });
+
     return { user: authUser, accessToken };
   },
 
   async logout(refreshToken: string): Promise<void> {
     const decoded = jwt.verify(refreshToken, JWT_REFRESH_SECRET) as AuthTokenPayload;
     await removeRefreshToken(decoded.userId, refreshToken);
+
+    void logAudit({
+      userId: decoded.userId,
+      action: 'USER_LOGOUT',
+      entity: 'AUTH',
+      entityId: decoded.userId,
+    });
   },
 
   async getCurrentUser(userId: string): Promise<AuthenticatedUser | null> {

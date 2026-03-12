@@ -8,6 +8,8 @@ import {
   RejectExamInput,
   UpdateExamInput,
 } from './exam.types';
+import { logAudit } from '../../utils/auditLogger';
+import { createNotification, getUsersWithPermission } from '../notifications/notification.service';
 
 const WORKFLOW_STATUSES: ExamWorkflowStatus[] = ['DRAFT', 'REVIEW', 'APPROVED', 'PUBLISHED'];
 
@@ -36,23 +38,6 @@ const ensureClassExists = async (classId: string) => {
   }
 
   return classItem;
-};
-
-const createAuditLog = async (params: {
-  userId: string;
-  action: string;
-  entityId: string;
-  details?: Record<string, string>;
-}): Promise<void> => {
-  await prisma.auditLog.create({
-    data: {
-      userId: params.userId,
-      action: params.action,
-      entity: 'EXAM',
-      entityId: params.entityId,
-      details: params.details ? JSON.stringify(params.details) : null,
-    },
-  });
 };
 
 const ensureTransition = (from: string, to: ExamWorkflowStatus): void => {
@@ -88,14 +73,14 @@ const buildExamDetail = async (id: string) => {
     where: {
       entity: 'EXAM',
       entityId: id,
-      action: { in: ['EXAM_APPROVED', 'EXAM_PUBLISHED'] },
+      action: { in: ['APPROVE_EXAM', 'PUBLISH_EXAM'] },
     },
     include: { user: { select: { id: true, email: true } } },
     orderBy: { createdAt: 'desc' },
   });
 
-  const approveLog = logs.find((item) => item.action === 'EXAM_APPROVED');
-  const publishLog = logs.find((item) => item.action === 'EXAM_PUBLISHED');
+  const approveLog = logs.find((item) => item.action === 'APPROVE_EXAM');
+  const publishLog = logs.find((item) => item.action === 'PUBLISH_EXAM');
 
   return {
     id: exam.id,
@@ -132,7 +117,7 @@ export const examService = {
       throw new AppError('Exam with this name already exists for this class', 409);
     }
 
-    return prisma.exam.create({
+    const created = await prisma.exam.create({
       data: {
         name: payload.name,
         classId: payload.classId,
@@ -145,6 +130,16 @@ export const examService = {
         class: true,
       },
     });
+
+    void logAudit({
+      userId,
+      action: 'CREATE_EXAM',
+      entity: 'EXAM',
+      entityId: created.id,
+      details: { name: created.name, classId: created.classId },
+    });
+
+    return created;
   },
 
   async listExams(query: ExamListQuery) {
@@ -221,7 +216,7 @@ export const examService = {
       }
     }
 
-    return prisma.exam.update({
+    const updated = await prisma.exam.update({
       where: { id },
       data: {
         ...(payload.name ? { name: payload.name } : {}),
@@ -231,9 +226,19 @@ export const examService = {
       },
       include: { class: true },
     });
+
+    void logAudit({
+      userId,
+      action: 'UPDATE_EXAM',
+      entity: 'EXAM',
+      entityId: updated.id,
+      details: { name: updated.name },
+    });
+
+    return updated;
   },
 
-  async deleteExam(id: string) {
+  async deleteExam(id: string, userId: string) {
     const exam = await getExamByIdOrThrow(id);
     assertModifiable(exam.status);
 
@@ -242,6 +247,14 @@ export const examService = {
     }
 
     await prisma.exam.delete({ where: { id } });
+
+    void logAudit({
+      userId,
+      action: 'DELETE_EXAM',
+      entity: 'EXAM',
+      entityId: id,
+      details: { name: exam.name },
+    });
   },
 
   async submitReview(id: string, userId: string) {
@@ -256,7 +269,25 @@ export const examService = {
       },
     });
 
-    await createAuditLog({ userId, action: 'EXAM_SUBMITTED_REVIEW', entityId: id });
+    void logAudit({
+      userId,
+      action: 'SUBMIT_EXAM_REVIEW',
+      entity: 'EXAM',
+      entityId: id,
+      details: { name: exam.name },
+    });
+
+    const approverIds = await getUsersWithPermission('approve_exam');
+    await Promise.all(
+      approverIds.map((approverId) =>
+        createNotification(
+          approverId,
+          'Exam Pending Review',
+          `${exam.name} for Class ${exam.classId} has been submitted for review.`,
+        ),
+      ),
+    );
+
     return updated;
   },
 
@@ -272,7 +303,20 @@ export const examService = {
       },
     });
 
-    await createAuditLog({ userId, action: 'EXAM_APPROVED', entityId: id });
+    void logAudit({
+      userId,
+      action: 'APPROVE_EXAM',
+      entity: 'EXAM',
+      entityId: id,
+      details: { name: exam.name },
+    });
+
+    await createNotification(
+      exam.createdById,
+      'Exam Approved',
+      `Your exam ${exam.name} has been approved.`,
+    );
+
     return updated;
   },
 
@@ -295,12 +339,19 @@ export const examService = {
       },
     });
 
-    await createAuditLog({
+    void logAudit({
       userId,
-      action: 'EXAM_REJECTED',
+      action: 'REJECT_EXAM',
+      entity: 'EXAM',
       entityId: id,
       details: { reason: payload.reason },
     });
+
+    await createNotification(
+      exam.createdById,
+      'Exam Rejected',
+      `Your exam ${exam.name} was rejected. Reason: ${payload.reason}`,
+    );
 
     return {
       exam: updated,
@@ -320,7 +371,13 @@ export const examService = {
       },
     });
 
-    await createAuditLog({ userId, action: 'EXAM_PUBLISHED', entityId: id });
+    void logAudit({
+      userId,
+      action: 'PUBLISH_EXAM',
+      entity: 'EXAM',
+      entityId: id,
+      details: { name: exam.name },
+    });
     return updated;
   },
 

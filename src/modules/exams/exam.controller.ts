@@ -85,7 +85,7 @@ export const updateExam = async (req: Request, res: Response, next: NextFunction
 
 export const deleteExam = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    await examService.deleteExam(String(req.params.id));
+    await examService.deleteExam(String(req.params.id), getUserId(req));
     return res.json(success(null, 'Exam deleted successfully'));
   } catch (error) {
     return next(error);
