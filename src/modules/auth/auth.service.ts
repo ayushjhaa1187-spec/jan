@@ -1,7 +1,9 @@
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
+import AppError from '../../utils/AppError';
 import prisma from '../../utils/prisma';
-import { AuthTokenPayload, AuthenticatedUser, LoginInput, TokenPair } from './auth.types';
+import { logAudit } from '../../utils/auditLogger';
+import { AuthTokenPayload, AuthenticatedUser } from './auth.types';
 
 const ACCESS_TOKEN_TTL = '15m';
 const REFRESH_TOKEN_TTL = '7d';
@@ -14,10 +16,34 @@ const refreshTokenStore = new Map<string, Set<string>>();
 const normalizePermission = (action: string, resource: string): string =>
   `${action}_${resource}`.toLowerCase();
 
-const buildAuthUser = async (userId: string): Promise<AuthenticatedUser | null> => {
+const buildName = (user: {
+  email: string;
+  studentProfile?: { firstName: string; lastName: string } | null;
+  teacherProfile?: { firstName: string; lastName: string } | null;
+  staffProfile?: { firstName: string; lastName: string } | null;
+}): string => {
+  if (user.teacherProfile) {
+    return `${user.teacherProfile.firstName} ${user.teacherProfile.lastName}`;
+  }
+
+  if (user.studentProfile) {
+    return `${user.studentProfile.firstName} ${user.studentProfile.lastName}`;
+  }
+
+  if (user.staffProfile) {
+    return `${user.staffProfile.firstName} ${user.staffProfile.lastName}`;
+  }
+
+  return user.email.split('@')[0];
+};
+
+const buildAuthUser = async (userId: string): Promise<AuthenticatedUser & { name: string } | null> => {
   const user = await prisma.user.findUnique({
     where: { id: userId },
     include: {
+      teacherProfile: true,
+      studentProfile: true,
+      staffProfile: true,
       userRoles: {
         include: {
           role: {
@@ -38,22 +64,18 @@ const buildAuthUser = async (userId: string): Promise<AuthenticatedUser | null> 
     return null;
   }
 
-  const roles = user.userRoles.map((userRole) => userRole.role.name);
+  const roles = user.userRoles.map((item) => item.role.name);
   const permissions = Array.from(
-    new Set<string>(
-      user.userRoles.flatMap((userRole) =>
-        userRole.role.permissions.map((rolePermission) =>
-          normalizePermission(
-            rolePermission.permission.action,
-            rolePermission.permission.resource,
-          ),
-        ),
+    new Set(
+      user.userRoles.flatMap((item) =>
+        item.role.permissions.map((rp) => normalizePermission(rp.permission.action, rp.permission.resource)),
       ),
     ),
   );
 
   return {
     id: user.id,
+    name: buildName(user),
     email: user.email,
     isActive: user.isActive,
     role: roles[0] || 'User',
@@ -62,30 +84,27 @@ const buildAuthUser = async (userId: string): Promise<AuthenticatedUser | null> 
   };
 };
 
-const signAccessToken = (payload: AuthTokenPayload): string => {
-  return jwt.sign(payload, JWT_SECRET, { expiresIn: ACCESS_TOKEN_TTL });
-};
+const signAccessToken = (payload: AuthTokenPayload): string =>
+  jwt.sign(payload, JWT_SECRET, { expiresIn: ACCESS_TOKEN_TTL });
 
-const signRefreshToken = (payload: AuthTokenPayload): string => {
-  return jwt.sign(payload, JWT_REFRESH_SECRET, { expiresIn: REFRESH_TOKEN_TTL });
-};
+const signRefreshToken = (payload: AuthTokenPayload): string =>
+  jwt.sign(payload, JWT_REFRESH_SECRET, { expiresIn: REFRESH_TOKEN_TTL });
 
 const persistRefreshToken = async (userId: string, refreshToken: string): Promise<void> => {
-  const hashedToken = await bcrypt.hash(refreshToken, BCRYPT_SALT_ROUNDS);
-  const userTokens = refreshTokenStore.get(userId) || new Set<string>();
-  userTokens.add(hashedToken);
-  refreshTokenStore.set(userId, userTokens);
+  const hashed = await bcrypt.hash(refreshToken, BCRYPT_SALT_ROUNDS);
+  const existing = refreshTokenStore.get(userId) || new Set<string>();
+  existing.add(hashed);
+  refreshTokenStore.set(userId, existing);
 };
 
 const validateRefreshToken = async (userId: string, refreshToken: string): Promise<boolean> => {
-  const userTokens = refreshTokenStore.get(userId);
-  if (!userTokens || userTokens.size === 0) {
+  const hashedSet = refreshTokenStore.get(userId);
+  if (!hashedSet || hashedSet.size === 0) {
     return false;
   }
 
-  for (const hashedToken of userTokens) {
-    const valid = await bcrypt.compare(refreshToken, hashedToken);
-    if (valid) {
+  for (const hashed of hashedSet) {
+    if (await bcrypt.compare(refreshToken, hashed)) {
       return true;
     }
   }
@@ -93,93 +112,151 @@ const validateRefreshToken = async (userId: string, refreshToken: string): Promi
   return false;
 };
 
-const removeRefreshToken = async (userId: string, refreshToken: string): Promise<void> => {
-  const userTokens = refreshTokenStore.get(userId);
-  if (!userTokens || userTokens.size === 0) {
-    return;
-  }
-
-  for (const hashedToken of userTokens) {
-    const valid = await bcrypt.compare(refreshToken, hashedToken);
-    if (valid) {
-      userTokens.delete(hashedToken);
-      break;
-    }
-  }
-
-  if (userTokens.size === 0) {
-    refreshTokenStore.delete(userId);
-  }
+const invalidateRefreshTokens = (userId: string): void => {
+  refreshTokenStore.delete(userId);
 };
 
 export const authService = {
-  async login(input: LoginInput): Promise<{ user: AuthenticatedUser; tokens: TokenPair }> {
-    const user = await prisma.user.findUnique({
-      where: { email: input.email },
-    });
-
+  async login(email: string, password: string, ipAddress?: string) {
+    const user = await prisma.user.findUnique({ where: { email } });
     if (!user) {
-      throw new Error('Invalid credentials');
+      throw new AppError('Invalid credentials', 401);
     }
 
-    const passwordMatch = await bcrypt.compare(input.password, user.password);
-    if (!passwordMatch) {
-      throw new Error('Invalid credentials');
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+    if (!isPasswordValid) {
+      throw new AppError('Invalid credentials', 401);
     }
 
-    const authUser = await buildAuthUser(user.id);
-    if (!authUser || !authUser.isActive) {
-      throw new Error('Account is inactive');
+    if (!user.isActive) {
+      throw new AppError('Account disabled', 403);
+    }
+
+    const fullUser = await buildAuthUser(user.id);
+    if (!fullUser) {
+      throw new AppError('Invalid credentials', 401);
     }
 
     const payload: AuthTokenPayload = {
-      userId: authUser.id,
-      role: authUser.role,
-      permissions: authUser.permissions,
+      userId: fullUser.id,
+      role: fullUser.role,
+      permissions: fullUser.permissions,
     };
 
     const accessToken = signAccessToken(payload);
     const refreshToken = signRefreshToken(payload);
-    await persistRefreshToken(authUser.id, refreshToken);
+    await persistRefreshToken(fullUser.id, refreshToken);
+
+    void logAudit({
+      userId: fullUser.id,
+      action: 'USER_LOGIN',
+      entity: 'User',
+      entityId: fullUser.id,
+      ipAddress,
+    });
 
     return {
-      user: authUser,
-      tokens: { accessToken, refreshToken },
+      accessToken,
+      refreshToken,
+      user: {
+        id: fullUser.id,
+        name: fullUser.name,
+        email: fullUser.email,
+        role: fullUser.role,
+        permissions: fullUser.permissions,
+      },
     };
   },
 
-  async refresh(refreshToken: string): Promise<{ user: AuthenticatedUser; accessToken: string }> {
-    const decoded = jwt.verify(refreshToken, JWT_REFRESH_SECRET) as AuthTokenPayload;
-
-    const isValidToken = await validateRefreshToken(decoded.userId, refreshToken);
-    if (!isValidToken) {
-      throw new Error('Invalid refresh token');
+  async refresh(refreshToken: string) {
+    if (!refreshToken) {
+      throw new AppError('Invalid refresh token', 401);
     }
 
-    const authUser = await buildAuthUser(decoded.userId);
-    if (!authUser || !authUser.isActive) {
-      throw new Error('User not found');
+    let decoded: AuthTokenPayload;
+    try {
+      decoded = jwt.verify(refreshToken, JWT_REFRESH_SECRET) as AuthTokenPayload;
+    } catch {
+      throw new AppError('Invalid refresh token', 401);
+    }
+
+    const isValid = await validateRefreshToken(decoded.userId, refreshToken);
+    if (!isValid) {
+      throw new AppError('Invalid refresh token', 401);
+    }
+
+    const fullUser = await buildAuthUser(decoded.userId);
+    if (!fullUser || !fullUser.isActive) {
+      throw new AppError('Invalid refresh token', 401);
     }
 
     const accessToken = signAccessToken({
-      userId: authUser.id,
-      role: authUser.role,
-      permissions: authUser.permissions,
+      userId: fullUser.id,
+      role: fullUser.role,
+      permissions: fullUser.permissions,
     });
 
-    return { user: authUser, accessToken };
+    void logAudit({
+      userId: fullUser.id,
+      action: 'REFRESH_TOKEN',
+      entity: 'User',
+      entityId: fullUser.id,
+    });
+
+    return { accessToken };
   },
 
-  async logout(refreshToken: string): Promise<void> {
-    const decoded = jwt.verify(refreshToken, JWT_REFRESH_SECRET) as AuthTokenPayload;
-    await removeRefreshToken(decoded.userId, refreshToken);
+  async logout(userId: string, ipAddress?: string): Promise<void> {
+    invalidateRefreshTokens(userId);
+
+    void logAudit({
+      userId,
+      action: 'USER_LOGOUT',
+      entity: 'User',
+      entityId: userId,
+      ipAddress,
+    });
+  },
+
+  async getMe(userId: string) {
+    const user = await buildAuthUser(userId);
+    if (!user) {
+      throw new AppError('User not found', 404);
+    }
+
+    return {
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      permissions: user.permissions,
+    };
   },
 
   async getCurrentUser(userId: string): Promise<AuthenticatedUser | null> {
-    return buildAuthUser(userId);
+    const user = await buildAuthUser(userId);
+    if (!user) {
+      return null;
+    }
+
+    return {
+      id: user.id,
+      email: user.email,
+      isActive: user.isActive,
+      role: user.role,
+      roles: user.roles,
+      permissions: user.permissions,
+    };
   },
 
   verifyAccessToken(token: string): AuthTokenPayload {
     return jwt.verify(token, JWT_SECRET) as AuthTokenPayload;
   },
+
+
+  getUserIdFromRefreshToken(refreshToken: string): string {
+    const decoded = jwt.verify(refreshToken, JWT_REFRESH_SECRET) as AuthTokenPayload;
+    return decoded.userId;
+  },
+
 };
