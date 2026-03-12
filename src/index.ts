@@ -6,7 +6,8 @@ import swaggerUi from 'swagger-ui-express';
 import YAML from 'yamljs';
 import path from 'path';
 
-import authRoutes from './routes/authRoutes';
+import legacyAuthRoutes from './routes/authRoutes';
+import authRoutes from './modules/auth/auth.routes';
 import eventRoutes from './routes/eventRoutes';
 import adminEventRoutes from './routes/adminEventRoutes';
 import teamRoutes from './routes/teamRoutes';
@@ -54,8 +55,9 @@ app.use((req: express.Request, res: express.Response, next: express.NextFunction
 });
 
 // API Routes
+app.use('/auth', authRoutes);
 app.use('/api/auth', authRoutes);
-app.use('/api/users', authRoutes); // to match /api/users/me
+app.use('/api/users', legacyAuthRoutes); // legacy endpoints
 app.use('/api/events', eventRoutes);
 app.use('/api/admin/events', adminEventRoutes);
 app.use('/api/teams', teamRoutes);
