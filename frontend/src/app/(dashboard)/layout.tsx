@@ -1,34 +1,22 @@
 'use client'
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import api from '@/lib/api'
 import { useAuthStore } from '@/store/authStore'
 import { Sidebar } from '@/components/layout/Sidebar'
 import { Header } from '@/components/layout/Header'
-import { CenteredSpinner } from '@/components/ui/Spinner'
-import api from '@/lib/api'
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter()
-  const { setUser, setLoading, isLoading } = useAuthStore()
-  const [mobileOpen, setMobileOpen] = useState(false)
+  const setUser = useAuthStore((s) => s.setUser)
 
   useEffect(() => {
     const token = localStorage.getItem('accessToken')
-    if (!token) { router.replace('/login'); return }
-    api.get('/auth/me')
-      .then(res => { setUser((res.data as { data: { id: string; name: string; email: string; role: string; permissions: string[] } }).data); setLoading(false) })
-      .catch(() => { router.replace('/login') })
-  }, [router, setLoading, setUser])
+    if (!token) { router.push('/login'); return }
+    api.get('/auth/me').then((res) => setUser(res.data.data)).catch(() => {
+localStorage.removeItem('accessToken'); router.push('/login') })
+  }, [router, setUser])
 
-  if (isLoading) return <CenteredSpinner />
-
-  return (
-    <div className="flex h-screen bg-[#f7fafc] overflow-hidden">
-      <Sidebar isMobileOpen={mobileOpen} onClose={() => setMobileOpen(false)} />
-      <div className="flex-1 flex flex-col min-h-0">
-        <Header onMenuToggle={() => setMobileOpen(v => !v)} />
-        <main className="flex-1 overflow-y-auto p-6">{children}</main>
-      </div>
-    </div>
-  )
+  return <div className='flex'><Sidebar /><div className='flex-1'><Header /><main className='p-6'>{children}
+</main></div></div>
 }
