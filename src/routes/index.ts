@@ -14,6 +14,7 @@ import teacherSubjectRoutes from '../modules/teacherSubjects/teacherSubject.rout
 import examRoutes from '../modules/exams/exam.routes';
 import marksRoutes from '../modules/marks/marks.routes';
 import resultRoutes from '../modules/results/result.routes';
+import reportRoutes from '../modules/reports/report.routes';
 
 const router = Router();
 
@@ -33,5 +34,6 @@ router.use('/teacher-subjects', teacherSubjectRoutes);
 router.use('/exams', examRoutes);
 router.use('/marks', marksRoutes);
 router.use('/results', resultRoutes);
+router.use('/reports', reportRoutes);
 
 export default router;
