@@ -8,16 +8,17 @@ import {
   markAllRead,
   markNotificationRead,
 } from './notification.controller';
+import asyncHandler from '../../utils/asyncHandler';
 
 const router = Router();
 
 router.use(authenticate);
 
-router.get('/', getNotifications);
-router.get('/unread-count', getUnreadCount);
-router.patch('/:id/read', markNotificationRead);
-router.patch('/read-all', markAllRead);
-router.delete('/clear-all', clearAllNotifications);
-router.delete('/:id', deleteNotification);
+router.get('/', asyncHandler(getNotifications));
+router.get('/unread-count', asyncHandler(getUnreadCount));
+router.patch('/:id/read', asyncHandler(markNotificationRead));
+router.patch('/read-all', asyncHandler(markAllRead));
+router.delete('/clear-all', asyncHandler(clearAllNotifications));
+router.delete('/:id', asyncHandler(deleteNotification));
 
 export default router;
