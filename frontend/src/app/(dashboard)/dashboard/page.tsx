@@ -1,8 +1,8 @@
 'use client'
 import { useAuthStore } from '@/store/authStore'
 import { Card } from '@/components/ui/Card'
-import GradeDistributionChart from '@/components/charts/GradeDistributionChart'
-import PassFailChart from '@/components/charts/PassFailChart'
+import { GradeDistributionChart } from '@/components/charts/GradeDistributionChart'
+import { PassFailChart } from '@/components/charts/PassFailChart'
 
 export default function DashboardPage() {
   const role = useAuthStore((s) => s.user?.role)
