@@ -1,9 +1,9 @@
 'use client'
 import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer } from 'recharts'
 
-interface Props { labels: string[]; values: number[]; colors: string[] }
+interface Props { labels?: string[]; values?: number[]; colors?: string[] }
 
-export function GradeDistributionChart({ labels, values, colors }: Props) {
+export function GradeDistributionChart({ labels = ['A', 'B', 'C', 'D', 'F'], values = [30, 25, 20, 15, 10], colors = ['#22c55e', '#3b82f6', '#f59e0b', '#f97316', '#ef4444'] }: Props) {
   const data = labels.map((label, i) => ({ name: label, value: values[i] }))
   return (
     <ResponsiveContainer width="100%" height={300}>
