@@ -17,15 +17,15 @@ export function formatPercent(value: number): string {
 
 export function getStatusColor(status: string): string {
   const map: Record<string, string> = {
-    DRAFT: 'bg-gray-100 text-gray-700 border-gray-200',
-    REVIEW: 'bg-yellow-100 text-yellow-800 border-yellow-200',
-    APPROVED: 'bg-blue-100 text-blue-800 border-blue-200',
-    PUBLISHED: 'bg-green-100 text-green-800 border-green-200',
-    PASS: 'bg-green-100 text-green-800 border-green-200',
-    FAIL: 'bg-red-100 text-red-800 border-red-200',
-    INCOMPLETE: 'bg-orange-100 text-orange-800 border-orange-200',
+    DRAFT: 'bg-gray-100 text-gray-700',
+    REVIEW: 'bg-yellow-100 text-yellow-800',
+    APPROVED: 'bg-blue-100 text-blue-800',
+    PUBLISHED: 'bg-green-100 text-green-800',
+    PASS: 'bg-green-100 text-green-800',
+    FAIL: 'bg-red-100 text-red-800',
+    INCOMPLETE: 'bg-orange-100 text-orange-800',
   }
-  return map[status] ?? 'bg-gray-100 text-gray-700 border-gray-200'
+  return map[status] ?? 'bg-gray-100 text-gray-700'
 }
 
 export function timeAgo(date: string | Date): string {

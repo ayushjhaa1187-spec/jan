@@ -13,7 +13,7 @@ interface AuthStore {
   isLoading: boolean
   setUser: (user: User | null) => void
   setLoading: (v: boolean) => void
-  hasPermission: (permission: string) => boolean
+  hasPermission: (p: string) => boolean
   hasRole: (...roles: string[]) => boolean
   logout: () => void
 }
@@ -23,7 +23,7 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
   isLoading: true,
   setUser: (user) => set({ user }),
   setLoading: (isLoading) => set({ isLoading }),
-  hasPermission: (permission) => get().user?.permissions.includes(permission) ?? false,
+  hasPermission: (p) => get().user?.permissions.includes(p) ?? false,
   hasRole: (...roles) => roles.includes(get().user?.role ?? ''),
   logout: () => {
     localStorage.removeItem('accessToken')

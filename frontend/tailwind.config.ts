@@ -10,9 +10,6 @@ const config: Config = {
         warning: '#b7791f',
         danger: '#c53030',
       },
-      fontFamily: {
-        sans: ['Inter', 'sans-serif'],
-      },
     },
   },
   plugins: [],

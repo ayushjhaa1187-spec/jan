@@ -1,15 +1,16 @@
 'use client'
-
 import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 
-export default function HomePage() {
+export default function Home() {
   const router = useRouter()
-
   useEffect(() => {
-    const token = localStorage.getItem('accessToken')
+    const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null
     router.replace(token ? '/dashboard' : '/login')
   }, [router])
-
-  return null
+  return (
+    <div className="flex items-center justify-center min-h-screen bg-[#1a365d]">
+      <div className="text-white text-xl">Loading EduTrack...</div>
+    </div>
+  )
 }

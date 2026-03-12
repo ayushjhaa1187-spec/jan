@@ -7,6 +7,8 @@ import teacherRoutes from '../modules/teachers/teacher.routes'
 import teacherSubjectRoutes from '../modules/teacherSubjects/teacherSubject.routes'
 import examRoutes from '../modules/exams/exam.routes'
 import marksRoutes from '../modules/marks/marks.routes'
+import resultRoutes from '../modules/results/result.routes'
+import reportRoutes from '../modules/reports/report.routes'
 import notificationRoutes from '../modules/notifications/notification.routes'
 import auditRoutes from '../modules/audit/audit.routes'
 
@@ -20,6 +22,8 @@ router.use('/teachers', teacherRoutes)
 router.use('/teacher-subjects', teacherSubjectRoutes)
 router.use('/exams', examRoutes)
 router.use('/marks', marksRoutes)
+router.use('/results', resultRoutes)
+router.use('/reports', reportRoutes)
 router.use('/notifications', notificationRoutes)
 router.use('/audit', auditRoutes)
 
