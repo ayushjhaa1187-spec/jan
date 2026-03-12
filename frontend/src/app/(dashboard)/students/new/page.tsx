@@ -1,12 +1,1 @@
-'use client'
-
-import { useRouter } from 'next/navigation'
-import { useEffect } from 'react'
-
-export default function NewStudentRedirectPage() {
-  const router = useRouter()
-  useEffect(() => {
-    router.replace('/students')
-  }, [router])
-  return null
-}
+export default function NewStudentPage() { return <div>Add Student Form (modal/form scaffold)</div> }
