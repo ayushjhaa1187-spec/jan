@@ -30,6 +30,18 @@ app.get('/api/health', async (_req, res) => {
   }
 });
 
+// Handle unhandled promise rejections - CRITICAL for Vercel serverless
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('Unhandled Rejection at:', promise, 'reason:', reason);
+  // In production, this could cause FUNCTION_INVOCATION_FAILED
+});
+
+// Handle uncaught exceptions - CRITICAL for Vercel serverless
+process.on('uncaughtException', (error) => {
+  console.error('Uncaught Exception:', error);
+  // In production, this could cause FUNCTION_INVOCATION_FAILED
+});
+
 if (process.env.NODE_ENV !== 'production') {
   const PORT = process.env.PORT || 5000;
   app.listen(PORT, () => {
