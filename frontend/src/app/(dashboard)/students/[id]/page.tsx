@@ -1,0 +1,1 @@
+export default function StudentProfilePage() { return <div className='space-y-3'><h1 className='text-xl font-bold'>Student Profile</h1><div>Info card + results history + transfer class action scaffold.</div></div> }
