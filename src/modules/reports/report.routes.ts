@@ -7,15 +7,16 @@ import {
   downloadReportCardsZip,
   getCharts,
 } from './report.controller'
+import asyncHandler from '../../utils/asyncHandler'
 
 const router = Router()
 
 router.use(authenticate)
 
-router.get('/charts/:examId', getCharts)
-router.get('/class-report/:examId', downloadClassReport)
-router.get('/marksheet/:examId', downloadMarksheet)
-router.get('/report-card/:examId/:studentId', downloadReportCard)
-router.get('/report-cards-zip/:examId', downloadReportCardsZip)
+router.get('/charts/:examId', asyncHandler(getCharts))
+router.get('/class-report/:examId', asyncHandler(downloadClassReport))
+router.get('/marksheet/:examId', asyncHandler(downloadMarksheet))
+router.get('/report-card/:examId/:studentId', asyncHandler(downloadReportCard))
+router.get('/report-cards-zip/:examId', asyncHandler(downloadReportCardsZip))
 
 export default router

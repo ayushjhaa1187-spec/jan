@@ -30,6 +30,37 @@ app.get('/api/health', async (_req, res) => {
   }
 });
 
+/**
+ * CRITICAL: Global error handlers for Vercel serverless
+ * These prevent FUNCTION_INVOCATION_FAILED errors by catching unhandled rejections
+ * and uncaught exceptions at the process level.
+ */
+
+// Handle unhandled promise rejections
+process.on('unhandledRejection', (reason: unknown, promise: Promise<any>) => {
+  console.error('[CRITICAL] Unhandled Promise Rejection:', {
+    reason,
+    promise,
+    timestamp: new Date().toISOString(),
+  });
+  
+  // In serverless environments, log and continue
+  // The error middleware in Express will handle the actual HTTP response
+});
+
+// Handle uncaught exceptions
+process.on('uncaughtException', (error: Error) => {
+  console.error('[CRITICAL] Uncaught Exception:', {
+    message: error.message,
+    stack: error.stack,
+    timestamp: new Date().toISOString(),
+  });
+  
+  // In serverless environments, we should attempt to gracefully handle this
+  // However, if an exception reaches this point, the function is in an unstable state
+  // Log it and let the request be handled by the error middleware if possible
+});
+
 if (process.env.NODE_ENV !== 'production') {
   const PORT = process.env.PORT || 5000;
   app.listen(PORT, () => {

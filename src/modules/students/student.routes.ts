@@ -10,17 +10,18 @@ import {
   transferStudentClass,
   updateStudent,
 } from './student.controller';
+import asyncHandler from '../../utils/asyncHandler';
 
 const router = Router();
 
 router.use(authenticate);
-router.post('/', requirePermission('manage_students'), createStudent);
-router.get('/', getStudents);
-router.get('/:id', getStudentById);
-router.put('/:id', requirePermission('manage_students'), updateStudent);
-router.delete('/:id', requirePermission('manage_students'), deleteStudent);
-router.put('/:id/class', requirePermission('manage_students'), transferStudentClass);
-router.get('/:id/results', getStudentResults);
-router.get('/:id/marks', getStudentMarks);
+router.post('/', requirePermission('manage_students'), asyncHandler(createStudent));
+router.get('/', asyncHandler(getStudents));
+router.get('/:id', asyncHandler(getStudentById));
+router.put('/:id', requirePermission('manage_students'), asyncHandler(updateStudent));
+router.delete('/:id', requirePermission('manage_students'), asyncHandler(deleteStudent));
+router.put('/:id/class', requirePermission('manage_students'), asyncHandler(transferStudentClass));
+router.get('/:id/results', asyncHandler(getStudentResults));
+router.get('/:id/marks', asyncHandler(getStudentMarks));
 
 export default router;
