@@ -1,30 +1,27 @@
-import prisma from '../../utils/prisma';
 import AppError from '../../utils/AppError';
-import {
-  CreateStudentInput,
-  StudentListQuery,
-  TransferClassInput,
-  UpdateStudentInput,
-} from './student.types';
+import { logAudit } from '../../utils/auditLogger';
+import prisma from '../../utils/prisma';
+import { CreateStudentInput, StudentListQuery, UpdateStudentInput } from './student.types';
 
-const ensureClassExists = async (classId: string) => {
-  const classExists = await prisma.class.findUnique({ where: { id: classId } });
-  if (!classExists) {
+const splitName = (name: string): { firstName: string; lastName: string } => {
+  const parts = name.trim().split(/\s+/);
+  return { firstName: parts[0] || 'N/A', lastName: parts.slice(1).join(' ') || 'N/A' };
+};
+
+const ensureClassExists = async (classId: string): Promise<void> => {
+  const classItem = await prisma.class.findUnique({ where: { id: classId } });
+  if (!classItem) {
     throw new AppError('Class not found', 404);
   }
 };
 
-const splitName = (name: string): { firstName: string; lastName: string } => {
-  const parts = name.trim().split(/\s+/);
-  const firstName = parts[0];
-  const lastName = parts.slice(1).join(' ') || 'N/A';
-  return { firstName, lastName };
-};
-
-const getByIdOrThrow = async (id: string) => {
+const getStudentEntity = async (id: string) => {
   const student = await prisma.student.findUnique({
     where: { id },
-    include: { class: true },
+    include: {
+      class: true,
+      user: { select: { email: true } },
+    },
   });
 
   if (!student) {
@@ -35,69 +32,79 @@ const getByIdOrThrow = async (id: string) => {
 };
 
 export const studentService = {
-  async createStudent(payload: CreateStudentInput) {
-    await ensureClassExists(payload.classId);
+  async createStudent(data: CreateStudentInput, userId: string, ipAddress?: string) {
+    await ensureClassExists(data.classId);
 
-    const existing = await prisma.student.findUnique({
-      where: { enrollmentNo: payload.adm_no },
-    });
-
-    if (existing) {
+    const duplicate = await prisma.student.findUnique({ where: { enrollmentNo: data.adm_no } });
+    if (duplicate) {
       throw new AppError('Student with this admission number already exists', 409);
     }
 
-    const parsedName = splitName(payload.name);
-
-    return prisma.student.create({
+    const name = splitName(data.name);
+    const created = await prisma.student.create({
       data: {
-        enrollmentNo: payload.adm_no,
-        firstName: parsedName.firstName,
-        lastName: parsedName.lastName,
-        class: { connect: { id: payload.classId } },
+        enrollmentNo: data.adm_no,
+        firstName: name.firstName,
+        lastName: name.lastName,
+        class: { connect: { id: data.classId } },
         dateOfBirth: new Date('2000-01-01T00:00:00.000Z'),
         gender: 'UNSPECIFIED',
         user: {
           create: {
-            email: payload.email ?? `${payload.adm_no.toLowerCase()}@school.local`,
+            email: data.email ?? `${data.adm_no.toLowerCase()}@school.local`,
             password: 'not-used',
           },
         },
       },
-      include: { class: true },
+      include: {
+        class: true,
+        user: { select: { email: true } },
+      },
     });
+
+    void logAudit({
+      userId,
+      action: 'CREATE_STUDENT',
+      entity: 'Student',
+      entityId: created.id,
+      details: { adm_no: created.enrollmentNo, name: `${created.firstName} ${created.lastName}` },
+      ipAddress,
+    });
+
+    return created;
   },
 
-  async getStudents(query: StudentListQuery) {
-    const page = query.page && query.page > 0 ? query.page : 1;
-    const limit = query.limit && query.limit > 0 ? query.limit : 20;
+  async getStudents(params: StudentListQuery) {
+    const page = params.page && params.page > 0 ? params.page : 1;
+    const limit = params.limit && params.limit > 0 ? params.limit : 20;
     const skip = (page - 1) * limit;
 
     const where = {
-      ...(query.classId ? { classId: query.classId } : {}),
-      ...(query.search
+      ...(params.classId ? { classId: params.classId } : {}),
+      ...(params.search
         ? {
             OR: [
-              { firstName: { contains: query.search, mode: 'insensitive' as const } },
-              { lastName: { contains: query.search, mode: 'insensitive' as const } },
-              { enrollmentNo: { contains: query.search, mode: 'insensitive' as const } },
+              { firstName: { contains: params.search, mode: 'insensitive' as const } },
+              { lastName: { contains: params.search, mode: 'insensitive' as const } },
+              { enrollmentNo: { contains: params.search, mode: 'insensitive' as const } },
             ],
           }
         : {}),
     };
 
-    const [total, data] = await Promise.all([
+    const [total, rows] = await Promise.all([
       prisma.student.count({ where }),
       prisma.student.findMany({
         where,
-        include: { class: true },
+        include: { class: true, user: { select: { email: true } } },
+        orderBy: [{ firstName: 'asc' }, { lastName: 'asc' }],
         skip,
         take: limit,
-        orderBy: [{ firstName: 'asc' }, { lastName: 'asc' }],
       }),
     ]);
 
     return {
-      data,
+      data: rows,
       meta: {
         total,
         page,
@@ -107,48 +114,59 @@ export const studentService = {
     };
   },
 
-  async getStudentById(id: string) {
-    return getByIdOrThrow(id);
+  async getStudent(id: string) {
+    return getStudentEntity(id);
   },
 
-  async updateStudent(id: string, payload: UpdateStudentInput) {
-    await getByIdOrThrow(id);
+  async updateStudent(id: string, data: UpdateStudentInput, userId: string, ipAddress?: string) {
+    await getStudentEntity(id);
 
-    const updates: {
+    if (data.classId) {
+      await ensureClassExists(data.classId);
+    }
+
+    const updateData: {
       enrollmentNo?: string;
       firstName?: string;
       lastName?: string;
-      classId?: string;
+      class?: { connect: { id: string } };
     } = {};
 
-    if (payload.classId) {
-      await ensureClassExists(payload.classId);
-      updates.classId = payload.classId;
+    if (data.adm_no) {
+      updateData.enrollmentNo = data.adm_no;
     }
 
-    if (payload.adm_no) {
-      updates.enrollmentNo = payload.adm_no;
+    if (data.name) {
+      const parsed = splitName(data.name);
+      updateData.firstName = parsed.firstName;
+      updateData.lastName = parsed.lastName;
     }
 
-    if (payload.name) {
-      const parsed = splitName(payload.name);
-      updates.firstName = parsed.firstName;
-      updates.lastName = parsed.lastName;
+    if (data.classId) {
+      updateData.class = { connect: { id: data.classId } };
     }
 
-    try {
-      return await prisma.student.update({
-        where: { id },
-        data: updates,
-        include: { class: true },
-      });
-    } catch {
-      throw new AppError('Student update failed', 400);
-    }
+
+    const updated = await prisma.student.update({
+      where: { id },
+      data: updateData,
+      include: { class: true, user: { select: { email: true } } },
+    });
+
+    void logAudit({
+      userId,
+      action: 'UPDATE_STUDENT',
+      entity: 'Student',
+      entityId: updated.id,
+      details: { adm_no: updated.enrollmentNo },
+      ipAddress,
+    });
+
+    return updated;
   },
 
-  async deleteStudent(id: string) {
-    await getByIdOrThrow(id);
+  async deleteStudent(id: string, userId: string, ipAddress?: string) {
+    await getStudentEntity(id);
 
     const [marksCount, resultsCount] = await Promise.all([
       prisma.marks.count({ where: { studentId: id } }),
@@ -160,33 +178,57 @@ export const studentService = {
     }
 
     await prisma.student.delete({ where: { id } });
-  },
 
-  async transferClass(id: string, payload: TransferClassInput) {
-    await getByIdOrThrow(id);
-    await ensureClassExists(payload.classId);
-
-    return prisma.student.update({
-      where: { id },
-      data: { classId: payload.classId },
-      include: { class: true },
+    void logAudit({
+      userId,
+      action: 'DELETE_STUDENT',
+      entity: 'Student',
+      entityId: id,
+      ipAddress,
     });
   },
 
-  async getStudentResults(id: string) {
-    await getByIdOrThrow(id);
+  async transferClass(id: string, classId: string, userId: string, ipAddress?: string) {
+    await getStudentEntity(id);
+    await ensureClassExists(classId);
+
+    const transferred = await prisma.student.update({
+      where: { id },
+      data: { class: { connect: { id: classId } } },
+      include: { class: true, user: { select: { email: true } } },
+    });
+
+    void logAudit({
+      userId,
+      action: 'TRANSFER_STUDENT',
+      entity: 'Student',
+      entityId: transferred.id,
+      details: { classId },
+      ipAddress,
+    });
+
+    return transferred;
+  },
+
+  async getStudentResults(studentId: string) {
+    await getStudentEntity(studentId);
+
     return prisma.result.findMany({
-      where: { studentId: id },
-      include: { exam: true },
+      where: { studentId },
+      include: { exam: { select: { id: true, name: true, status: true } } },
       orderBy: { createdAt: 'desc' },
     });
   },
 
-  async getStudentMarks(id: string) {
-    await getByIdOrThrow(id);
+  async getStudentMarks(studentId: string) {
+    await getStudentEntity(studentId);
+
     return prisma.marks.findMany({
-      where: { studentId: id },
-      include: { exam: true, subject: true },
+      where: { studentId },
+      include: {
+        subject: { select: { id: true, name: true, code: true } },
+        exam: { select: { id: true, name: true, status: true } },
+      },
       orderBy: { createdAt: 'desc' },
     });
   },
