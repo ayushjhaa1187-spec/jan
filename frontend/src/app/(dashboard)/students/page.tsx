@@ -12,3 +12,4 @@ export default function StudentsPage() {
     <Table><thead><tr><th>Adm No</th><th>Name</th><th>Class</th><th>Section</th><th>Actions</th></tr></thead><tbody>{rows.map((s:{id:string;enrollmentNo:string;firstName:string;lastName:string;class:{name:string;section:string}})=><tr key={s.id}><td>{s.enrollmentNo}</td><td>{s.firstName} {s.lastName}</td><td>{s.class?.name}</td><td>{s.class?.section}</td><td><Link href={`/students/${s.id}`}>View</Link></td></tr>)}</tbody></Table>
   </div>
 }
+
