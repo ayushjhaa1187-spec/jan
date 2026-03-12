@@ -13,8 +13,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   useEffect(() => {
     const token = localStorage.getItem('accessToken')
     if (!token) { router.push('/login'); return }
-    api.get('/auth/me').then((res) => setUser(res.data.data)).catch(() => { localStorage.removeItem('accessToken'); router.push('/login') })
+    api.get('/auth/me').then((res) => setUser(res.data.data)).catch(() => {
+localStorage.removeItem('accessToken'); router.push('/login') })
   }, [router, setUser])
 
-  return <div className='flex'><Sidebar /><div className='flex-1'><Header /><main className='p-6'>{children}</main></div></div>
+  return <div className='flex'><Sidebar /><div className='flex-1'><Header /><main className='p-6'>{children}
+</main></div></div>
 }

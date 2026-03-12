@@ -1,97 +1,69 @@
-import { Request, Response } from 'express';
-import { authService } from './auth.service';
-import { AuthRequest } from './auth.types';
+import { NextFunction, Request, Response } from 'express'
+import AppError from '../../utils/AppError'
+import { success } from '../../utils/apiResponse'
+import { authService } from './auth.service'
 
-const REFRESH_COOKIE_NAME = 'refreshToken';
-
-const getRefreshTokenFromRequest = (req: Request): string | null => {
-  const authCookie = req.headers.cookie;
-  if (!authCookie) {
-    return null;
+const getUserId = (req: Request): string => {
+  const userId = req.user?.id
+  if (!userId) {
+    throw new AppError('Unauthorized', 401)
   }
 
-  const cookies = authCookie.split(';').map((cookie) => cookie.trim());
-  const refreshCookie = cookies.find((cookie) => cookie.startsWith(`${REFRESH_COOKIE_NAME}=`));
+  return userId
+}
 
-  if (!refreshCookie) {
-    return null;
-  }
-
-  return decodeURIComponent(refreshCookie.split('=').slice(1).join('='));
-};
-
-const setRefreshCookie = (res: Response, refreshToken: string): void => {
-  res.cookie(REFRESH_COOKIE_NAME, refreshToken, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'strict',
-    maxAge: 7 * 24 * 60 * 60 * 1000,
-    path: '/auth',
-  });
-};
-
-const clearRefreshCookie = (res: Response): void => {
-  res.clearCookie(REFRESH_COOKIE_NAME, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'strict',
-    path: '/auth',
-  });
-};
-
-export const login = async (req: Request, res: Response) => {
+export const login = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { email, password } = req.body || {};
+    const email = typeof req.body?.email === 'string' ? req.body.email : ''
+    const password = typeof req.body?.password === 'string' ? req.body.password : ''
 
     if (!email || !password) {
-      return res.status(400).json({ error: 'Email and password are required' });
+      throw new AppError('Email and password are required', 400)
     }
 
-    const { user, tokens } = await authService.login({ email, password });
-    setRefreshCookie(res, tokens.refreshToken);
+    const result = await authService.login(email, password, req.ip)
 
-    return res.json({
-      accessToken: tokens.accessToken,
-      user,
-    });
+    return res.json(
+      success({
+        accessToken: result.accessToken,
+        refreshToken: result.refreshToken,
+        user: result.user,
+      }),
+    )
   } catch (error) {
-    return res.status(401).json({ error: 'Invalid credentials' });
+    return next(error)
   }
-};
+}
 
-export const refresh = async (req: Request, res: Response) => {
+export const refresh = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const refreshToken = req.body?.refreshToken || getRefreshTokenFromRequest(req);
+    const refreshToken = typeof req.body?.refreshToken === 'string' ? req.body.refreshToken : ''
+
     if (!refreshToken) {
-      return res.status(401).json({ error: 'Refresh token required' });
+      throw new AppError('Refresh token required', 400)
     }
 
-    const { user, accessToken } = await authService.refresh(refreshToken);
-    return res.json({ accessToken, user });
+    const result = await authService.refresh(refreshToken)
+    return res.json(success(result))
   } catch (error) {
-    return res.status(401).json({ error: 'Invalid refresh token' });
+    return next(error)
   }
-};
+}
 
-export const logout = async (req: Request, res: Response) => {
+export const logout = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const refreshToken = req.body?.refreshToken || getRefreshTokenFromRequest(req);
-    if (refreshToken) {
-      await authService.logout(refreshToken);
-    }
-
-    clearRefreshCookie(res);
-    return res.status(204).send();
+    await authService.logout(getUserId(req), req.ip)
+    return res.json(success(null, 'Logged out successfully'))
   } catch (error) {
-    clearRefreshCookie(res);
-    return res.status(204).send();
+    return next(error)
   }
-};
+}
 
-export const me = async (req: AuthRequest, res: Response) => {
-  if (!req.user) {
-    return res.status(401).json({ error: 'Unauthorized' });
+export const me = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const data = await authService.getMe(getUserId(req))
+    return res.json(success(data))
+  } catch (error) {
+    return next(error)
   }
-
-  return res.json(req.user);
-};
+}

@@ -1,3 +1,19 @@
 'use client'
-import { Card } from '@/components/ui/Card'
-export default function GradeDistributionChart() { return <Card><div className='h-48 grid place-items-center text-slate-500'>GradeDistributionChart</div></Card> }
+import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer } from 'recharts'
+
+interface Props { labels: string[]; values: number[]; colors: string[] }
+
+export function GradeDistributionChart({ labels, values, colors }: Props) {
+  const data = labels.map((label, i) => ({ name: label, value: values[i] }))
+  return (
+    <ResponsiveContainer width="100%" height={300}>
+      <PieChart>
+        <Pie data={data} cx="50%" cy="50%" outerRadius={100} dataKey="value" label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}>
+          {data.map((_, i) => <Cell key={i} fill={colors[i % colors.length]} />)}
+        </Pie>
+        <Tooltip />
+        <Legend />
+      </PieChart>
+    </ResponsiveContainer>
+  )
+}

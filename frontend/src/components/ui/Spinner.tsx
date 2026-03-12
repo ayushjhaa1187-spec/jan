@@ -1,1 +1,16 @@
-export const Spinner = () => <div className='h-5 w-5 animate-spin rounded-full border-2 border-[#2b6cb0] border-t-transparent' />
+import { cn } from '@/lib/utils'
+
+export function Spinner({ size = 'md', className }: { size?: 'sm' | 'md' | 'lg'; className?: string }) {
+  const sizes = { sm: 'w-4 h-4', md: 'w-6 h-6', lg: 'w-10 h-10' }
+  return (
+    <div className={cn('animate-spin rounded-full border-2 border-gray-200 border-t-[#1a365d]', sizes[size], className)} />
+  )
+}
+
+export function CenteredSpinner() {
+  return (
+    <div className="flex items-center justify-center min-h-screen bg-[#f7fafc]">
+      <Spinner size="lg" />
+    </div>
+  )
+}

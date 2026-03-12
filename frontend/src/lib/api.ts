@@ -2,7 +2,6 @@ import axios from 'axios'
 
 const api = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api',
-  withCredentials: false
 })
 
 api.interceptors.request.use((config) => {
@@ -20,13 +19,18 @@ api.interceptors.response.use(
     if (error.response?.status === 401 && !original._retry) {
       original._retry = true
       try {
-        const { data } = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/auth/refresh`, {}, { withCredentials: true })
+        const refreshToken = localStorage.getItem('refreshToken')
+        const { data } = await axios.post(
+          `${process.env.NEXT_PUBLIC_API_URL}/auth/refresh`,
+          { refreshToken }
+        )
         localStorage.setItem('accessToken', data.data.accessToken)
         original.headers.Authorization = `Bearer ${data.data.accessToken}`
         return api(original)
       } catch {
         localStorage.removeItem('accessToken')
-        window.location.href = '/login'
+        localStorage.removeItem('refreshToken')
+        if (typeof window !== 'undefined') window.location.href = '/login'
       }
     }
     return Promise.reject(error)

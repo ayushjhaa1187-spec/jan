@@ -1,3 +1,19 @@
 'use client'
-import { Card } from '@/components/ui/Card'
-export default function PassFailChart() { return <Card><div className='h-48 grid place-items-center text-slate-500'>PassFailChart</div></Card> }
+import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer } from 'recharts'
+
+interface Props { labels: string[]; values: number[]; colors: string[] }
+
+export function PassFailChart({ labels, values, colors }: Props) {
+  const data = labels.map((label, i) => ({ name: label, value: values[i] }))
+  return (
+    <ResponsiveContainer width="100%" height={300}>
+      <PieChart>
+        <Pie data={data} cx="50%" cy="50%" innerRadius={60} outerRadius={100} dataKey="value">
+          {data.map((_, i) => <Cell key={i} fill={colors[i % colors.length]} />)}
+        </Pie>
+        <Tooltip />
+        <Legend />
+      </PieChart>
+    </ResponsiveContainer>
+  )
+}

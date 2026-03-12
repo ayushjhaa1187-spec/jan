@@ -2,4 +2,5 @@
 @tailwind components;
 @tailwind utilities;
 
-body { background:#f7fafc; color:#1a202c; }
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Inter', sans-serif; background-color: #f7fafc; }

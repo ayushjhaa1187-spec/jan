@@ -36,7 +36,7 @@ export default function LoginPage() {
       {errors.email && <p className='text-sm text-red-600'>Valid email required</p>}
       <Input placeholder='Password' type='password' {...register('password')} />
       {errors.password && <p className='text-sm text-red-600'>Password min 6 characters</p>}
-      <Button className='w-full' disabled={isSubmitting}>{isSubmitting ? <Spinner /> : 'Login'}</Button>
+      <Button type='submit' className='w-full' disabled={isSubmitting}>{isSubmitting ? <Spinner /> : 'Login'}</Button>
     </form>
   </main>
 }
