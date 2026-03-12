@@ -5,9 +5,9 @@ declare global {
         id: string;
         email: string;
         role: string;
-        roles?: string[];
-        permissions?: string[];
-        isActive?: boolean;
+        roles: string[];
+        permissions: string[];
+        isActive: boolean;
       };
     }
   }
