@@ -8,6 +8,7 @@ import {
   UpdateMarksInput,
   UploadRow,
 } from './marks.types';
+import { logAudit } from '../../utils/auditLogger';
 
 const ensureExam = async (examId: string) => {
   const exam = await prisma.exam.findUnique({ where: { id: examId } });
@@ -136,7 +137,17 @@ export const marksService = {
     await ensureStudentInClass(input.studentId, exam.classId);
     await checkWriteAccess(userId, permissions, input.examId, input.subjectId);
 
-    return upsertMarks(input, userId);
+    const saved = await upsertMarks(input, userId);
+
+    void logAudit({
+      userId,
+      action: "ENTER_MARKS",
+      entity: "MARKS",
+      entityId: saved.id,
+      details: { examId: input.examId, subjectId: input.subjectId, studentId: input.studentId },
+    });
+
+    return saved;
   },
 
   async updateMarks(id: string, input: UpdateMarksInput, userId: string, permissions: string[]) {
@@ -175,6 +186,14 @@ export const marksService = {
     await checkWriteAccess(userId, permissions, existing.examId, existing.subjectId);
 
     await prisma.marks.delete({ where: { id } });
+
+    void logAudit({
+      userId,
+      action: "DELETE_MARKS",
+      entity: "MARKS",
+      entityId: id,
+      details: { examId: existing.examId, subjectId: existing.subjectId, studentId: existing.studentId },
+    });
   },
 
   async getMarksById(id: string) {
@@ -306,6 +325,13 @@ export const marksService = {
       }
     }
 
+    void logAudit({
+      userId,
+      action: "ENTER_MARKS",
+      entity: "MARKS",
+      details: { examId: input.examId, subjectId: input.subjectId, successful: summary.successful, failed: summary.failed },
+    });
+
     return summary;
   },
 
@@ -400,6 +426,13 @@ export const marksService = {
         });
       }
     }
+
+    void logAudit({
+      userId,
+      action: "BULK_MARKS_UPLOAD",
+      entity: "MARKS",
+      details: { examId, subjectId, successful: summary.successful, failed: summary.failed },
+    });
 
     return summary;
   },

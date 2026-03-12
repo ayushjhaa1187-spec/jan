@@ -1,0 +1,1 @@
+export default function ExamDetailPage() { return <div className='space-y-3'><h1 className='text-xl font-bold'>Exam Detail</h1><div>Workflow actions: submit, approve/reject, publish + marks progress scaffold.</div></div> }
