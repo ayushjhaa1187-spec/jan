@@ -1,5 +1,6 @@
 import AppError from '../../utils/AppError';
 import prisma from '../../utils/prisma';
+import { logAudit } from '../../utils/auditLogger';
 import {
   BatchSummary,
   BulkMarksInput,
@@ -127,7 +128,7 @@ const upsertMarks = async (
 };
 
 export const marksService = {
-  async createMarks(input: CreateMarksInput, userId: string, permissions: string[]) {
+  async createMarks(input: CreateMarksInput, userId: string, permissions: string[], ipAddress?: string) {
     const exam = await ensureExam(input.examId);
     ensureExamStatusForEntry(exam.status);
 
@@ -136,10 +137,19 @@ export const marksService = {
     await ensureStudentInClass(input.studentId, exam.classId);
     await checkWriteAccess(userId, permissions, input.examId, input.subjectId);
 
-    return upsertMarks(input, userId);
+    const saved = await upsertMarks(input, userId);
+    void logAudit({
+      userId,
+      action: 'ENTER_MARKS',
+      entity: 'Marks',
+      entityId: saved.id,
+      details: { examId: input.examId, subjectId: input.subjectId, studentId: input.studentId },
+      ipAddress,
+    });
+    return saved;
   },
 
-  async updateMarks(id: string, input: UpdateMarksInput, userId: string, permissions: string[]) {
+  async updateMarks(id: string, input: UpdateMarksInput, userId: string, permissions: string[], ipAddress?: string) {
     const existing = await prisma.marks.findUnique({ where: { id } });
     if (!existing) {
       throw new AppError('Marks record not found', 404);
@@ -150,7 +160,7 @@ export const marksService = {
     ensureMarksWithinMax(input.marks, existing.maxMarks);
     await checkWriteAccess(userId, permissions, existing.examId, existing.subjectId);
 
-    return prisma.marks.update({
+    const updated = await prisma.marks.update({
       where: { id },
       data: {
         marks: input.marks,
@@ -162,9 +172,20 @@ export const marksService = {
         exam: true,
       },
     });
+
+    void logAudit({
+      userId,
+      action: 'ENTER_MARKS',
+      entity: 'Marks',
+      entityId: id,
+      details: { update: true },
+      ipAddress,
+    });
+
+    return updated;
   },
 
-  async deleteMarks(id: string, userId: string, permissions: string[]) {
+  async deleteMarks(id: string, userId: string, permissions: string[], ipAddress?: string) {
     const existing = await prisma.marks.findUnique({ where: { id } });
     if (!existing) {
       throw new AppError('Marks record not found', 404);
@@ -175,6 +196,14 @@ export const marksService = {
     await checkWriteAccess(userId, permissions, existing.examId, existing.subjectId);
 
     await prisma.marks.delete({ where: { id } });
+
+    void logAudit({
+      userId,
+      action: 'DELETE_MARKS',
+      entity: 'Marks',
+      entityId: id,
+      ipAddress,
+    });
   },
 
   async getMarksById(id: string) {
@@ -272,7 +301,7 @@ export const marksService = {
     });
   },
 
-  async bulkCreateMarks(input: BulkMarksInput, userId: string, permissions: string[]): Promise<BatchSummary> {
+  async bulkCreateMarks(input: BulkMarksInput, userId: string, permissions: string[], ipAddress?: string): Promise<BatchSummary> {
     const exam = await ensureExam(input.examId);
     ensureExamStatusForEntry(exam.status);
     await ensureSubjectClassAssignment(input.subjectId, exam.classId);
@@ -306,10 +335,19 @@ export const marksService = {
       }
     }
 
+    void logAudit({
+      userId,
+      action: 'ENTER_MARKS',
+      entity: 'Marks',
+      entityId: input.examId,
+      details: { bulk: true, subjectId: input.subjectId, successful: summary.successful, failed: summary.failed },
+      ipAddress,
+    });
+
     return summary;
   },
 
-  async bulkUpdateMarks(input: BulkUpdateInput, userId: string, permissions: string[]): Promise<BatchSummary> {
+  async bulkUpdateMarks(input: BulkUpdateInput, userId: string, permissions: string[], ipAddress?: string): Promise<BatchSummary> {
     const first = await prisma.marks.findUnique({ where: { id: input.updates[0].id } });
     if (!first) {
       throw new AppError('First marks record not found', 404);
@@ -352,6 +390,15 @@ export const marksService = {
       }
     }
 
+    void logAudit({
+      userId,
+      action: 'ENTER_MARKS',
+      entity: 'Marks',
+      entityId: first.examId,
+      details: { bulkUpdate: true, successful: summary.successful, failed: summary.failed },
+      ipAddress,
+    });
+
     return summary;
   },
 
@@ -361,6 +408,7 @@ export const marksService = {
     rows: UploadRow[],
     userId: string,
     permissions: string[],
+    ipAddress?: string,
   ): Promise<BatchSummary> {
     const exam = await ensureExam(examId);
     ensureExamStatusForEntry(exam.status);
@@ -400,6 +448,15 @@ export const marksService = {
         });
       }
     }
+
+    void logAudit({
+      userId,
+      action: 'BULK_MARKS_UPLOAD',
+      entity: 'Marks',
+      entityId: examId,
+      details: { subjectId, successful: summary.successful, failed: summary.failed },
+      ipAddress,
+    });
 
     return summary;
   },

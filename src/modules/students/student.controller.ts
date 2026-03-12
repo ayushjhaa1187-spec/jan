@@ -6,7 +6,10 @@ import { createStudentSchema, transferClassSchema, updateStudentSchema } from '.
 export const createStudent = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const payload = createStudentSchema.parse(req.body);
-    const data = await studentService.createStudent(payload);
+    const data = await studentService.createStudent(payload, {
+      userId: req.user?.id,
+      ipAddress: req.ip,
+    });
     return res.status(201).json(success(data, 'Student created successfully'));
   } catch (err) {
     return next(err);
@@ -39,7 +42,10 @@ export const getStudentById = async (req: Request, res: Response, next: NextFunc
 export const updateStudent = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const payload = updateStudentSchema.parse(req.body);
-    const data = await studentService.updateStudent(String(req.params.id), payload);
+    const data = await studentService.updateStudent(String(req.params.id), payload, {
+      userId: req.user?.id,
+      ipAddress: req.ip,
+    });
     return res.json(success(data, 'Student updated successfully'));
   } catch (err) {
     return next(err);
@@ -48,7 +54,10 @@ export const updateStudent = async (req: Request, res: Response, next: NextFunct
 
 export const deleteStudent = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    await studentService.deleteStudent(String(req.params.id));
+    await studentService.deleteStudent(String(req.params.id), {
+      userId: req.user?.id,
+      ipAddress: req.ip,
+    });
     return res.json(success(null, 'Student deleted successfully'));
   } catch (err) {
     return next(err);
@@ -58,7 +67,10 @@ export const deleteStudent = async (req: Request, res: Response, next: NextFunct
 export const transferStudentClass = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const payload = transferClassSchema.parse(req.body);
-    const data = await studentService.transferClass(String(req.params.id), payload);
+    const data = await studentService.transferClass(String(req.params.id), payload, {
+      userId: req.user?.id,
+      ipAddress: req.ip,
+    });
     return res.json(success(data, 'Student transferred successfully'));
   } catch (err) {
     return next(err);

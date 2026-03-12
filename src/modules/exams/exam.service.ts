@@ -1,5 +1,7 @@
 import AppError from '../../utils/AppError';
 import prisma from '../../utils/prisma';
+import { createNotification, getUsersWithPermission } from '../notifications/notification.service';
+import { logAudit } from '../../utils/auditLogger';
 import {
   CreateExamInput,
   ExamClassQuery,
@@ -36,23 +38,6 @@ const ensureClassExists = async (classId: string) => {
   }
 
   return classItem;
-};
-
-const createAuditLog = async (params: {
-  userId: string;
-  action: string;
-  entityId: string;
-  details?: Record<string, string>;
-}): Promise<void> => {
-  await prisma.auditLog.create({
-    data: {
-      userId: params.userId,
-      action: params.action,
-      entity: 'EXAM',
-      entityId: params.entityId,
-      details: params.details ? JSON.stringify(params.details) : null,
-    },
-  });
 };
 
 const ensureTransition = (from: string, to: ExamWorkflowStatus): void => {
@@ -118,7 +103,7 @@ const buildExamDetail = async (id: string) => {
 };
 
 export const examService = {
-  async createExam(payload: CreateExamInput, userId: string) {
+  async createExam(payload: CreateExamInput, userId: string, ipAddress?: string) {
     await ensureClassExists(payload.classId);
 
     const duplicate = await prisma.exam.findFirst({
@@ -132,7 +117,7 @@ export const examService = {
       throw new AppError('Exam with this name already exists for this class', 409);
     }
 
-    return prisma.exam.create({
+    const created = await prisma.exam.create({
       data: {
         name: payload.name,
         classId: payload.classId,
@@ -145,6 +130,17 @@ export const examService = {
         class: true,
       },
     });
+
+    void logAudit({
+      userId,
+      action: 'CREATE_EXAM',
+      entity: 'Exam',
+      entityId: created.id,
+      details: { examName: created.name },
+      ipAddress,
+    });
+
+    return created;
   },
 
   async listExams(query: ExamListQuery) {
@@ -192,7 +188,7 @@ export const examService = {
     return buildExamDetail(id);
   },
 
-  async updateExam(id: string, payload: UpdateExamInput, userId: string) {
+  async updateExam(id: string, payload: UpdateExamInput, userId: string, ipAddress?: string) {
     const exam = await getExamByIdOrThrow(id);
     assertModifiable(exam.status);
 
@@ -221,7 +217,7 @@ export const examService = {
       }
     }
 
-    return prisma.exam.update({
+    const updated = await prisma.exam.update({
       where: { id },
       data: {
         ...(payload.name ? { name: payload.name } : {}),
@@ -231,9 +227,19 @@ export const examService = {
       },
       include: { class: true },
     });
+
+    void logAudit({
+      userId,
+      action: 'UPDATE_EXAM',
+      entity: 'Exam',
+      entityId: updated.id,
+      ipAddress,
+    });
+
+    return updated;
   },
 
-  async deleteExam(id: string) {
+  async deleteExam(id: string, userId: string, ipAddress?: string) {
     const exam = await getExamByIdOrThrow(id);
     assertModifiable(exam.status);
 
@@ -242,9 +248,17 @@ export const examService = {
     }
 
     await prisma.exam.delete({ where: { id } });
+
+    void logAudit({
+      userId,
+      action: 'DELETE_EXAM',
+      entity: 'Exam',
+      entityId: id,
+      ipAddress,
+    });
   },
 
-  async submitReview(id: string, userId: string) {
+  async submitReview(id: string, userId: string, ipAddress?: string) {
     const exam = await getExamByIdOrThrow(id);
     ensureTransition(exam.status, 'REVIEW');
 
@@ -256,11 +270,29 @@ export const examService = {
       },
     });
 
-    await createAuditLog({ userId, action: 'EXAM_SUBMITTED_REVIEW', entityId: id });
+    void logAudit({
+      userId,
+      action: 'SUBMIT_EXAM_REVIEW',
+      entity: 'Exam',
+      entityId: id,
+      ipAddress,
+    });
+
+    const approverIds = await getUsersWithPermission('approve_exam');
+    await Promise.all(
+      approverIds.map((approverId) =>
+        createNotification(
+          approverId,
+          'Exam Pending Review',
+          `${updated.name} for Class ${updated.classId} has been submitted for review.`,
+        ),
+      ),
+    );
+
     return updated;
   },
 
-  async approve(id: string, userId: string) {
+  async approve(id: string, userId: string, ipAddress?: string) {
     const exam = await getExamByIdOrThrow(id);
     ensureTransition(exam.status, 'APPROVED');
 
@@ -272,11 +304,20 @@ export const examService = {
       },
     });
 
-    await createAuditLog({ userId, action: 'EXAM_APPROVED', entityId: id });
+    void logAudit({
+      userId,
+      action: 'APPROVE_EXAM',
+      entity: 'Exam',
+      entityId: id,
+      ipAddress,
+    });
+
+    await createNotification(exam.createdById, 'Exam Approved', `Your exam ${updated.name} has been approved.`);
+
     return updated;
   },
 
-  async reject(id: string, payload: RejectExamInput, userId: string) {
+  async reject(id: string, payload: RejectExamInput, userId: string, ipAddress?: string) {
     const exam = await getExamByIdOrThrow(id);
 
     if (exam.status === 'PUBLISHED') {
@@ -295,12 +336,20 @@ export const examService = {
       },
     });
 
-    await createAuditLog({
+    void logAudit({
       userId,
-      action: 'EXAM_REJECTED',
+      action: 'REJECT_EXAM',
+      entity: 'Exam',
       entityId: id,
       details: { reason: payload.reason },
+      ipAddress,
     });
+
+    await createNotification(
+      exam.createdById,
+      'Exam Rejected',
+      `Your exam ${updated.name} was rejected. Reason: ${payload.reason}`,
+    );
 
     return {
       exam: updated,
@@ -308,7 +357,7 @@ export const examService = {
     };
   },
 
-  async publish(id: string, userId: string) {
+  async publish(id: string, userId: string, ipAddress?: string) {
     const exam = await getExamByIdOrThrow(id);
     ensureTransition(exam.status, 'PUBLISHED');
 
@@ -320,7 +369,13 @@ export const examService = {
       },
     });
 
-    await createAuditLog({ userId, action: 'EXAM_PUBLISHED', entityId: id });
+    void logAudit({
+      userId,
+      action: 'PUBLISH_EXAM',
+      entity: 'Exam',
+      entityId: id,
+      ipAddress,
+    });
     return updated;
   },
 

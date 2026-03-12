@@ -14,7 +14,7 @@ const getUserId = (req: Request): string => {
 
 export const generateResultsForExam = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const data = await resultService.generateForExam(String(req.params.examId), getUserId(req));
+    const data = await resultService.generateForExam(String(req.params.examId), getUserId(req), req.ip);
     return res.json(success(data));
   } catch (error) {
     return next(error);
@@ -27,6 +27,7 @@ export const generateResultForStudent = async (req: Request, res: Response, next
       String(req.params.examId),
       String(req.params.studentId),
       getUserId(req),
+      req.ip,
     );
     return res.json(success(data));
   } catch (error) {
@@ -39,7 +40,7 @@ export const publishResults = async (req: Request, res: Response, next: NextFunc
     const query = publishQuerySchema.parse(req.query);
     const data = await resultService.publishExamResults(String(req.params.examId), getUserId(req), {
       force: query.force,
-    });
+    }, req.ip);
     return res.json(success(data));
   } catch (error) {
     return next(error);
@@ -48,7 +49,7 @@ export const publishResults = async (req: Request, res: Response, next: NextFunc
 
 export const deleteDraftResults = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const data = await resultService.deleteDraftResults(String(req.params.examId));
+    const data = await resultService.deleteDraftResults(String(req.params.examId), getUserId(req), req.ip);
     return res.json(success(data));
   } catch (error) {
     return next(error);

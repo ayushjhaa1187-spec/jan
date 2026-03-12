@@ -26,7 +26,7 @@ export const createMarks = async (req: Request, res: Response, next: NextFunctio
   try {
     const payload = createMarksSchema.parse(req.body);
     const auth = getAuthContext(req);
-    const data = await marksService.createMarks(payload, auth.userId, auth.permissions);
+    const data = await marksService.createMarks(payload, auth.userId, auth.permissions, req.ip);
     return res.status(201).json(success(data, 'Marks entered successfully'));
   } catch (error) {
     return next(error);
@@ -37,7 +37,7 @@ export const updateMarks = async (req: Request, res: Response, next: NextFunctio
   try {
     const payload = updateMarksSchema.parse(req.body);
     const auth = getAuthContext(req);
-    const data = await marksService.updateMarks(String(req.params.id), payload, auth.userId, auth.permissions);
+    const data = await marksService.updateMarks(String(req.params.id), payload, auth.userId, auth.permissions, req.ip);
     return res.json(success(data, 'Marks updated successfully'));
   } catch (error) {
     return next(error);
@@ -47,7 +47,7 @@ export const updateMarks = async (req: Request, res: Response, next: NextFunctio
 export const deleteMarks = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const auth = getAuthContext(req);
-    await marksService.deleteMarks(String(req.params.id), auth.userId, auth.permissions);
+    await marksService.deleteMarks(String(req.params.id), auth.userId, auth.permissions, req.ip);
     return res.json(success(null, 'Marks deleted successfully'));
   } catch (error) {
     return next(error);
@@ -94,7 +94,7 @@ export const bulkCreateMarks = async (req: Request, res: Response, next: NextFun
   try {
     const payload = bulkMarksSchema.parse(req.body);
     const auth = getAuthContext(req);
-    const data = await marksService.bulkCreateMarks(payload, auth.userId, auth.permissions);
+    const data = await marksService.bulkCreateMarks(payload, auth.userId, auth.permissions, req.ip);
     return res.json(success(data));
   } catch (error) {
     return next(error);
@@ -105,7 +105,7 @@ export const bulkUpdateMarks = async (req: Request, res: Response, next: NextFun
   try {
     const payload = bulkUpdateSchema.parse(req.body);
     const auth = getAuthContext(req);
-    const data = await marksService.bulkUpdateMarks(payload, auth.userId, auth.permissions);
+    const data = await marksService.bulkUpdateMarks(payload, auth.userId, auth.permissions, req.ip);
     return res.json(success(data));
   } catch (error) {
     return next(error);
@@ -135,6 +135,7 @@ export const uploadMarks = async (req: Request, res: Response, next: NextFunctio
       parsedRows.rows,
       auth.userId,
       auth.permissions,
+      req.ip,
     );
 
     return res.json(success(data));

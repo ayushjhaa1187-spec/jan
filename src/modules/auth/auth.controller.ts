@@ -47,7 +47,7 @@ export const login = async (req: Request, res: Response) => {
       return res.status(400).json({ error: 'Email and password are required' });
     }
 
-    const { user, tokens } = await authService.login({ email, password });
+    const { user, tokens } = await authService.login({ email, password }, { ipAddress: req.ip });
     setRefreshCookie(res, tokens.refreshToken);
 
     return res.json({
@@ -66,7 +66,7 @@ export const refresh = async (req: Request, res: Response) => {
       return res.status(401).json({ error: 'Refresh token required' });
     }
 
-    const { user, accessToken } = await authService.refresh(refreshToken);
+    const { user, accessToken } = await authService.refresh(refreshToken, { ipAddress: req.ip });
     return res.json({ accessToken, user });
   } catch (error) {
     return res.status(401).json({ error: 'Invalid refresh token' });
@@ -77,7 +77,7 @@ export const logout = async (req: Request, res: Response) => {
   try {
     const refreshToken = req.body?.refreshToken || getRefreshTokenFromRequest(req);
     if (refreshToken) {
-      await authService.logout(refreshToken);
+      await authService.logout(refreshToken, { ipAddress: req.ip });
     }
 
     clearRefreshCookie(res);

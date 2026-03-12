@@ -1,5 +1,6 @@
 import prisma from '../../utils/prisma';
 import AppError from '../../utils/AppError';
+import { logAudit } from '../../utils/auditLogger';
 import {
   CreateStudentInput,
   StudentListQuery,
@@ -35,7 +36,7 @@ const getByIdOrThrow = async (id: string) => {
 };
 
 export const studentService = {
-  async createStudent(payload: CreateStudentInput) {
+  async createStudent(payload: CreateStudentInput, actor?: { userId?: string; ipAddress?: string }) {
     await ensureClassExists(payload.classId);
 
     const existing = await prisma.student.findUnique({
@@ -48,7 +49,7 @@ export const studentService = {
 
     const parsedName = splitName(payload.name);
 
-    return prisma.student.create({
+    const created = await prisma.student.create({
       data: {
         enrollmentNo: payload.adm_no,
         firstName: parsedName.firstName,
@@ -65,6 +66,19 @@ export const studentService = {
       },
       include: { class: true },
     });
+
+    if (actor?.userId) {
+      void logAudit({
+        userId: actor.userId,
+        action: 'CREATE_STUDENT',
+        entity: 'Student',
+        entityId: created.id,
+        details: { adm_no: created.enrollmentNo, name: `${created.firstName} ${created.lastName}` },
+        ipAddress: actor.ipAddress,
+      });
+    }
+
+    return created;
   },
 
   async getStudents(query: StudentListQuery) {
@@ -111,7 +125,7 @@ export const studentService = {
     return getByIdOrThrow(id);
   },
 
-  async updateStudent(id: string, payload: UpdateStudentInput) {
+  async updateStudent(id: string, payload: UpdateStudentInput, actor?: { userId?: string; ipAddress?: string }) {
     await getByIdOrThrow(id);
 
     const updates: {
@@ -137,17 +151,30 @@ export const studentService = {
     }
 
     try {
-      return await prisma.student.update({
+      const updated = await prisma.student.update({
         where: { id },
         data: updates,
         include: { class: true },
       });
+
+      if (actor?.userId) {
+        void logAudit({
+          userId: actor.userId,
+          action: 'UPDATE_STUDENT',
+          entity: 'Student',
+          entityId: updated.id,
+          details: { adm_no: updated.enrollmentNo },
+          ipAddress: actor.ipAddress,
+        });
+      }
+
+      return updated;
     } catch {
       throw new AppError('Student update failed', 400);
     }
   },
 
-  async deleteStudent(id: string) {
+  async deleteStudent(id: string, actor?: { userId?: string; ipAddress?: string }) {
     await getByIdOrThrow(id);
 
     const [marksCount, resultsCount] = await Promise.all([
@@ -160,17 +187,40 @@ export const studentService = {
     }
 
     await prisma.student.delete({ where: { id } });
+
+    if (actor?.userId) {
+      void logAudit({
+        userId: actor.userId,
+        action: 'DELETE_STUDENT',
+        entity: 'Student',
+        entityId: id,
+        ipAddress: actor.ipAddress,
+      });
+    }
   },
 
-  async transferClass(id: string, payload: TransferClassInput) {
+  async transferClass(id: string, payload: TransferClassInput, actor?: { userId?: string; ipAddress?: string }) {
     await getByIdOrThrow(id);
     await ensureClassExists(payload.classId);
 
-    return prisma.student.update({
+    const updated = await prisma.student.update({
       where: { id },
       data: { classId: payload.classId },
       include: { class: true },
     });
+
+    if (actor?.userId) {
+      void logAudit({
+        userId: actor.userId,
+        action: 'TRANSFER_STUDENT',
+        entity: 'Student',
+        entityId: updated.id,
+        details: { classId: payload.classId },
+        ipAddress: actor.ipAddress,
+      });
+    }
+
+    return updated;
   },
 
   async getStudentResults(id: string) {

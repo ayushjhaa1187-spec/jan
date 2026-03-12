@@ -1,5 +1,7 @@
 import AppError from '../../utils/AppError';
 import prisma from '../../utils/prisma';
+import { logAudit } from '../../utils/auditLogger';
+import { createNotification } from '../notifications/notification.service';
 import { GradeResult, PublishQuery, StudentComputedResult, SubjectComputedResult } from './result.types';
 
 const calculateGrade = (percentage: number): GradeResult => {
@@ -143,7 +145,7 @@ export const resultService = {
   calculateGrade,
   calculateStudentResult,
 
-  async generateForExam(examId: string, userId: string) {
+  async generateForExam(examId: string, userId: string, ipAddress?: string) {
     const exam = await ensureExam(examId);
     if (exam.status !== 'APPROVED') {
       throw new AppError('Results can only be generated for APPROVED exams.', 400);
@@ -189,6 +191,21 @@ export const resultService = {
       generated += 1;
     }
 
+    void logAudit({
+      userId,
+      action: 'GENERATE_RESULTS',
+      entity: 'Result',
+      entityId: examId,
+      details: { generated, skipped },
+      ipAddress,
+    });
+
+    await createNotification(
+      exam.createdById,
+      'Results Ready',
+      `Results for ${exam.name} have been generated and are ready for review.`,
+    );
+
     return {
       examId: exam.id,
       examName: exam.name,
@@ -199,7 +216,7 @@ export const resultService = {
     };
   },
 
-  async generateForStudent(examId: string, studentId: string, userId: string) {
+  async generateForStudent(examId: string, studentId: string, userId: string, ipAddress?: string) {
     const exam = await ensureExam(examId);
     if (exam.status !== 'APPROVED') {
       throw new AppError('Results can only be generated for APPROVED exams.', 400);
@@ -223,10 +240,17 @@ export const resultService = {
     }
 
     await upsertDraftResult(studentId, examId, userId);
+    void logAudit({
+      userId,
+      action: 'GENERATE_RESULTS',
+      entity: 'Result',
+      entityId: `${examId}:${studentId}`,
+      ipAddress,
+    });
     return buildStudentResultPayload(examId, studentId);
   },
 
-  async publishExamResults(examId: string, userId: string, query: PublishQuery) {
+  async publishExamResults(examId: string, userId: string, query: PublishQuery, ipAddress?: string) {
     const exam = await ensureExam(examId);
     if (!(exam.status === 'APPROVED' || exam.status === 'PUBLISHED')) {
       throw new AppError('Results can be published only for APPROVED exams.', 400);
@@ -260,6 +284,30 @@ export const resultService = {
       data: { status: 'PUBLISHED', updatedById: userId },
     });
 
+    void logAudit({
+      userId,
+      action: 'PUBLISH_RESULTS',
+      entity: 'Result',
+      entityId: examId,
+      details: { published: publishRes.count, incomplete: incompletes.length },
+      ipAddress,
+    });
+
+    const teacherRows = await prisma.teacherSubject.findMany({
+      where: { classId: exam.classId },
+      include: { teacher: true },
+    });
+    const teacherUserIds = Array.from(new Set(teacherRows.map((row) => row.teacher.userId)));
+    await Promise.all(
+      teacherUserIds.map((teacherUserId) =>
+        createNotification(
+          teacherUserId,
+          'Results Published',
+          `Results for ${exam.name} - Class ${exam.class.name}${exam.class.section} have been published.`,
+        ),
+      ),
+    );
+
     return {
       examId,
       published: publishRes.count,
@@ -268,7 +316,7 @@ export const resultService = {
     };
   },
 
-  async deleteDraftResults(examId: string) {
+  async deleteDraftResults(examId: string, userId: string, ipAddress?: string) {
     await ensureExam(examId);
 
     const published = await prisma.result.count({ where: { examId, status: 'PUBLISHED' } });
@@ -277,6 +325,14 @@ export const resultService = {
     }
 
     const deleted = await prisma.result.deleteMany({ where: { examId, status: 'DRAFT' } });
+    void logAudit({
+      userId,
+      action: 'DELETE_RESULTS',
+      entity: 'Result',
+      entityId: examId,
+      details: { deleted: deleted.count },
+      ipAddress,
+    });
     return { deleted: deleted.count };
   },
 

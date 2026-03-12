@@ -1,6 +1,7 @@
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import prisma from '../../utils/prisma';
+import { logAudit } from '../../utils/auditLogger';
 import { AuthTokenPayload, AuthenticatedUser, LoginInput, TokenPair } from './auth.types';
 
 const ACCESS_TOKEN_TTL = '15m';
@@ -113,7 +114,10 @@ const removeRefreshToken = async (userId: string, refreshToken: string): Promise
 };
 
 export const authService = {
-  async login(input: LoginInput): Promise<{ user: AuthenticatedUser; tokens: TokenPair }> {
+  async login(
+    input: LoginInput,
+    metadata?: { ipAddress?: string },
+  ): Promise<{ user: AuthenticatedUser; tokens: TokenPair }> {
     const user = await prisma.user.findUnique({
       where: { email: input.email },
     });
@@ -142,13 +146,24 @@ export const authService = {
     const refreshToken = signRefreshToken(payload);
     await persistRefreshToken(authUser.id, refreshToken);
 
+    void logAudit({
+      userId: authUser.id,
+      action: 'USER_LOGIN',
+      entity: 'Auth',
+      entityId: authUser.id,
+      ipAddress: metadata?.ipAddress,
+    });
+
     return {
       user: authUser,
       tokens: { accessToken, refreshToken },
     };
   },
 
-  async refresh(refreshToken: string): Promise<{ user: AuthenticatedUser; accessToken: string }> {
+  async refresh(
+    refreshToken: string,
+    metadata?: { ipAddress?: string },
+  ): Promise<{ user: AuthenticatedUser; accessToken: string }> {
     const decoded = jwt.verify(refreshToken, JWT_REFRESH_SECRET) as AuthTokenPayload;
 
     const isValidToken = await validateRefreshToken(decoded.userId, refreshToken);
@@ -167,12 +182,28 @@ export const authService = {
       permissions: authUser.permissions,
     });
 
+    void logAudit({
+      userId: authUser.id,
+      action: 'REFRESH_TOKEN',
+      entity: 'Auth',
+      entityId: authUser.id,
+      ipAddress: metadata?.ipAddress,
+    });
+
     return { user: authUser, accessToken };
   },
 
-  async logout(refreshToken: string): Promise<void> {
+  async logout(refreshToken: string, metadata?: { ipAddress?: string }): Promise<void> {
     const decoded = jwt.verify(refreshToken, JWT_REFRESH_SECRET) as AuthTokenPayload;
     await removeRefreshToken(decoded.userId, refreshToken);
+
+    void logAudit({
+      userId: decoded.userId,
+      action: 'USER_LOGOUT',
+      entity: 'Auth',
+      entityId: decoded.userId,
+      ipAddress: metadata?.ipAddress,
+    });
   },
 
   async getCurrentUser(userId: string): Promise<AuthenticatedUser | null> {

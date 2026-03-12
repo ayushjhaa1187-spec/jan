@@ -111,6 +111,13 @@ npx prisma db push
 npm run dev
 ```
 
+### 3. Local Verification
+Before opening a PR, run:
+```bash
+npm run build
+npm test
+```
+
 ---
 
 ## ⚖️ Security & Feasibility
@@ -131,5 +138,4 @@ Circles was designed and developed by **Team CoCreate**:
 -   **Jahnvi Chauhan** — UI/UX Design & Frontend Development
 
 *Circles — Built for the next generation of event management.*
-
 
