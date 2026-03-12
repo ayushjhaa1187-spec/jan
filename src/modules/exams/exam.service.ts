@@ -1,170 +1,104 @@
-import AppError from '../../utils/AppError';
-import prisma from '../../utils/prisma';
-import {
-  CreateExamInput,
-  ExamClassQuery,
-  ExamListQuery,
-  ExamWorkflowStatus,
-  RejectExamInput,
-  UpdateExamInput,
-} from './exam.types';
+import AppError from '../../utils/AppError'
+import { logAudit } from '../../utils/auditLogger'
+import prisma from '../../utils/prisma'
+import { createNotification, getUsersWithPermission } from '../notifications/notification.service'
+import { CreateExamInput, ExamClassQuery, ExamListQuery, UpdateExamInput } from './exam.types'
 
-const WORKFLOW_STATUSES: ExamWorkflowStatus[] = ['DRAFT', 'REVIEW', 'APPROVED', 'PUBLISHED'];
-
-const isWorkflowStatus = (value: string): value is ExamWorkflowStatus =>
-  WORKFLOW_STATUSES.includes(value as ExamWorkflowStatus);
-
-const assertModifiable = (status: string): void => {
-  if (status === 'PUBLISHED') {
-    throw new AppError('Published exams cannot be modified.', 400);
-  }
-};
-
-const getExamByIdOrThrow = async (id: string) => {
-  const exam = await prisma.exam.findUnique({ where: { id } });
-  if (!exam) {
-    throw new AppError('Exam not found', 404);
-  }
-
-  return exam;
-};
-
-const ensureClassExists = async (classId: string) => {
-  const classItem = await prisma.class.findUnique({ where: { id: classId } });
-  if (!classItem) {
-    throw new AppError('Class not found', 404);
-  }
-
-  return classItem;
-};
-
-const createAuditLog = async (params: {
-  userId: string;
-  action: string;
-  entityId: string;
-  details?: Record<string, string>;
-}): Promise<void> => {
-  await prisma.auditLog.create({
-    data: {
-      userId: params.userId,
-      action: params.action,
-      entity: 'EXAM',
-      entityId: params.entityId,
-      details: params.details ? JSON.stringify(params.details) : null,
-    },
-  });
-};
-
-const ensureTransition = (from: string, to: ExamWorkflowStatus): void => {
-  if (from === 'PUBLISHED') {
-    throw new AppError('Published exams cannot be modified.', 400);
-  }
-
+const assertTransition = (from: string, to: 'REVIEW' | 'APPROVED' | 'PUBLISHED' | 'DRAFT'): void => {
   const valid =
     (from === 'DRAFT' && to === 'REVIEW') ||
     (from === 'REVIEW' && to === 'APPROVED') ||
-    (from === 'APPROVED' && to === 'PUBLISHED');
+    (from === 'APPROVED' && to === 'PUBLISHED') ||
+    ((from === 'REVIEW' || from === 'APPROVED') && to === 'DRAFT')
 
   if (!valid) {
-    throw new AppError(`Invalid status transition from ${from} to ${to}`, 400);
+    throw new AppError(`Invalid status transition from ${from} to ${to}`, 400)
   }
-};
+}
 
-const buildExamDetail = async (id: string) => {
-  const exam = await prisma.exam.findUnique({
-    where: { id },
-    include: {
-      class: true,
-      createdBy: { select: { id: true, email: true } },
-      _count: { select: { marks: true, results: true } },
-    },
-  });
+const assertModifiable = (status: string): void => {
+  if (status === 'PUBLISHED') {
+    throw new AppError('Published exams cannot be modified', 400)
+  }
+}
 
+const ensureClassExists = async (classId: string) => {
+  const existingClass = await prisma.class.findUnique({ where: { id: classId } })
+  if (!existingClass) {
+    throw new AppError('Class not found', 404)
+  }
+
+  return existingClass
+}
+
+const getExamOrThrow = async (id: string) => {
+  const exam = await prisma.exam.findUnique({ where: { id } })
   if (!exam) {
-    throw new AppError('Exam not found', 404);
+    throw new AppError('Exam not found', 404)
   }
 
-  const logs = await prisma.auditLog.findMany({
-    where: {
-      entity: 'EXAM',
-      entityId: id,
-      action: { in: ['EXAM_APPROVED', 'EXAM_PUBLISHED'] },
-    },
-    include: { user: { select: { id: true, email: true } } },
-    orderBy: { createdAt: 'desc' },
-  });
-
-  const approveLog = logs.find((item) => item.action === 'EXAM_APPROVED');
-  const publishLog = logs.find((item) => item.action === 'EXAM_PUBLISHED');
-
-  return {
-    id: exam.id,
-    name: exam.name,
-    status: exam.status,
-    startDate: exam.startDate,
-    endDate: exam.endDate,
-    class: {
-      id: exam.class.id,
-      name: exam.class.name,
-      section: exam.class.section,
-    },
-    creator: exam.createdBy,
-    approver: approveLog?.user || null,
-    publisher: publishLog?.user || null,
-    _count: exam._count,
-    createdAt: exam.createdAt,
-    updatedAt: exam.updatedAt,
-  };
-};
+  return exam
+}
 
 export const examService = {
-  async createExam(payload: CreateExamInput, userId: string) {
-    await ensureClassExists(payload.classId);
+  async createExam(data: CreateExamInput, userId: string, ipAddress?: string) {
+    await ensureClassExists(data.classId)
 
     const duplicate = await prisma.exam.findFirst({
       where: {
-        classId: payload.classId,
-        name: payload.name,
+        classId: data.classId,
+        name: data.name,
+        startDate: { gte: new Date(new Date(data.startDate).getFullYear(), 0, 1) },
+        endDate: { lte: new Date(new Date(data.startDate).getFullYear(), 11, 31, 23, 59, 59, 999) },
       },
-    });
+    })
 
     if (duplicate) {
-      throw new AppError('Exam with this name already exists for this class', 409);
+      throw new AppError('Exam with this name already exists for class in this year', 409)
     }
 
-    return prisma.exam.create({
+    const created = await prisma.exam.create({
       data: {
-        name: payload.name,
-        classId: payload.classId,
-        startDate: new Date(payload.startDate),
-        endDate: new Date(payload.endDate),
+        name: data.name,
+        classId: data.classId,
+        startDate: new Date(data.startDate),
+        endDate: new Date(data.endDate),
         status: 'DRAFT',
         createdById: userId,
       },
-      include: {
-        class: true,
-      },
-    });
+      include: { class: true },
+    })
+
+    void logAudit({
+      userId,
+      action: 'CREATE_EXAM',
+      entity: 'Exam',
+      entityId: created.id,
+      ipAddress,
+      details: { name: created.name, classId: created.classId },
+    })
+
+    return created
   },
 
-  async listExams(query: ExamListQuery) {
-    const page = query.page && query.page > 0 ? query.page : 1;
-    const limit = query.limit && query.limit > 0 ? query.limit : 20;
-    const skip = (page - 1) * limit;
+  async getExams(params: ExamListQuery & { status?: string }) {
+    const page = params.page && params.page > 0 ? params.page : 1
+    const limit = params.limit && params.limit > 0 ? params.limit : 20
+    const skip = (page - 1) * limit
 
     const where = {
-      ...(query.classId ? { classId: query.classId } : {}),
-      ...(query.status ? { status: query.status } : {}),
-      ...(query.search ? { name: { contains: query.search, mode: 'insensitive' as const } } : {}),
-      ...((query.startDate || query.endDate)
+      ...(params.classId ? { classId: params.classId } : {}),
+      ...(params.status ? { status: params.status } : {}),
+      ...(params.search ? { name: { contains: params.search, mode: 'insensitive' as const } } : {}),
+      ...((params.startDate || params.endDate)
         ? {
             startDate: {
-              ...(query.startDate ? { gte: new Date(query.startDate) } : {}),
-              ...(query.endDate ? { lte: new Date(query.endDate) } : {}),
+              ...(params.startDate ? { gte: new Date(params.startDate) } : {}),
+              ...(params.endDate ? { lte: new Date(params.endDate) } : {}),
             },
           }
         : {}),
-    };
+    }
 
     const [total, data] = await Promise.all([
       prisma.exam.count({ where }),
@@ -175,7 +109,7 @@ export const examService = {
         skip,
         take: limit,
       }),
-    ]);
+    ])
 
     return {
       data,
@@ -185,84 +119,109 @@ export const examService = {
         limit,
         totalPages: Math.ceil(total / limit) || 1,
       },
-    };
+    }
   },
 
-  async getExamById(id: string) {
-    return buildExamDetail(id);
-  },
-
-  async updateExam(id: string, payload: UpdateExamInput, userId: string) {
-    const exam = await getExamByIdOrThrow(id);
-    assertModifiable(exam.status);
-
-    if (exam.status !== 'DRAFT') {
-      throw new AppError('Only draft exams can be updated.', 400);
-    }
-
-    const nextStartDate = payload.startDate ? new Date(payload.startDate) : exam.startDate;
-    const nextEndDate = payload.endDate ? new Date(payload.endDate) : exam.endDate;
-
-    if (nextEndDate <= nextStartDate) {
-      throw new AppError('endDate must be after startDate', 400);
-    }
-
-    if (payload.name && payload.name !== exam.name) {
-      const duplicate = await prisma.exam.findFirst({
-        where: {
-          classId: exam.classId,
-          name: payload.name,
-          NOT: { id: exam.id },
-        },
-      });
-
-      if (duplicate) {
-        throw new AppError('Exam with this name already exists for this class', 409);
-      }
-    }
-
-    return prisma.exam.update({
+  async getExam(id: string) {
+    const exam = await prisma.exam.findUnique({
       where: { id },
-      data: {
-        ...(payload.name ? { name: payload.name } : {}),
-        ...(payload.startDate ? { startDate: new Date(payload.startDate) } : {}),
-        ...(payload.endDate ? { endDate: new Date(payload.endDate) } : {}),
-        updatedById: userId,
+      include: {
+        class: true,
+        createdBy: { select: { id: true, email: true } },
+        updatedBy: { select: { id: true, email: true } },
+        _count: { select: { marks: true, results: true } },
       },
-      include: { class: true },
-    });
-  },
+    })
 
-  async deleteExam(id: string) {
-    const exam = await getExamByIdOrThrow(id);
-    assertModifiable(exam.status);
-
-    if (exam.status !== 'DRAFT') {
-      throw new AppError('Only draft exams can be deleted.', 400);
+    if (!exam) {
+      throw new AppError('Exam not found', 404)
     }
 
-    await prisma.exam.delete({ where: { id } });
+    const logs = await prisma.auditLog.findMany({
+      where: { entity: 'Exam', entityId: exam.id, action: { in: ['APPROVE_EXAM', 'PUBLISH_EXAM'] } },
+      include: { user: { select: { id: true, email: true } } },
+      orderBy: { createdAt: 'desc' },
+    })
+
+    const approver = logs.find((logItem) => logItem.action === 'APPROVE_EXAM')?.user || null
+    const publisher = logs.find((logItem) => logItem.action === 'PUBLISH_EXAM')?.user || null
+
+    return {
+      ...exam,
+      creator: exam.createdBy,
+      approver,
+      publisher,
+    }
   },
 
-  async submitReview(id: string, userId: string) {
-    const exam = await getExamByIdOrThrow(id);
-    ensureTransition(exam.status, 'REVIEW');
+  async updateExam(id: string, data: UpdateExamInput, userId: string, ipAddress?: string) {
+    const exam = await getExamOrThrow(id)
+    assertModifiable(exam.status)
+
+    if (exam.status !== 'DRAFT') {
+      throw new AppError('Only draft exams can be updated', 400)
+    }
 
     const updated = await prisma.exam.update({
       where: { id },
       data: {
-        status: 'REVIEW',
+        ...(data.name ? { name: data.name } : {}),
+        ...(data.startDate ? { startDate: new Date(data.startDate) } : {}),
+        ...(data.endDate ? { endDate: new Date(data.endDate) } : {}),
         updatedById: userId,
       },
-    });
+      include: { class: true },
+    })
 
-    await createAuditLog({ userId, action: 'EXAM_SUBMITTED_REVIEW', entityId: id });
-    return updated;
+    void logAudit({
+      userId,
+      action: 'UPDATE_EXAM',
+      entity: 'Exam',
+      entityId: id,
+      ipAddress,
+      details: { name: updated.name },
+    })
+
+    return updated
   },
 
-  async approve(id: string, userId: string) {
-    const exam = await getExamByIdOrThrow(id);
-    ensureTransition(exam.status, 'APPROVED');
+  async deleteExam(id: string, userId: string, ipAddress?: string) {
+    const exam = await getExamOrThrow(id)
+    assertModifiable(exam.status)
+
+    if (exam.status !== 'DRAFT') {
+      throw new AppError('Only draft exams can be deleted', 400)
+    }
+
+    await prisma.exam.delete({ where: { id } })
+
+    void logAudit({ userId, action: 'DELETE_EXAM', entity: 'Exam', entityId: id, ipAddress })
+  },
+
+  async submitReview(id: string, userId: string, ipAddress?: string) {
+    const exam = await getExamOrThrow(id)
+    assertTransition(exam.status, 'REVIEW')
+
+    const updated = await prisma.exam.update({
+      where: { id },
+      data: { status: 'REVIEW', updatedById: userId },
+    })
+
+    void logAudit({ userId, action: 'SUBMIT_EXAM_REVIEW', entity: 'Exam', entityId: id, ipAddress })
+
+    const approvers = await getUsersWithPermission('approve_exam')
+    await Promise.all(
+      approvers.map((approverId) =>
+        createNotification(approverId, 'Exam Pending Review', `${exam.name} submitted for review`),
+      ),
+    )
+
+    return updated
+  },
+
+  async approveExam(id: string, userId: string, ipAddress?: string) {
+    const exam = await getExamOrThrow(id)
+    assertTransition(exam.status, 'APPROVED')
 
     const updated = await prisma.exam.update({
       where: { id },
@@ -270,22 +229,17 @@ export const examService = {
         status: 'APPROVED',
         updatedById: userId,
       },
-    });
+    })
 
-    await createAuditLog({ userId, action: 'EXAM_APPROVED', entityId: id });
-    return updated;
+    void logAudit({ userId, action: 'APPROVE_EXAM', entity: 'Exam', entityId: id, ipAddress })
+    await createNotification(exam.createdById, 'Exam Approved', `Your exam ${exam.name} has been approved`)
+
+    return updated
   },
 
-  async reject(id: string, payload: RejectExamInput, userId: string) {
-    const exam = await getExamByIdOrThrow(id);
-
-    if (exam.status === 'PUBLISHED') {
-      throw new AppError('Published exams cannot be modified.', 400);
-    }
-
-    if (!(exam.status === 'REVIEW' || exam.status === 'APPROVED')) {
-      throw new AppError(`Invalid status transition from ${exam.status} to DRAFT`, 400);
-    }
+  async rejectExam(id: string, reason: string, userId: string, ipAddress?: string) {
+    const exam = await getExamOrThrow(id)
+    assertTransition(exam.status, 'DRAFT')
 
     const updated = await prisma.exam.update({
       where: { id },
@@ -293,24 +247,25 @@ export const examService = {
         status: 'DRAFT',
         updatedById: userId,
       },
-    });
+    })
 
-    await createAuditLog({
+    void logAudit({
       userId,
-      action: 'EXAM_REJECTED',
+      action: 'REJECT_EXAM',
+      entity: 'Exam',
       entityId: id,
-      details: { reason: payload.reason },
-    });
+      ipAddress,
+      details: { reason },
+    })
 
-    return {
-      exam: updated,
-      reason: payload.reason,
-    };
+    await createNotification(exam.createdById, 'Exam Rejected', `Your exam ${exam.name} was rejected. Reason: ${reason}`)
+
+    return updated
   },
 
-  async publish(id: string, userId: string) {
-    const exam = await getExamByIdOrThrow(id);
-    ensureTransition(exam.status, 'PUBLISHED');
+  async publishExam(id: string, userId: string, ipAddress?: string) {
+    const exam = await getExamOrThrow(id)
+    assertTransition(exam.status, 'PUBLISHED')
 
     const updated = await prisma.exam.update({
       where: { id },
@@ -318,34 +273,27 @@ export const examService = {
         status: 'PUBLISHED',
         updatedById: userId,
       },
-    });
+    })
 
-    await createAuditLog({ userId, action: 'EXAM_PUBLISHED', entityId: id });
-    return updated;
+    void logAudit({ userId, action: 'PUBLISH_EXAM', entity: 'Exam', entityId: id, ipAddress })
+    return updated
   },
 
   async getMarksStatus(id: string) {
-    const exam = await prisma.exam.findUnique({
-      where: { id },
-      include: {
-        class: true,
-      },
-    });
-
+    const exam = await prisma.exam.findUnique({ where: { id }, include: { class: true } })
     if (!exam) {
-      throw new AppError('Exam not found', 404);
+      throw new AppError('Exam not found', 404)
     }
 
-    const students = await prisma.student.findMany({ where: { classId: exam.classId } });
-    const totalStudents = students.length;
+    const [students, assignments] = await Promise.all([
+      prisma.student.findMany({ where: { classId: exam.classId } }),
+      prisma.teacherSubject.findMany({
+        where: { classId: exam.classId },
+        include: { subject: true, teacher: true },
+      }),
+    ])
 
-    const assignments = await prisma.teacherSubject.findMany({
-      where: { classId: exam.classId },
-      include: {
-        subject: true,
-        teacher: true,
-      },
-    });
+    const totalStudents = students.length
 
     const subjects = await Promise.all(
       assignments.map(async (assignment) => {
@@ -354,9 +302,9 @@ export const examService = {
             examId: exam.id,
             subjectId: assignment.subjectId,
           },
-        });
+        })
 
-        const completionPercent = totalStudents > 0 ? (marksEntered / totalStudents) * 100 : 0;
+        const completionPercent = totalStudents > 0 ? (marksEntered / totalStudents) * 100 : 0
 
         return {
           subjectId: assignment.subjectId,
@@ -367,49 +315,33 @@ export const examService = {
           totalStudents,
           completionPercent: Number(completionPercent.toFixed(1)),
           isComplete: totalStudents > 0 && marksEntered >= totalStudents,
-        };
+        }
       }),
-    );
-
-    const overallCompletion =
-      subjects.length > 0
-        ? Number((subjects.reduce((sum, item) => sum + item.completionPercent, 0) / subjects.length).toFixed(1))
-        : 0;
+    )
 
     return {
-      exam: {
-        id: exam.id,
-        name: exam.name,
-        status: isWorkflowStatus(exam.status) ? exam.status : exam.status,
-        class: {
-          name: exam.class.name,
-          section: exam.class.section,
-        },
-      },
+      exam,
       totalStudents,
       subjects,
-      overallCompletion,
-    };
+    }
   },
 
   async getExamStudents(id: string) {
-    const exam = await getExamByIdOrThrow(id);
+    const exam = await getExamOrThrow(id)
 
     return prisma.student.findMany({
       where: { classId: exam.classId },
-      include: {
-        class: true,
-      },
+      include: { class: true },
       orderBy: [{ firstName: 'asc' }, { lastName: 'asc' }],
-    });
+    })
   },
 
-  async getExamsByClass(classId: string, query: ExamClassQuery) {
-    await ensureClassExists(classId);
+  async getClassExams(classId: string, query: ExamClassQuery) {
+    await ensureClassExists(classId)
 
-    const page = query.page && query.page > 0 ? query.page : 1;
-    const limit = query.limit && query.limit > 0 ? query.limit : 20;
-    const skip = (page - 1) * limit;
+    const page = query.page && query.page > 0 ? query.page : 1
+    const limit = query.limit && query.limit > 0 ? query.limit : 20
+    const skip = (page - 1) * limit
 
     const [total, data] = await Promise.all([
       prisma.exam.count({ where: { classId } }),
@@ -420,7 +352,7 @@ export const examService = {
         skip,
         take: limit,
       }),
-    ]);
+    ])
 
     return {
       data,
@@ -430,6 +362,6 @@ export const examService = {
         limit,
         totalPages: Math.ceil(total / limit) || 1,
       },
-    };
+    }
   },
-};
+}
