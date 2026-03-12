@@ -11,7 +11,7 @@ interface ExamsParams {
   search?: string
 }
 
-export const useExams = (params: ExamsParams) =>
+export const useExams = (params: ExamsParams = {}) =>
   useQuery({
     queryKey: ['exams', params],
     queryFn: async () => (await api.get('/exams', { params })).data,
