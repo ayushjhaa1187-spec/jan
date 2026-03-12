@@ -6,6 +6,7 @@ import {
   TransferClassInput,
   UpdateStudentInput,
 } from './student.types';
+import { logAudit } from '../../utils/auditLogger';
 
 const ensureClassExists = async (classId: string) => {
   const classExists = await prisma.class.findUnique({ where: { id: classId } });
@@ -35,7 +36,7 @@ const getByIdOrThrow = async (id: string) => {
 };
 
 export const studentService = {
-  async createStudent(payload: CreateStudentInput) {
+  async createStudent(payload: CreateStudentInput, userId: string) {
     await ensureClassExists(payload.classId);
 
     const existing = await prisma.student.findUnique({
@@ -48,7 +49,7 @@ export const studentService = {
 
     const parsedName = splitName(payload.name);
 
-    return prisma.student.create({
+    const created = await prisma.student.create({
       data: {
         enrollmentNo: payload.adm_no,
         firstName: parsedName.firstName,
@@ -65,6 +66,16 @@ export const studentService = {
       },
       include: { class: true },
     });
+
+    void logAudit({
+      userId,
+      action: "CREATE_STUDENT",
+      entity: "STUDENT",
+      entityId: created.id,
+      details: { adm_no: created.enrollmentNo, name: `${created.firstName} ${created.lastName}` },
+    });
+
+    return created;
   },
 
   async getStudents(query: StudentListQuery) {
@@ -111,7 +122,7 @@ export const studentService = {
     return getByIdOrThrow(id);
   },
 
-  async updateStudent(id: string, payload: UpdateStudentInput) {
+  async updateStudent(id: string, payload: UpdateStudentInput, userId: string) {
     await getByIdOrThrow(id);
 
     const updates: {
@@ -137,17 +148,27 @@ export const studentService = {
     }
 
     try {
-      return await prisma.student.update({
+      const updated = await prisma.student.update({
         where: { id },
         data: updates,
         include: { class: true },
       });
+
+      void logAudit({
+        userId,
+        action: "UPDATE_STUDENT",
+        entity: "STUDENT",
+        entityId: updated.id,
+        details: { adm_no: updated.enrollmentNo },
+      });
+
+      return updated;
     } catch {
       throw new AppError('Student update failed', 400);
     }
   },
 
-  async deleteStudent(id: string) {
+  async deleteStudent(id: string, userId: string) {
     await getByIdOrThrow(id);
 
     const [marksCount, resultsCount] = await Promise.all([
@@ -160,17 +181,34 @@ export const studentService = {
     }
 
     await prisma.student.delete({ where: { id } });
+
+    void logAudit({
+      userId,
+      action: 'DELETE_STUDENT',
+      entity: 'STUDENT',
+      entityId: id,
+    });
   },
 
-  async transferClass(id: string, payload: TransferClassInput) {
+  async transferClass(id: string, payload: TransferClassInput, userId: string) {
     await getByIdOrThrow(id);
     await ensureClassExists(payload.classId);
 
-    return prisma.student.update({
+    const transferred = await prisma.student.update({
       where: { id },
       data: { classId: payload.classId },
       include: { class: true },
     });
+
+    void logAudit({
+      userId,
+      action: 'TRANSFER_STUDENT',
+      entity: 'STUDENT',
+      entityId: transferred.id,
+      details: { classId: transferred.classId },
+    });
+
+    return transferred;
   },
 
   async getStudentResults(id: string) {
