@@ -1,4 +1,5 @@
 import AppError from '../../utils/AppError';
+import { logAudit } from '../../utils/auditLogger';
 import prisma from '../../utils/prisma';
 import {
   BatchSummary,
@@ -14,10 +15,11 @@ const ensureExam = async (examId: string) => {
   if (!exam) {
     throw new AppError('Exam not found', 404);
   }
+
   return exam;
 };
 
-const ensureSubjectClassAssignment = async (subjectId: string, classId: string) => {
+const ensureSubjectInClass = async (subjectId: string, classId: string): Promise<void> => {
   const assignment = await prisma.teacherSubject.findFirst({ where: { subjectId, classId } });
   if (!assignment) {
     throw new AppError('This subject is not assigned to this class.', 400);
@@ -37,19 +39,19 @@ const ensureStudentInClass = async (studentId: string, classId: string) => {
   return student;
 };
 
-const ensureExamStatusForEntry = (status: string): void => {
-  if (status !== 'APPROVED') {
-    throw new AppError('Marks can only be entered for APPROVED exams.', 400);
-  }
-};
-
-const ensureExamNotPublished = (status: string): void => {
+const ensureNotPublished = (status: string): void => {
   if (status === 'PUBLISHED') {
     throw new AppError('Marks for published exams cannot be modified.', 400);
   }
 };
 
-const ensureMarksWithinMax = (marks: number, maxMarks: number): void => {
+const ensureApproved = (status: string): void => {
+  if (status !== 'APPROVED') {
+    throw new AppError('Marks can only be entered for APPROVED exams.', 400);
+  }
+};
+
+const ensureMarksLimit = (marks: number, maxMarks: number): void => {
   if (marks > maxMarks) {
     throw new AppError('Marks cannot exceed maximum marks.', 400);
   }
@@ -74,28 +76,11 @@ const verifyTeacherAccess = async (userId: string, examId: string, subjectId: st
   });
 
   if (!assignment) {
-    throw new AppError(
-      'Access denied. You are not assigned to teach this subject in this class.',
-      403,
-    );
+    throw new AppError('Access denied. You are not assigned to teach this subject in this class.', 403);
   }
 };
 
-const checkWriteAccess = async (
-  userId: string,
-  permissions: string[],
-  examId: string,
-  subjectId: string,
-): Promise<void> => {
-  if (!canManageMarks(permissions)) {
-    await verifyTeacherAccess(userId, examId, subjectId);
-  }
-};
-
-const upsertMarks = async (
-  input: CreateMarksInput,
-  enteredById: string,
-) => {
+const upsertMarks = async (input: CreateMarksInput, userId: string) => {
   return prisma.marks.upsert({
     where: {
       studentId_subjectId_examId: {
@@ -104,18 +89,18 @@ const upsertMarks = async (
         examId: input.examId,
       },
     },
+    create: {
+      studentId: input.studentId,
+      subjectId: input.subjectId,
+      examId: input.examId,
+      marks: input.marks,
+      maxMarks: input.maxMarks ?? 100,
+      enteredById: userId,
+    },
     update: {
       marks: input.marks,
       maxMarks: input.maxMarks ?? 100,
-      updatedById: enteredById,
-    },
-    create: {
-      studentId: input.studentId,
-      examId: input.examId,
-      subjectId: input.subjectId,
-      marks: input.marks,
-      maxMarks: input.maxMarks ?? 100,
-      enteredById,
+      updatedById: userId,
     },
     include: {
       student: true,
@@ -127,58 +112,97 @@ const upsertMarks = async (
 };
 
 export const marksService = {
-  async createMarks(input: CreateMarksInput, userId: string, permissions: string[]) {
-    const exam = await ensureExam(input.examId);
-    ensureExamStatusForEntry(exam.status);
+  verifyTeacherAccess,
 
-    ensureMarksWithinMax(input.marks, input.maxMarks ?? 100);
-    await ensureSubjectClassAssignment(input.subjectId, exam.classId);
-    await ensureStudentInClass(input.studentId, exam.classId);
-    await checkWriteAccess(userId, permissions, input.examId, input.subjectId);
+  async createMarks(data: CreateMarksInput, userId: string, permissions: string[], ipAddress?: string) {
+    if (!canManageMarks(permissions)) {
+      await verifyTeacherAccess(userId, data.examId, data.subjectId);
+    }
 
-    return upsertMarks(input, userId);
+    const exam = await ensureExam(data.examId);
+    ensureApproved(exam.status);
+
+    await ensureSubjectInClass(data.subjectId, exam.classId);
+    await ensureStudentInClass(data.studentId, exam.classId);
+    ensureMarksLimit(data.marks, data.maxMarks ?? 100);
+
+    const saved = await upsertMarks(data, userId);
+
+    void logAudit({
+      userId,
+      action: 'ENTER_MARKS',
+      entity: 'Marks',
+      entityId: saved.id,
+      details: { examId: data.examId, subjectId: data.subjectId, studentId: data.studentId },
+      ipAddress,
+    });
+
+    return saved;
   },
 
-  async updateMarks(id: string, input: UpdateMarksInput, userId: string, permissions: string[]) {
+  async updateMarks(id: string, data: UpdateMarksInput, userId: string, permissions: string[], ipAddress?: string) {
     const existing = await prisma.marks.findUnique({ where: { id } });
     if (!existing) {
       throw new AppError('Marks record not found', 404);
     }
 
-    const exam = await ensureExam(existing.examId);
-    ensureExamNotPublished(exam.status);
-    ensureMarksWithinMax(input.marks, existing.maxMarks);
-    await checkWriteAccess(userId, permissions, existing.examId, existing.subjectId);
+    if (!canManageMarks(permissions)) {
+      await verifyTeacherAccess(userId, existing.examId, existing.subjectId);
+    }
 
-    return prisma.marks.update({
+    const exam = await ensureExam(existing.examId);
+    ensureNotPublished(exam.status);
+    ensureMarksLimit(data.marks, existing.maxMarks);
+
+    const updated = await prisma.marks.update({
       where: { id },
-      data: {
-        marks: input.marks,
-          updatedById: userId,
-      },
+      data: { marks: data.marks, updatedById: userId },
       include: {
         student: true,
         subject: true,
         exam: true,
       },
     });
+
+    void logAudit({
+      userId,
+      action: 'ENTER_MARKS',
+      entity: 'Marks',
+      entityId: id,
+      details: { examId: existing.examId, subjectId: existing.subjectId, studentId: existing.studentId },
+      ipAddress,
+    });
+
+    return updated;
   },
 
-  async deleteMarks(id: string, userId: string, permissions: string[]) {
+  async deleteMarks(id: string, userId: string, permissions: string[], ipAddress?: string) {
     const existing = await prisma.marks.findUnique({ where: { id } });
     if (!existing) {
       throw new AppError('Marks record not found', 404);
     }
 
+    if (!canManageMarks(permissions)) {
+      await verifyTeacherAccess(userId, existing.examId, existing.subjectId);
+    }
+
     const exam = await ensureExam(existing.examId);
-    ensureExamNotPublished(exam.status);
-    await checkWriteAccess(userId, permissions, existing.examId, existing.subjectId);
+    ensureNotPublished(exam.status);
 
     await prisma.marks.delete({ where: { id } });
+
+    void logAudit({
+      userId,
+      action: 'DELETE_MARKS',
+      entity: 'Marks',
+      entityId: id,
+      details: { examId: existing.examId, subjectId: existing.subjectId, studentId: existing.studentId },
+      ipAddress,
+    });
   },
 
-  async getMarksById(id: string) {
-    const marks = await prisma.marks.findUnique({
+  async getMarks(id: string) {
+    const row = await prisma.marks.findUnique({
       where: { id },
       include: {
         student: true,
@@ -188,14 +212,14 @@ export const marksService = {
       },
     });
 
-    if (!marks) {
+    if (!row) {
       throw new AppError('Marks record not found', 404);
     }
 
-    return marks;
+    return row;
   },
 
-  async getMarksByExam(examId: string) {
+  async getExamMarks(examId: string) {
     await ensureExam(examId);
 
     return prisma.marks.findMany({
@@ -209,7 +233,7 @@ export const marksService = {
     });
   },
 
-  async getMarksByExamSubject(examId: string, subjectId: string) {
+  async getExamSubjectMarks(examId: string, subjectId: string) {
     const exam = await ensureExam(examId);
     const subject = await prisma.subject.findUnique({ where: { id: subjectId } });
     if (!subject) {
@@ -226,7 +250,7 @@ export const marksService = {
     });
 
     const students = await prisma.student.findMany({ where: { classId: exam.classId } });
-    const marksValues = entries.map((item) => item.marks);
+    const values = entries.map((entry) => entry.marks);
 
     return {
       exam: { id: exam.id, name: exam.name },
@@ -240,7 +264,6 @@ export const marksService = {
         },
         marks: entry.marks,
         maxMarks: entry.maxMarks,
-        remarks: null,
         enteredBy: entry.enteredBy.email,
         createdAt: entry.createdAt,
         updatedAt: entry.updatedAt,
@@ -248,14 +271,14 @@ export const marksService = {
       summary: {
         totalStudents: students.length,
         marksEntered: entries.length,
-        average: marksValues.length > 0 ? Number((marksValues.reduce((a, b) => a + b, 0) / marksValues.length).toFixed(1)) : 0,
-        highest: marksValues.length > 0 ? Math.max(...marksValues) : 0,
-        lowest: marksValues.length > 0 ? Math.min(...marksValues) : 0,
+        average: values.length > 0 ? Number((values.reduce((sum, value) => sum + value, 0) / values.length).toFixed(1)) : 0,
+        highest: values.length > 0 ? Math.max(...values) : 0,
+        lowest: values.length > 0 ? Math.min(...values) : 0,
       },
     };
   },
 
-  async getMarksByStudent(studentId: string) {
+  async getStudentMarks(studentId: string) {
     const student = await prisma.student.findUnique({ where: { id: studentId } });
     if (!student) {
       throw new AppError('Student not found', 404);
@@ -272,26 +295,31 @@ export const marksService = {
     });
   },
 
-  async bulkCreateMarks(input: BulkMarksInput, userId: string, permissions: string[]): Promise<BatchSummary> {
-    const exam = await ensureExam(input.examId);
-    ensureExamStatusForEntry(exam.status);
-    await ensureSubjectClassAssignment(input.subjectId, exam.classId);
-    await checkWriteAccess(userId, permissions, input.examId, input.subjectId);
+  async bulkCreateMarks(data: BulkMarksInput, userId: string, permissions: string[], ipAddress?: string): Promise<BatchSummary> {
+    const exam = await ensureExam(data.examId);
+    ensureApproved(exam.status);
+
+    if (!canManageMarks(permissions)) {
+      await verifyTeacherAccess(userId, data.examId, data.subjectId);
+    }
+
+    await ensureSubjectInClass(data.subjectId, exam.classId);
 
     const summary: BatchSummary = { successful: 0, failed: 0, errors: [] };
 
-    for (const entry of input.entries) {
+    for (const entry of data.entries) {
       try {
-        ensureMarksWithinMax(entry.marks, entry.maxMarks ?? 100);
         await ensureStudentInClass(entry.studentId, exam.classId);
+        ensureMarksLimit(entry.marks, entry.maxMarks ?? 100);
 
         await upsertMarks(
           {
             studentId: entry.studentId,
-            examId: input.examId,
-            subjectId: input.subjectId,
+            examId: data.examId,
+            subjectId: data.subjectId,
             marks: entry.marks,
             maxMarks: entry.maxMarks,
+            remarks: entry.remarks,
           },
           userId,
         );
@@ -306,105 +334,91 @@ export const marksService = {
       }
     }
 
+    void logAudit({
+      userId,
+      action: 'BULK_MARKS_UPLOAD',
+      entity: 'Marks',
+      details: { examId: data.examId, subjectId: data.subjectId, successful: summary.successful, failed: summary.failed },
+      ipAddress,
+    });
+
     return summary;
   },
 
-  async bulkUpdateMarks(input: BulkUpdateInput, userId: string, permissions: string[]): Promise<BatchSummary> {
-    const first = await prisma.marks.findUnique({ where: { id: input.updates[0].id } });
-    if (!first) {
-      throw new AppError('First marks record not found', 404);
-    }
-
-    await checkWriteAccess(userId, permissions, first.examId, first.subjectId);
-
+  async bulkUpdateMarks(data: BulkUpdateInput, userId: string, permissions: string[], ipAddress?: string): Promise<BatchSummary> {
     const summary: BatchSummary = { successful: 0, failed: 0, errors: [] };
 
-    for (const item of input.updates) {
+    for (const row of data.updates) {
       try {
-        const existing = await prisma.marks.findUnique({ where: { id: item.id } });
+        const existing = await prisma.marks.findUnique({ where: { id: row.id } });
         if (!existing) {
           throw new AppError('Marks record not found', 404);
         }
 
-        if (existing.examId !== first.examId || existing.subjectId !== first.subjectId) {
-          throw new AppError('All updates must belong to the same exam and subject.', 400);
+        if (!canManageMarks(permissions)) {
+          await verifyTeacherAccess(userId, existing.examId, existing.subjectId);
         }
 
         const exam = await ensureExam(existing.examId);
-        ensureExamNotPublished(exam.status);
-        ensureMarksWithinMax(item.marks, existing.maxMarks);
+        ensureNotPublished(exam.status);
+        ensureMarksLimit(row.marks, existing.maxMarks);
 
         await prisma.marks.update({
-          where: { id: item.id },
-          data: {
-            marks: item.marks,
-            updatedById: userId,
-          },
+          where: { id: row.id },
+          data: { marks: row.marks, updatedById: userId },
         });
 
         summary.successful += 1;
       } catch (error) {
         summary.failed += 1;
         summary.errors.push({
-          studentId: item.id,
+          studentId: row.id,
           error: error instanceof Error ? error.message : 'Unknown error',
         });
       }
     }
 
+    void logAudit({
+      userId,
+      action: 'ENTER_MARKS',
+      entity: 'Marks',
+      details: { successful: summary.successful, failed: summary.failed },
+      ipAddress,
+    });
+
     return summary;
   },
 
-  async uploadMarksRows(
+  async uploadMarks(
     examId: string,
     subjectId: string,
     rows: UploadRow[],
     userId: string,
     permissions: string[],
-  ): Promise<BatchSummary> {
-    const exam = await ensureExam(examId);
-    ensureExamStatusForEntry(exam.status);
-    await ensureSubjectClassAssignment(subjectId, exam.classId);
-    await checkWriteAccess(userId, permissions, examId, subjectId);
-
-    const summary: BatchSummary = { successful: 0, failed: 0, errors: [] };
+    ipAddress?: string,
+  ) {
+    const mapped: BulkMarksInput = {
+      examId,
+      subjectId,
+      entries: [],
+    };
 
     for (const row of rows) {
-      try {
-        const student = await prisma.student.findUnique({ where: { enrollmentNo: row.adm_no } });
-        if (!student) {
-          throw new AppError('Student admission number not found', 404);
-        }
-
-        await ensureStudentInClass(student.id, exam.classId);
-        ensureMarksWithinMax(row.marks, 100);
-
-        await upsertMarks(
-          {
-            studentId: student.id,
-            examId,
-            subjectId,
-            marks: row.marks,
-            maxMarks: 100,
-            remarks: row.remarks,
-          },
-          userId,
-        );
-
-        summary.successful += 1;
-      } catch (error) {
-        summary.failed += 1;
-        summary.errors.push({
-          studentId: row.adm_no,
-          error: error instanceof Error ? error.message : 'Unknown error',
+      const student = await prisma.student.findUnique({ where: { enrollmentNo: row.adm_no } });
+      if (student) {
+        mapped.entries.push({
+          studentId: student.id,
+          marks: row.marks,
+          maxMarks: 100,
+          remarks: row.remarks,
         });
       }
     }
 
-    return summary;
+    return this.bulkCreateMarks(mapped, userId, permissions, ipAddress);
   },
 
-  async generateTemplate(examId: string, subjectId: string): Promise<{ filename: string; buffer: Buffer }> {
+  async downloadTemplate(examId: string, subjectId: string) {
     const exam = await ensureExam(examId);
     const subject = await prisma.subject.findUnique({ where: { id: subjectId } });
     if (!subject) {
@@ -416,18 +430,9 @@ export const marksService = {
       orderBy: [{ firstName: 'asc' }, { lastName: 'asc' }],
     });
 
-    const header = 'adm_no,student_name,marks,remarks\n';
-    const rows = students
-      .map((student) => `${student.enrollmentNo},${student.firstName} ${student.lastName},,`)
-      .join('\n');
-
-    const csv = `${header}${rows}`;
-    const safeExamName = exam.name.replace(/\s+/g, '_');
-    const safeSubjectName = subject.name.replace(/\s+/g, '_');
-
-    return {
-      filename: `marks_template_${safeExamName}_${safeSubjectName}.xlsx`,
-      buffer: Buffer.from(csv, 'utf-8'),
-    };
+    return students.map((student) => ({
+      adm_no: student.enrollmentNo,
+      name: `${student.firstName} ${student.lastName}`,
+    }));
   },
 };
