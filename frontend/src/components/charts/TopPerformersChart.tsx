@@ -1,9 +1,9 @@
 'use client'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
 
-interface Props { labels: string[]; values: number[] }
+interface Props { labels?: string[]; values?: number[] }
 
-export function TopPerformersChart({ labels, values }: Props) {
+export function TopPerformersChart({ labels = ['Alice', 'Bob', 'Carol', 'Dave', 'Eve'], values = [95, 92, 88, 85, 82] }: Props) {
   const data = labels.map((label, i) => ({ name: label, percentage: values[i] }))
   return (
     <ResponsiveContainer width="100%" height={300}>
