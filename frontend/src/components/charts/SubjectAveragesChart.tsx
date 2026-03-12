@@ -1,9 +1,9 @@
 'use client'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LabelList } from 'recharts'
 
-interface Props { labels: string[]; values: number[] }
+interface Props { labels?: string[]; values?: number[] }
 
-export function SubjectAveragesChart({ labels, values }: Props) {
+export function SubjectAveragesChart({ labels = ['Math', 'Science', 'English', 'History', 'PE'], values = [72, 68, 75, 80, 90] }: Props) {
   const data = labels.map((label, i) => ({ name: label, average: values[i] }))
   return (
     <ResponsiveContainer width="100%" height={300}>
