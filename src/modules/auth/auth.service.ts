@@ -145,6 +145,14 @@ export const authService = {
       ipAddress,
     })
 
+    void logAudit({
+      userId: authUser.id,
+      action: 'USER_LOGIN',
+      entity: 'AUTH',
+      entityId: authUser.id,
+      details: { email: authUser.email },
+    });
+
     return {
       accessToken,
       refreshToken,

@@ -1,0 +1,32 @@
+name: Merge main into PR branch
+
+on:
+  workflow_dispatch:
+    inputs:
+      pr_branch:
+        description: 'PR branch name'
+        required: true
+        default: 'codex/fix-broken-test-suite-before-phase-9-96tzpu'
+
+permissions:
+  contents: write
+
+jobs:
+  merge:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.pr_branch }}
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Configure git
+        run: |
+          git config user.email "action@github.com"
+          git config user.name "GitHub Action"
+      - name: Merge main into PR branch
+        run: |
+          git fetch origin main
+          git merge origin/main -X ours --no-edit -m "Merge main into PR branch: resolve conflicts keeping PR version"
+      - name: Push merged branch
+        run: git push origin ${{ github.event.inputs.pr_branch }}
