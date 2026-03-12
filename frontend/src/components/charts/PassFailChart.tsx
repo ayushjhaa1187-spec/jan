@@ -1,9 +1,9 @@
 'use client'
 import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer } from 'recharts'
 
-interface Props { labels: string[]; values: number[]; colors: string[] }
+interface Props { labels?: string[]; values?: number[]; colors?: string[] }
 
-export function PassFailChart({ labels, values, colors }: Props) {
+export function PassFailChart({ labels = ['Pass', 'Fail'], values = [75, 25], colors = ['#22c55e', '#ef4444'] }: Props) {
   const data = labels.map((label, i) => ({ name: label, value: values[i] }))
   return (
     <ResponsiveContainer width="100%" height={300}>
