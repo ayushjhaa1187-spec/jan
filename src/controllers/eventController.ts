@@ -1,227 +1,29 @@
 import { Request, Response } from 'express';
-import prisma from '../utils/prisma';
-import { eventSchema } from '../utils/validation';
 
-export const createEvent = async (req: Request, res: Response) => {
-    try {
-        console.log('[EventController] Creating event with body:', JSON.stringify(req.body));
-        const validatedData = eventSchema.parse(req.body);
-        const userId = req.user?.id;
-        if (!userId) {
-            console.warn('[EventController] Create failed: No userId in request');
-            return res.status(401).json({ error: 'Unauthorized' });
-        }
-
-        const { schedules, customFields, startDate, endDate, registrationStart, registrationEnd, ...rest } = validatedData;
-
-        const event = await prisma.event.create({
-            data: {
-                ...rest,
-                startDate: new Date(startDate),
-                endDate: new Date(endDate),
-                registrationStart: new Date(registrationStart),
-                registrationEnd: new Date(registrationEnd),
-                creatorId: userId,
-                schedules: schedules ? {
-                    create: schedules.map((s: any) => ({
-                        ...s,
-                        startTime: new Date(s.startTime),
-                        endTime: new Date(s.endTime),
-                    }))
-                } : undefined,
-                customFields: customFields ? {
-                    create: customFields
-                } : undefined,
-            },
-            include: {
-                schedules: true,
-                customFields: true,
-            }
-        });
-
-        console.log('[EventController] Event created successfully:', event.id);
-        res.status(201).json(event);
-    } catch (error: any) {
-        console.error('[EventController] Create error:', error);
-        if (error.name === 'ZodError') {
-            return res.status(400).json({ error: 'Validation error', details: error.errors });
-        }
-        res.status(500).json({
-            error: 'Internal server error',
-            message: error.message,
-            code: error.code // Prisma error code if available
-        });
-    }
+export const getPublicEvents = async (_req: Request, res: Response): Promise<Response> => {
+  return res.json([]);
 };
 
-export const updateEvent = async (req: Request, res: Response) => {
-    try {
-        const id = req.params.id as string;
-        const userId = req.user?.id;
-        if (!userId) return res.status(401).json({ error: 'Unauthorized' });
-
-        const event = await prisma.event.findUnique({ where: { id } });
-        if (!event) return res.status(404).json({ error: 'Event not found' });
-
-        if (event.creatorId !== userId && req.user?.role !== 'ADMIN') {
-            return res.status(403).json({ error: 'You do not have permission to update this event.' });
-        }
-
-        const { schedules, customFields, ...rest } = eventSchema.partial().parse(req.body);
-
-        const updatedEvent = await prisma.event.update({
-            where: { id },
-            data: {
-                ...rest,
-                ...(rest.startDate && { startDate: new Date(rest.startDate) }),
-                ...(rest.endDate && { endDate: new Date(rest.endDate) }),
-                ...(rest.registrationStart && { registrationStart: new Date(rest.registrationStart) }),
-                ...(rest.registrationEnd && { registrationEnd: new Date(rest.registrationEnd) }),
-                // Deep updates for nested fields
-                ...(schedules && {
-                    schedules: {
-                        deleteMany: {},
-                        create: schedules.map((s: any) => ({
-                            ...s,
-                            startTime: new Date(s.startTime),
-                            endTime: new Date(s.endTime),
-                        }))
-                    }
-                }),
-                ...(customFields && {
-                    customFields: {
-                        deleteMany: {},
-                        create: customFields
-                    }
-                })
-            },
-            include: {
-                schedules: true,
-                customFields: true
-            }
-        });
-
-        res.json(updatedEvent);
-    } catch (error: any) {
-        console.error(`[EventController] Update error for ID ${req.params.id}:`, error);
-        if (error.name === 'ZodError') {
-            return res.status(400).json({ errors: error.errors });
-        }
-        res.status(500).json({ error: 'Internal server error', msg: error.message });
-    }
+export const getEventDetails = async (_req: Request, res: Response): Promise<Response> => {
+  return res.status(404).json({ error: 'Event not found' });
 };
 
-export const deleteEvent = async (req: Request, res: Response) => {
-    try {
-        const id = req.params.id as string;
-        const userId = req.user?.id;
-        if (!userId) return res.status(401).json({ error: 'Unauthorized' });
-
-        const event = await prisma.event.findUnique({ where: { id } });
-        if (!event) return res.status(404).json({ error: 'Event not found' });
-
-        if (event.creatorId !== userId) {
-            return res.status(403).json({ error: 'You do not have permission to delete this event.' });
-        }
-
-        await prisma.event.delete({ where: { id } });
-
-        res.json({ message: 'Event successfully deleted' });
-    } catch (error) {
-        res.status(500).json({ error: 'Internal server error' });
-    }
+export const getGlobalStats = async (_req: Request, res: Response): Promise<Response> => {
+  return res.json({ totalEvents: 0, totalRegistrations: 0 });
 };
 
-export const getAdminEvents = async (req: Request, res: Response) => {
-    try {
-        const userId = req.user?.id;
-        if (!userId) return res.status(401).json({ error: 'Unauthorized' });
-
-        const events = await prisma.event.findMany({
-            where: { creatorId: userId },
-            orderBy: { startDate: 'desc' },
-            include: {
-                _count: {
-                    select: { registrations: true, teams: true },
-                },
-            },
-        });
-
-        res.json(events);
-    } catch (error) {
-        res.status(500).json({ error: 'Internal server error' });
-    }
+export const createEvent = async (_req: Request, res: Response): Promise<Response> => {
+  return res.status(501).json({ error: 'Event creation is not available in this build' });
 };
 
-export const getPublicEvents = async (req: Request, res: Response) => {
-    try {
-        const { domain, tag } = req.query;
-        const events = await prisma.event.findMany({
-            orderBy: { startDate: 'asc' },
-            where: {
-                endDate: {
-                    gte: new Date(),
-                },
-                ...(domain && { domain: domain as string }),
-                ...(tag && { tags: { contains: tag as string } })
-            },
-            include: {
-                creator: {
-                    select: { profile: true }
-                },
-                schedules: true,
-                customFields: true,
-            }
-        });
-
-        res.json(events);
-    } catch (error) {
-        res.status(500).json({ error: 'Internal server error' });
-    }
+export const updateEvent = async (_req: Request, res: Response): Promise<Response> => {
+  return res.status(501).json({ error: 'Event update is not available in this build' });
 };
 
-export const getEventDetails = async (req: Request, res: Response) => {
-    try {
-        const id = req.params.id as string;
-        const event = await prisma.event.findUnique({
-            where: { id },
-            include: {
-                creator: { select: { profile: true } },
-                _count: { select: { registrations: true, teams: true } },
-                schedules: true,
-                customFields: true,
-            }
-        });
-
-        if (!event) return res.status(404).json({ error: 'Event not found' });
-
-        res.json(event);
-    } catch (error) {
-        res.status(500).json({ error: 'Internal server error' });
-    }
+export const deleteEvent = async (_req: Request, res: Response): Promise<Response> => {
+  return res.status(501).json({ error: 'Event deletion is not available in this build' });
 };
 
-export const getGlobalStats = async (req: Request, res: Response) => {
-    try {
-        const totalRegistrations = await prisma.registration.count();
-        const checkIns = await prisma.registration.count({ where: { status: 'CHECKED_IN' } });
-
-        // Active Now: Users checked in within the last 15 minutes globally
-        const fifteenMinutesAgo = new Date(Date.now() - 15 * 60 * 1000);
-        const activeNow = await prisma.registration.count({
-            where: {
-                status: 'CHECKED_IN',
-                updatedAt: { gte: fifteenMinutesAgo }
-            }
-        });
-
-        res.json({
-            totalRegistrations,
-            checkIns,
-            activeNow,
-            timestamp: new Date().toISOString()
-        });
-    } catch (error) {
-        res.status(500).json({ error: 'Internal server error' });
-    }
+export const getAdminEvents = async (_req: Request, res: Response): Promise<Response> => {
+  return res.json([]);
 };
