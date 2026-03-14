@@ -13,7 +13,7 @@ export function Header({ title = 'EduTrack', onMenuToggle }: { title?: string; o
         <button className="lg:hidden" onClick={onMenuToggle}><Menu size={20} /></button>
         <h2 className="text-lg font-semibold text-gray-800">{title}</h2>
       </div>
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-3">
         <NotificationBell />
         {user ? (
           <div className="flex items-center gap-2">

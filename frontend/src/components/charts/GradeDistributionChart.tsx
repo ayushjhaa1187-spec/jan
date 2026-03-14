@@ -11,7 +11,6 @@ export function GradeDistributionChart({ labels, values, colors }: { labels: str
           {data.map((entry) => <Cell key={entry.name} fill={entry.color} />)}
         </Pie>
         <Tooltip />
-        <Legend />
       </PieChart>
     </ResponsiveContainer>
   )

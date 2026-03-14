@@ -28,6 +28,8 @@ const navItems = [
 ]
 
 export function Sidebar({ isMobileOpen, onClose }: SidebarProps) {
+  const user = useAuthStore((state) => state.user)
+  const logout = useAuthStore((state) => state.logout)
   const pathname = usePathname()
   const router = useRouter()
   const user = useAuthStore((state) => state.user)

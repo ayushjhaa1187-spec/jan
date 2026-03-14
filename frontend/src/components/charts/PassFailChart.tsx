@@ -11,7 +11,6 @@ export function PassFailChart({ labels, values, colors }: { labels: string[]; va
           {data.map((entry) => <Cell key={entry.name} fill={entry.color} />)}
         </Pie>
         <Tooltip />
-        <Legend />
       </PieChart>
     </ResponsiveContainer>
   )

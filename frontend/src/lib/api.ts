@@ -30,14 +30,14 @@ api.interceptors.response.use(
         const { data } = await axios.post(
           `${process.env.NEXT_PUBLIC_API_URL}/auth/refresh`,
           { refreshToken }
-        )
+        ) as { data: { data: { accessToken: string } } }
         localStorage.setItem('accessToken', data.data.accessToken)
         original.headers.Authorization = `Bearer ${data.data.accessToken}`
         return api(original)
       } catch {
         localStorage.removeItem('accessToken')
         localStorage.removeItem('refreshToken')
-        if (typeof window !== 'undefined') window.location.href = '/login'
+        window.location.href = '/login'
       }
     }
     return Promise.reject(error)

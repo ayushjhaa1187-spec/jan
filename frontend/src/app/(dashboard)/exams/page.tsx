@@ -15,6 +15,12 @@ const statuses = ['ALL', 'DRAFT', 'REVIEW', 'APPROVED', 'PUBLISHED']
 
 const statuses = ['ALL', 'DRAFT', 'REVIEW', 'APPROVED', 'PUBLISHED'] as const
 
+interface ExamRow { id: string; name: string; status: string; startDate: string; endDate: string; class?: { id: string; name: string; section: string } }
+interface ExamResponse { data: { data: ExamRow[] } }
+interface ClassesResponse { data: Array<{ id: string; name: string; section: string }> }
+
+const statuses = ['ALL', 'DRAFT', 'REVIEW', 'APPROVED', 'PUBLISHED'] as const
+
 export default function ExamsPage() {
   const { data } = useExams(); const rows = data?.data ?? []
   return <div className='space-y-4'><div className='flex justify-between'><h1 className='text-2xl font-bold'>Exams</h1><Link href='/exams/new' className='bg-[#2b6cb0] text-white px-3 py-2 rounded'>Create</Link></div>

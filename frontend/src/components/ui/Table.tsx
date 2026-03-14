@@ -41,7 +41,17 @@ export function Table<T>({ columns, data, loading, emptyMessage = 'No data found
                 </td>
               ))}
             </tr>
-          ))}
+          ) : (
+            data.map((row, index) => (
+              <tr key={keyExtractor(row)} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
+                {columns.map((column) => (
+                  <td key={column.key} className="px-4 py-3 text-sm text-gray-700">
+                    {column.render ? column.render(row) : String((row as Record<string, unknown>)[column.key] ?? '')}
+                  </td>
+                ))}
+              </tr>
+            ))
+          )}
         </tbody>
       </table>
     </div>

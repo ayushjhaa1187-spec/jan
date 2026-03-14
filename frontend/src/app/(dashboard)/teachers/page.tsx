@@ -26,13 +26,16 @@ interface TeachersResponse {
   }
 }
 
+interface TeacherRow { id: string; employeeId: string; designation?: string; user?: { name: string } }
+interface TeachersResponse { data: { data: TeacherRow[]; meta: { page: number; totalPages: number } } }
+
 export default function TeachersPage() {
   const [page, setPage] = useState(1)
   const [search, setSearch] = useState('')
 
   const teachers = useQuery<TeachersResponse>({
     queryKey: ['teachers', page, search],
-    queryFn: async () => (await api.get('/teachers', { params: { page, limit: 20, search } })).data,
+    queryFn: async () => (await api.get('/teachers', { params: { page, limit: 10, search } })).data,
   })
 
   const columns = useMemo<Column<TeacherRow>[]>(

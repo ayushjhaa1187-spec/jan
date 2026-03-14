@@ -36,6 +36,9 @@ interface ClassesResponse {
   data: ClassItem[]
 }
 
+interface TeacherDetail { data: { id: string; employeeId: string; user?: { name: string; email: string }; designation?: string; qualification?: string; phone?: string } }
+interface AssignmentResponse { data: Array<{ id: string; subject?: { name: string }; class?: { name: string; section: string } }> }
+
 export default function TeacherDetailPage() {
   const params = useParams<{ id: string }>()
   const id = params.id

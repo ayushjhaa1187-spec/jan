@@ -1,3 +1,5 @@
+'use client'
+
 import { Button } from './Button'
 
 export function Pagination({ page, totalPages, onPageChange }: { page: number; totalPages: number; onPageChange: (page: number) => void }) {
