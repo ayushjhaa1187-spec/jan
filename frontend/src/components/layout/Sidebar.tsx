@@ -14,17 +14,17 @@ interface SidebarProps {
 }
 
 const navItems = [
-  { label: 'Dashboard', href: '/dashboard', icon: Home, roles: ['all'] },
-  { label: 'Students', href: '/students', icon: Users, roles: ['Principal', 'OfficeStaff'] },
-  { label: 'Classes', href: '/classes', icon: School, roles: ['Principal', 'OfficeStaff'] },
-  { label: 'Subjects', href: '/subjects', icon: BookOpen, roles: ['Principal', 'OfficeStaff'] },
-  { label: 'Teachers', href: '/teachers', icon: UserCheck, roles: ['Principal', 'OfficeStaff'] },
-  { label: 'Exams', href: '/exams', icon: FileText, roles: ['Principal', 'ExamDept'] },
-  { label: 'Marks Entry', href: '/exams', icon: PenLine, roles: ['Teacher', 'ExamDept'] },
-  { label: 'Results', href: '/results', icon: BarChart2, roles: ['Principal', 'ExamDept', 'Teacher'] },
-  { label: 'Reports', href: '/reports', icon: Download, roles: ['Principal', 'ExamDept'] },
-  { label: 'Notifications', href: '/notifications', icon: Bell, roles: ['all'] },
-  { label: 'Audit Log', href: '/audit', icon: ClipboardList, roles: ['Principal'] },
+  { label: 'Dashboard', href: '/dashboard', roles: ['all'], icon: Home },
+  { label: 'Students', href: '/students', roles: ['Principal', 'OfficeStaff'], icon: Users },
+  { label: 'Classes', href: '/classes', roles: ['Principal', 'OfficeStaff'], icon: School },
+  { label: 'Subjects', href: '/subjects', roles: ['Principal', 'OfficeStaff'], icon: BookOpen },
+  { label: 'Teachers', href: '/teachers', roles: ['Principal', 'OfficeStaff'], icon: UserCheck },
+  { label: 'Exams', href: '/exams', roles: ['Principal', 'ExamDept'], icon: FileText },
+  { label: 'Marks Entry', href: '/exams', roles: ['Teacher', 'ExamDept'], icon: PenLine },
+  { label: 'Results', href: '/results', roles: ['Principal', 'ExamDept', 'Teacher'], icon: ClipboardList },
+  { label: 'Reports', href: '/reports', roles: ['Principal', 'ExamDept'], icon: Download },
+  { label: 'Notifications', href: '/notifications', roles: ['all'], icon: Bell },
+  { label: 'Audit Log', href: '/audit', roles: ['Principal'], icon: ClipboardList },
 ]
 
 export function Sidebar({ isMobileOpen, onClose }: SidebarProps) {
@@ -42,7 +42,6 @@ export function Sidebar({ isMobileOpen, onClose }: SidebarProps) {
       // ignore backend logout failure
     }
     logout()
-    toast.success('Logged out successfully')
     router.push('/login')
   }
 

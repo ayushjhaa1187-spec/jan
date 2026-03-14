@@ -3,7 +3,10 @@
 import { ReactNode, useEffect } from 'react'
 import { cn } from '@/lib/utils'
 
-interface ModalProps {
+import { useEffect } from 'react'
+import { cn } from '@/lib/utils'
+
+interface Props {
   isOpen: boolean
   onClose: () => void
   title: string
@@ -12,7 +15,7 @@ interface ModalProps {
   size?: 'sm' | 'md' | 'lg'
 }
 
-export function Modal({ isOpen, onClose, title, children, footer, size = 'md' }: ModalProps) {
+export function Modal({ isOpen, onClose, title, children, footer, size = 'md' }: Props) {
   useEffect(() => {
     const onEsc = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose()

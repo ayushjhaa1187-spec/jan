@@ -4,8 +4,9 @@ import { Bell } from 'lucide-react'
 import Link from 'next/link'
 import { useEffect, useRef, useState } from 'react'
 import api from '@/lib/api'
-import { timeAgo } from '@/lib/utils'
-import type { Notification } from '@/types'
+import { Button } from '../ui/Button'
+
+interface NotifItem { id: string; title: string; message: string }
 
 export function NotificationBell() {
   const [open, setOpen] = useState(false)
