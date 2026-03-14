@@ -1,43 +1,29 @@
-import { cn } from '@/lib/utils'
 import { ReactNode } from 'react'
 
-interface CardProps {
-  title?: string
-  description?: string
-  children: ReactNode
-  actions?: ReactNode
-  className?: string
-}
-
-export function Card({ title, description, children, actions, className }: CardProps) {
+export function Card({ title, actions, children }: { title?: string; actions?: ReactNode; children: ReactNode }) {
   return (
-    <div className={cn('bg-white rounded-xl shadow-sm border border-gray-200', className)}>
-      {(title || actions) && (
-        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
-          <div>
-            {title && <h3 className="text-lg font-semibold text-gray-900">{title}</h3>}
-            {description && <p className="text-sm text-gray-500 mt-0.5">{description}</p>}
-          </div>
-          {actions && <div className="flex items-center gap-2">{actions}</div>}
+    <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
+      {title || actions ? (
+        <div className="mb-4 flex items-center justify-between">
+          <h3 className="text-lg font-semibold text-gray-800">{title}</h3>
+          {actions}
         </div>
-      )}
-      <div className="p-6">{children}</div>
+      ) : null}
+      {children}
     </div>
   )
 }
 
-export function StatCard({ title, value, icon, color = '#1a365d' }: {
-  title: string; value: string | number; icon?: ReactNode; color?: string
-}) {
+export function StatCard({ title, value, icon }: { title: string; value: string | number; icon?: ReactNode }) {
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+    <Card>
       <div className="flex items-center justify-between">
         <div>
-          <p className="text-sm font-medium text-gray-500">{title}</p>
-          <p className="text-3xl font-bold mt-1" style={{ color }}>{value}</p>
+          <p className="text-sm text-gray-500">{title}</p>
+          <p className="text-2xl font-bold text-gray-900">{value}</p>
         </div>
-        {icon && <div className="text-gray-400">{icon}</div>}
+        {icon ? <div className="text-[#1a365d]">{icon}</div> : null}
       </div>
-    </div>
+    </Card>
   )
 }

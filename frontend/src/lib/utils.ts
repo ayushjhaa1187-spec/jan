@@ -4,17 +4,12 @@ import { twMerge } from 'tailwind-merge'
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
-
 export function formatDate(date: string | Date): string {
-  return new Date(date).toLocaleDateString('en-IN', {
-    day: '2-digit', month: 'short', year: 'numeric'
-  })
+  return new Date(date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })
 }
-
 export function formatPercent(value: number): string {
   return `${value.toFixed(2)}%`
 }
-
 export function getStatusColor(status: string): string {
   const map: Record<string, string> = {
     DRAFT: 'bg-gray-100 text-gray-700',
@@ -27,7 +22,6 @@ export function getStatusColor(status: string): string {
   }
   return map[status] ?? 'bg-gray-100 text-gray-700'
 }
-
 export function timeAgo(date: string | Date): string {
   const seconds = Math.floor((Date.now() - new Date(date).getTime()) / 1000)
   if (seconds < 60) return 'just now'

@@ -1,5 +1,4 @@
 import type { Config } from 'tailwindcss'
-
 const config: Config = {
   content: ['./src/**/*.{js,ts,jsx,tsx,mdx}'],
   theme: {
@@ -9,10 +8,9 @@ const config: Config = {
         success: '#276749',
         warning: '#b7791f',
         danger: '#c53030',
-      },
-    },
+      }
+    }
   },
-  plugins: [],
+  plugins: []
 }
-
 export default config

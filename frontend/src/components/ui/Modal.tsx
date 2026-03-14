@@ -1,7 +1,7 @@
 'use client'
-import { cn } from '@/lib/utils'
-import { X } from 'lucide-react'
+
 import { ReactNode, useEffect } from 'react'
+import { cn } from '@/lib/utils'
 
 interface ModalProps {
   isOpen: boolean
@@ -9,38 +9,32 @@ interface ModalProps {
   title: string
   children: ReactNode
   footer?: ReactNode
-  size?: 'sm' | 'md' | 'lg' | 'xl'
+  size?: 'sm' | 'md' | 'lg'
 }
 
 export function Modal({ isOpen, onClose, title, children, footer, size = 'md' }: ModalProps) {
   useEffect(() => {
-    const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
+    const onEsc = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose()
+    }
     if (isOpen) {
-      document.addEventListener('keydown', handler)
-      document.body.style.overflow = 'hidden'
+      document.addEventListener('keydown', onEsc)
     }
-    return () => {
-      document.removeEventListener('keydown', handler)
-      document.body.style.overflow = 'auto'
-    }
+    return () => document.removeEventListener('keydown', onEsc)
   }, [isOpen, onClose])
 
   if (!isOpen) return null
 
-  const sizes = { sm: 'max-w-sm', md: 'max-w-md', lg: 'max-w-lg', xl: 'max-w-2xl' }
+  const sizeClass = { sm: 'max-w-md', md: 'max-w-2xl', lg: 'max-w-4xl' }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-black/50" onClick={onClose} />
-      <div className={cn('relative bg-white rounded-xl shadow-2xl w-full transition-all duration-200', sizes[size])}>
-        <div className="flex items-center justify-between px-6 py-4 border-b">
-          <h2 className="text-lg font-semibold text-gray-900">{title}</h2>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 transition-colors">
-            <X className="w-5 h-5" />
-          </button>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4" onClick={onClose}>
+      <div className={cn('w-full rounded-xl bg-white shadow-xl', sizeClass[size])} onClick={(e) => e.stopPropagation()}>
+        <div className="border-b px-6 py-4">
+          <h2 className="text-lg font-semibold">{title}</h2>
         </div>
         <div className="px-6 py-4">{children}</div>
-        {footer && <div className="flex items-center justify-end gap-3 px-6 py-4 border-t bg-gray-50 rounded-b-xl">{footer}</div>}
+        {footer ? <div className="border-t px-6 py-4">{footer}</div> : null}
       </div>
     </div>
   )

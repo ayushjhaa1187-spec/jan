@@ -1,6 +1,6 @@
 import { cn } from '@/lib/utils'
-import { Loader2 } from 'lucide-react'
 import { ButtonHTMLAttributes, forwardRef } from 'react'
+import { Spinner } from './Spinner'
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: 'primary' | 'secondary' | 'danger' | 'ghost'
@@ -9,21 +9,27 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ variant = 'primary', size = 'md', loading, disabled, children, className, ...props }, ref) => {
-    const base = 'inline-flex items-center justify-center font-medium rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed'
-    const variants = {
-      primary: 'bg-[#1a365d] text-white hover:bg-[#2b6cb0] focus:ring-[#1a365d]',
-      secondary: 'border border-[#1a365d] text-[#1a365d] hover:bg-gray-50 focus:ring-[#1a365d]',
-      danger: 'bg-[#c53030] text-white hover:bg-red-700 focus:ring-red-500',
-      ghost: 'text-gray-600 hover:bg-gray-100 focus:ring-gray-300',
+  ({ variant = 'primary', size = 'md', loading = false, className, children, disabled, ...props }, ref) => {
+    const variantClass = {
+      primary: 'bg-[#1a365d] text-white hover:bg-[#2b6cb0]',
+      secondary: 'border border-gray-300 bg-white text-gray-700 hover:bg-gray-50',
+      danger: 'bg-red-600 text-white hover:bg-red-700',
+      ghost: 'bg-transparent text-gray-700 hover:bg-gray-100'
     }
-    const sizes = { sm: 'px-3 py-1.5 text-sm', md: 'px-4 py-2 text-sm', lg: 'px-6 py-3 text-base' }
+    const sizeClass = { sm: 'h-8 px-3 text-sm', md: 'h-10 px-4 text-sm', lg: 'h-12 px-6 text-base' }
+
     return (
-      <button ref={ref} disabled={disabled || loading} className={cn(base, variants[variant], sizes[size], className)} {...props}>
-        {loading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+      <button
+        ref={ref}
+        disabled={disabled || loading}
+        className={cn('inline-flex items-center justify-center gap-2 rounded-lg font-medium transition disabled:opacity-60', variantClass[variant], sizeClass[size], className)}
+        {...props}
+      >
+        {loading ? <Spinner size="sm" /> : null}
         {children}
       </button>
     )
   }
 )
+
 Button.displayName = 'Button'
