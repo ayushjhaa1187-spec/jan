@@ -1,4 +1,5 @@
 import { NextFunction, Request, Response } from 'express'
+import AppError from '../../utils/AppError'
 import { success } from '../../utils/apiResponse'
 import { resultService } from './result.service'
 
@@ -45,7 +46,9 @@ export const getStudentResult = async (req: Request, res: Response, next: NextFu
 
 export const generateResults = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const data = await resultService.generateResults(String(req.params.examId))
+    const userId = req.user?.id
+    if (!userId) throw new AppError('Unauthorized', 401)
+    const data = await resultService.generateResults(String(req.params.examId), userId)
     return res.json(success(data, 'Results generated'))
   } catch (error) {
     return next(error)

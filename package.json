@@ -5,11 +5,10 @@
   "engines": {
     "node": "20.x"
   },
-  "main": "index.js",
+  "main": "api/index.js",
   "scripts": {
     "start": "node dist/server.js",
     "dev": "ts-node-dev --respawn --transpile-only src/server.ts",
-    "build": "tsc",
     "postinstall": "prisma generate",
     "test": "set NODE_ENV=test&& jest"
   },

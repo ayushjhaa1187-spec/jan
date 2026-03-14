@@ -1,5 +1,5 @@
 import { Router } from 'express'
-import { authenticate } from '../../middlewares/authMiddleware'
+import { authenticate, requirePermission } from '../../middlewares/authMiddleware'
 import {
   generateResults,
   getExamResults,
@@ -17,7 +17,7 @@ router.get('/', listResults)
 router.get('/summary/:examId', getResultSummary)
 router.get('/:examId/:studentId', getStudentResult)
 router.get('/:examId', getExamResults)
-router.post('/generate/:examId', generateResults)
-router.patch('/publish/:examId', publishResults)
+router.post('/generate/:examId', requirePermission('manage_results'), generateResults)
+router.patch('/publish/:examId', requirePermission('manage_results'), publishResults)
 
 export default router

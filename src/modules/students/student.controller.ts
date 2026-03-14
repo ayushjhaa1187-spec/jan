@@ -13,16 +13,6 @@ const getUserId = (req: Request): string => {
   return userId
 }
 
-
-const getUserId = (req: Request): string => {
-  const userId = req.user?.id;
-  if (!userId) {
-    throw new AppError('Unauthorized', 401);
-  }
-
-  return userId;
-};
-
 export const createStudent = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const payload = createStudentSchema.parse(req.body)
