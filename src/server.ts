@@ -7,14 +7,14 @@ import app from './app';
 import prisma from './utils/prisma';
 
 try {
-  const swaggerPath = path.join(__dirname, '..', 'swagger.yaml');
+  const swaggerPath = path.join(process.cwd(), 'swagger.yaml');
   const swaggerDocument = YAML.load(swaggerPath);
   app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 } catch {
   // no-op
 }
 
-const appRoot = path.join(__dirname, '..');
+const appRoot = process.cwd();
 const publicPath = path.resolve(appRoot, 'public');
 const adminPagesPath = path.resolve(appRoot, 'admin_pages');
 app.use('/admin_pages', express.static(adminPagesPath));
