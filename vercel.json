@@ -1,8 +1,12 @@
 {
   "version": 2,
   "functions": {
-    "api/index.ts": {
+    "api/index.js": {
+      "runtime": "nodejs20.x",
+      "memory": 1024,
+      "maxDuration": 25,
       "includeFiles": [
+        "dist/**",
         "swagger.yaml",
         "public/**",
         "admin_pages/**",
@@ -14,11 +18,11 @@
     }
   },
   "rewrites": [
-    { "source": "/api/(.*)", "destination": "/api/index.ts" },
-    { "source": "/api-docs", "destination": "/api/index.ts" },
-    { "source": "/admin_pages/(.*)", "destination": "/api/index.ts" },
-    { "source": "/participant_pages/(.*)", "destination": "/api/index.ts" },
-    { "source": "/public/(.*)", "destination": "/api/index.ts" },
-    { "source": "/(.*)", "destination": "/api/index.ts" }
+    { "source": "/api/(.*)", "destination": "/api/index.js" },
+    { "source": "/api-docs", "destination": "/api/index.js" },
+    { "source": "/admin_pages/(.*)", "destination": "/api/index.js" },
+    { "source": "/participant_pages/(.*)", "destination": "/api/index.js" },
+    { "source": "/public/(.*)", "destination": "/api/index.js" },
+    { "source": "/(.*)", "destination": "/api/index.js" }
   ]
 }
