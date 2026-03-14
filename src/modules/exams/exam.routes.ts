@@ -14,24 +14,25 @@ import {
   submitReview,
   updateExam,
 } from './exam.controller';
+import asyncHandler from '../../utils/asyncHandler';
 
 const router = Router();
 
 router.use(authenticate);
 
-router.post('/', requirePermission('create_exam'), createExam);
-router.get('/', getExams);
-router.get('/class/:classId', getExamsByClass);
-router.get('/:id', getExamById);
-router.put('/:id', requirePermission('create_exam'), updateExam);
-router.delete('/:id', requirePermission('create_exam'), deleteExam);
+router.post('/', requirePermission('create_exam'), asyncHandler(createExam));
+router.get('/', asyncHandler(getExams));
+router.get('/class/:classId', asyncHandler(getExamsByClass));
+router.get('/:id', asyncHandler(getExamById));
+router.put('/:id', requirePermission('create_exam'), asyncHandler(updateExam));
+router.delete('/:id', requirePermission('create_exam'), asyncHandler(deleteExam));
 
-router.patch('/:id/submit-review', requirePermission('create_exam'), submitReview);
-router.patch('/:id/approve', requirePermission('approve_exam'), approveExam);
-router.patch('/:id/reject', requirePermission('approve_exam'), rejectExam);
-router.patch('/:id/publish', requirePermission('publish_exam'), publishExam);
+router.patch('/:id/submit-review', requirePermission('create_exam'), asyncHandler(submitReview));
+router.patch('/:id/approve', requirePermission('approve_exam'), asyncHandler(approveExam));
+router.patch('/:id/reject', requirePermission('approve_exam'), asyncHandler(rejectExam));
+router.patch('/:id/publish', requirePermission('publish_exam'), asyncHandler(publishExam));
 
-router.get('/:id/marks-status', getMarksStatus);
-router.get('/:id/students', getExamStudents);
+router.get('/:id/marks-status', asyncHandler(getMarksStatus));
+router.get('/:id/students', asyncHandler(getExamStudents));
 
 export default router;
