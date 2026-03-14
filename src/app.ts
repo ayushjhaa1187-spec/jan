@@ -86,10 +86,8 @@ app.get('/api/health', async (_req, res) => {
   }
 });
 
-// Basic CSRF defense: Origin verification for non-GET requests in production
-
-
 // Health check
+
 app.get('/', (_req, res) => {
   res.json({
     success: true,
