@@ -1,20 +1,17 @@
 'use client'
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LabelList } from 'recharts'
 
-interface Props { labels?: string[]; values?: number[] }
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts'
 
-export function SubjectAveragesChart({ labels = ['Math', 'Science', 'English', 'History', 'PE'], values = [72, 68, 75, 80, 90] }: Props) {
-  const data = labels.map((label, i) => ({ name: label, average: values[i] }))
+export function SubjectAveragesChart({ labels, values }: { labels: string[]; values: number[] }) {
+  const data = labels.map((label, index) => ({ name: label, value: values[index] ?? 0 }))
   return (
     <ResponsiveContainer width="100%" height={300}>
-      <BarChart data={data} margin={{ top: 20, right: 20, bottom: 20, left: 0 }}>
+      <BarChart data={data}>
         <CartesianGrid strokeDasharray="3 3" />
-        <XAxis dataKey="name" tick={{ fontSize: 12 }} />
-        <YAxis domain={[0, 100]} />
+        <XAxis dataKey="name" />
+        <YAxis />
         <Tooltip />
-        <Bar dataKey="average" fill="#2b6cb0" radius={[4, 4, 0, 0]}>
-          <LabelList dataKey="average" position="top" formatter={(v: number) => v.toFixed(1)} />
-        </Bar>
+        <Bar dataKey="value" fill="#2b6cb0" />
       </BarChart>
     </ResponsiveContainer>
   )

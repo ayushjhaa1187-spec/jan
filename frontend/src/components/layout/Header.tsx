@@ -1,32 +1,22 @@
 'use client'
+
 import { Menu } from 'lucide-react'
 import { NotificationBell } from './NotificationBell'
 import { useAuthStore } from '@/store/authStore'
 import { Badge } from '@/components/ui/Badge'
 
-interface HeaderProps {
-  title?: string
-  onMenuToggle: () => void
-}
-
-export function Header({ title = 'EduTrack', onMenuToggle }: HeaderProps) {
-  const { user } = useAuthStore()
+export function Header({ title = 'EduTrack', onMenuToggle }: { title?: string; onMenuToggle: () => void }) {
+  const user = useAuthStore((state) => state.user)
   return (
-    <header className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
-      <div className="flex items-center gap-4">
-        <button onClick={onMenuToggle} className="lg:hidden text-gray-500 hover:text-gray-700">
-          <Menu className="w-6 h-6" />
-        </button>
-        <h2 className="text-lg font-semibold text-gray-800">{title}</h2>
+    <header className="flex items-center justify-between border-b border-gray-200 bg-white px-6 py-4">
+      <div className="flex items-center gap-3">
+        <button className="lg:hidden" onClick={onMenuToggle}><Menu className="h-5 w-5" /></button>
+        <h1 className="text-lg font-semibold text-gray-900">{title}</h1>
       </div>
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-3">
         <NotificationBell />
-        {user && (
-          <div className="flex items-center gap-2">
-            <span className="text-sm text-gray-600 hidden sm:block">{user.name}</span>
-            <Badge status={user.role} label={user.role} />
-          </div>
-        )}
+        <span className="hidden text-sm text-gray-700 sm:block">{user?.name}</span>
+        <Badge status={user?.role ?? 'USER'} label={user?.role ?? 'User'} />
       </div>
     </header>
   )

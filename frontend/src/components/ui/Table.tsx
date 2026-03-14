@@ -15,38 +15,42 @@ interface TableProps<T> {
 }
 
 export function Table<T>({ columns, data, loading, emptyMessage = 'No data found', keyExtractor }: TableProps<T>) {
-  if (loading) return (
-    <div className="animate-pulse space-y-3">
-      {[...Array(5)].map((_, i) => (
-        <div key={i} className="h-12 bg-gray-100 rounded" />
-      ))}
-    </div>
-  )
+  if (loading) {
+    return (
+      <div className="space-y-2">
+        {Array.from({ length: 5 }).map((_, idx) => (
+          <div key={idx} className="h-11 animate-pulse rounded bg-gray-100" />
+        ))}
+      </div>
+    )
+  }
 
   return (
-    <div className="overflow-x-auto rounded-lg border border-gray-200">
-      <table className="min-w-full divide-y divide-gray-200">
-        <thead className="bg-[#1a365d]">
+    <div className="overflow-x-auto rounded-xl border border-gray-200">
+      <table className="min-w-full">
+        <thead className="bg-[#1a365d] text-white">
           <tr>
-            {columns.map(col => (
-              <th key={col.key} className="px-4 py-3 text-left text-xs font-semibold text-white uppercase tracking-wider">
-                {col.label}
-              </th>
+            {columns.map((column) => (
+              <th key={column.key} className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide">{column.label}</th>
             ))}
           </tr>
         </thead>
-        <tbody className="bg-white divide-y divide-gray-100">
+        <tbody>
           {data.length === 0 ? (
-            <tr><td colSpan={columns.length} className="px-4 py-8 text-center text-gray-400">{emptyMessage}</td></tr>
-          ) : data.map((row, idx) => (
-            <tr key={keyExtractor(row)} className={idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
-              {columns.map(col => (
-                <td key={col.key} className="px-4 py-3 text-sm text-gray-700">
-                  {col.render ? col.render(row) : String((row as Record<string, unknown>)[col.key] ?? '')}
-                </td>
-              ))}
+            <tr>
+              <td className="px-4 py-8 text-center text-sm text-gray-500" colSpan={columns.length}>{emptyMessage}</td>
             </tr>
-          ))}
+          ) : (
+            data.map((row, index) => (
+              <tr key={keyExtractor(row)} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
+                {columns.map((column) => (
+                  <td key={column.key} className="px-4 py-3 text-sm text-gray-700">
+                    {column.render ? column.render(row) : String((row as Record<string, unknown>)[column.key] ?? '')}
+                  </td>
+                ))}
+              </tr>
+            ))
+          )}
         </tbody>
       </table>
     </div>
