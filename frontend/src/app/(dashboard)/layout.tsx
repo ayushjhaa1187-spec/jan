@@ -1,5 +1,6 @@
 'use client'
-import { useEffect } from 'react'
+
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import api from '@/lib/api'
 import { useAuthStore } from '@/store/authStore'
@@ -8,15 +9,35 @@ import { Header } from '@/components/layout/Header'
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter()
-  const setUser = useAuthStore((s) => s.setUser)
+  const setUser = useAuthStore((state) => state.setUser)
+  const [isMobileOpen, setIsMobileOpen] = useState(false)
 
   useEffect(() => {
     const token = localStorage.getItem('accessToken')
-    if (!token) { router.push('/login'); return }
-    api.get('/auth/me').then((res) => setUser(res.data.data)).catch(() => {
-localStorage.removeItem('accessToken'); router.push('/login') })
+
+    if (!token) {
+      router.push('/login')
+      return
+    }
+
+    api
+      .get('/auth/me')
+      .then((response) => {
+        setUser(response.data.data)
+      })
+      .catch(() => {
+        localStorage.removeItem('accessToken')
+        router.push('/login')
+      })
   }, [router, setUser])
 
-  return <div className='flex'><Sidebar /><div className='flex-1'><Header /><main className='p-6'>{children}
-</main></div></div>
+  return (
+    <div className="flex min-h-screen bg-gray-50">
+      <Sidebar isMobileOpen={isMobileOpen} onClose={() => setIsMobileOpen(false)} />
+      <div className="flex-1">
+        <Header onMenuToggle={() => setIsMobileOpen((prev) => !prev)} />
+        <main className="p-6">{children}</main>
+      </div>
+    </div>
+  )
 }
