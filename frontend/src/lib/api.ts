@@ -15,7 +15,7 @@ api.interceptors.request.use((config) => {
 api.interceptors.response.use(
   (res) => res,
   async (error) => {
-    const original = error.config as { _retry?: boolean; headers: Record<string, string> }
+    const original = error.config
     if (error.response?.status === 401 && !original._retry) {
       original._retry = true
       try {
