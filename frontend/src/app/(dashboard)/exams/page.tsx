@@ -1,7 +1,14 @@
 'use client'
+
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+import { useState } from 'react'
+import { useQuery } from '@tanstack/react-query'
+import api from '@/lib/api'
 import { useExams } from '@/hooks/useExams'
 import { Badge } from '@/components/ui/Badge'
+
+const statuses = ['ALL', 'DRAFT', 'REVIEW', 'APPROVED', 'PUBLISHED'] as const
 
 export default function ExamsPage() {
   const { data } = useExams(); const rows = data?.data ?? []

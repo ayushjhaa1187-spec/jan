@@ -1,42 +1,37 @@
 'use client'
+
+import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
+import { Eye, EyeOff, GraduationCap } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 import api from '@/lib/api'
 import { useAuthStore } from '@/store/authStore'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
-import { Spinner } from '@/components/ui/Spinner'
 
-const schema = z.object({ email: z.string().email(), password: z.string().min(6) })
-type FormValues = z.infer<typeof schema>
+const schema = z.object({ email: z.string().email('Valid email required'), password: z.string().min(6, 'Password is required') })
+type Values = z.infer<typeof schema>
 
 export default function LoginPage() {
-  const router = useRouter(); const setUser = useAuthStore((s) => s.setUser)
-  const { register, handleSubmit, formState: { isSubmitting, errors } } = useForm<FormValues>({ resolver: zodResolver(schema) })
+  const router = useRouter()
+  const [showPassword, setShowPassword] = useState(false)
+  const { setUser, setLoading } = useAuthStore()
+  const form = useForm<Values>({ resolver: zodResolver(schema), defaultValues: { email: '', password: '' } })
 
-  const onSubmit = async (values: FormValues) => {
+  return <div className="min-h-screen bg-[#1a365d] flex items-center justify-center p-4"><div className="w-full max-w-md bg-white rounded-xl shadow-xl p-6"><div className="flex items-center justify-center gap-2 mb-6"><GraduationCap className="w-7 h-7 text-[#1a365d]" /><h1 className="text-2xl font-bold text-[#1a365d]">EduTrack</h1></div><form className="space-y-4" onSubmit={form.handleSubmit(async (values) => {
     try {
-      const { data } = await api.post('/auth/login', values)
-      localStorage.setItem('accessToken', data.data.tokens.accessToken)
-      setUser(data.data.user)
-      toast.success('Logged in successfully')
+      setLoading(true)
+      const response = await api.post('/auth/login', values)
+      localStorage.setItem('accessToken', response.data.data.accessToken)
+      localStorage.setItem('refreshToken', response.data.data.refreshToken)
+      setUser(response.data.data.user)
+      toast.success('Logged in')
       router.push('/dashboard')
     } catch {
-      toast.error('Login failed')
-    }
-  }
-
-  return <main className='min-h-screen grid place-items-center bg-[#1a365d] p-4'>
-    <form onSubmit={handleSubmit(onSubmit)} className='bg-white rounded shadow p-6 w-full max-w-md space-y-4'>
-      <div className='text-center text-2xl font-bold'>EduTrack</div>
-      <Input placeholder='Email' {...register('email')} />
-      {errors.email && <p className='text-sm text-red-600'>Valid email required</p>}
-      <Input placeholder='Password' type='password' {...register('password')} />
-      {errors.password && <p className='text-sm text-red-600'>Password min 6 characters</p>}
-      <Button type='submit' className='w-full' disabled={isSubmitting}>{isSubmitting ? <Spinner /> : 'Login'}</Button>
-    </form>
-  </main>
+      toast.error('Invalid credentials')
+    } finally { setLoading(false) }
+  })}><Input label="Email" {...form.register('email')} error={form.formState.errors.email?.message} /><div className="relative"><Input label="Password" type={showPassword ? 'text' : 'password'} {...form.register('password')} error={form.formState.errors.password?.message} /><button type="button" className="absolute right-3 top-9 text-gray-500" onClick={() => setShowPassword((v) => !v)}>{showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}</button></div><Button type="submit" className="w-full" loading={form.formState.isSubmitting}>Sign In</Button></form></div></div>
 }

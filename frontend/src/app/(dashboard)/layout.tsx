@@ -6,6 +6,7 @@ import api from '@/lib/api'
 import { useAuthStore } from '@/store/authStore'
 import { Sidebar } from '@/components/layout/Sidebar'
 import { Header } from '@/components/layout/Header'
+import { CenteredSpinner } from '@/components/ui/Spinner'
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter()

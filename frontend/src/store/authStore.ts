@@ -1,13 +1,8 @@
 import { create } from 'zustand'
 
 interface User {
-  id: string
-  name: string
-  email: string
-  role: string
-  permissions: string[]
+  id: string; name: string; email: string; role: string; permissions: string[]
 }
-
 interface AuthStore {
   user: User | null
   isLoading: boolean
