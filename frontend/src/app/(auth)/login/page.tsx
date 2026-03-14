@@ -6,14 +6,21 @@ import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Eye, EyeOff, GraduationCap } from 'lucide-react'
 import { useRouter } from 'next/navigation'
+import { GraduationCap, Eye, EyeOff } from 'lucide-react'
 import { toast } from 'sonner'
 import api from '@/lib/api'
 import { useAuthStore } from '@/store/authStore'
-import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 
 const schema = z.object({ email: z.string().email('Valid email required'), password: z.string().min(6, 'Password is required') })
 type Values = z.infer<typeof schema>
+
+interface LoginResponse {
+  data: {
+    user: { id: string; name: string; email: string; role: string; permissions: string[] }
+    tokens: { accessToken: string; refreshToken: string }
+  }
+}
 
 export default function LoginPage() {
   const router = useRouter()

@@ -38,7 +38,7 @@ interface ClassesResponse {
 
 export default function TeacherDetailPage() {
   const params = useParams<{ id: string }>()
-  const teacherId = params.id
+  const id = params.id
 
   const teacher = useQuery<TeacherResponse>({
     queryKey: ['teacher', teacherId],
@@ -55,7 +55,10 @@ export default function TeacherDetailPage() {
     queryFn: async () => (await api.get('/classes')).data
   })
 
-  const teacherData = teacher.data?.data
+  const columns: Column<Assignment>[] = [
+    { key: 'subject', label: 'Subject', render: (row) => row.subject?.name ?? '-' },
+    { key: 'class', label: 'Class', render: (row) => row.class ? `${row.class.name} - ${row.class.section}` : '-' },
+  ]
 
   const columns: Column<AssignmentRow>[] = [
     { key: 'subject', label: 'Subject', render: (row) => row.subject?.name ?? '-' },

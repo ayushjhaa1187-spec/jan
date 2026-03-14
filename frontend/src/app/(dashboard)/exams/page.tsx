@@ -7,6 +7,11 @@ import { useQuery } from '@tanstack/react-query'
 import api from '@/lib/api'
 import { useExams } from '@/hooks/useExams'
 import { Badge } from '@/components/ui/Badge'
+import { Table, Column } from '@/components/ui/Table'
+
+interface ExamRow { id: string; name: string; status: string; classId: string; class?: { name: string; section: string }; startDate: string; endDate: string }
+interface ClassRow { id: string; name: string; section: string }
+const statuses = ['ALL', 'DRAFT', 'REVIEW', 'APPROVED', 'PUBLISHED']
 
 const statuses = ['ALL', 'DRAFT', 'REVIEW', 'APPROVED', 'PUBLISHED'] as const
 

@@ -5,6 +5,15 @@ import { useMemo } from 'react'
 import { useStudents } from '@/hooks/useStudents'
 import { Table, Column } from '@/components/ui/Table'
 import { Input } from '@/components/ui/Input'
+import { Modal } from '@/components/ui/Modal'
+import { Table, Column } from '@/components/ui/Table'
+import { Pagination } from '@/components/ui/Pagination'
+
+const studentSchema = z.object({ adm_no: z.string().min(2), name: z.string().min(2), classId: z.string().min(1), email: z.string().email().optional().or(z.literal('')), phone: z.string().optional() })
+type StudentForm = z.infer<typeof studentSchema>
+interface StudentRow { id: string; adm_no: string; name: string; classId: string; class?: { id: string; name: string; section: string } }
+interface ClassRow { id: string; name: string; section: string }
+interface ListResponse { data: StudentRow[]; meta: { totalPages: number } }
 
 interface StudentRow {
   id: string
