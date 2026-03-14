@@ -132,7 +132,7 @@ export const resultService = {
     }
   },
 
-  async generateResults(examId: string) {
+  async generateResults(examId: string, userId: string) {
     await prisma.result.deleteMany({ where: { examId } })
     const computed = await this.getResultsByExam(examId)
 
@@ -142,7 +142,7 @@ export const resultService = {
         studentId: item.studentId,
         status: 'DRAFT',
         remarks: `${item.grade} (${item.percentage}%)`,
-        createdById: item.student.userId,
+        createdById: userId,
       })),
       skipDuplicates: true,
     })

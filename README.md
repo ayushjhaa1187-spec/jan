@@ -59,4 +59,28 @@ npm run dev
 
 ## Deployment
 
-Backend deployed at: https://jan-two.vercel.app
+### Backend (Express)
+Deploys automatically to Vercel via the `vercel.json` in root.
+- **URL**: [https://jan-two.vercel.app](https://jan-two.vercel.app)
+- **API Docs**: [https://jan-two.vercel.app/api-docs](https://jan-two.vercel.app/api-docs)
+
+### Frontend (Next.js)
+To deploy the frontend to the same project or a separate project on Vercel:
+1. Create a new Vercel project.
+2. Set the **Root Directory** to `frontend`.
+3. Configure the `NEXT_PUBLIC_API_URL` environment variable pointing to the backend URL.
+
+### Security
+This project implements:
+- **Rate Limiting**: [express-rate-limit](https://www.npmjs.com/package/express-rate-limit)
+- **Security Headers**: [helmet](https://www.npmjs.com/package/helmet)
+- **Auth**: JWT with `HttpOnly` cookie-ready architecture
+- **Audit Logging**: Full tracking of critical actions
+- **RBAC**: Multi-role permission system
+
+## Development
+```bash
+npm install
+npx prisma generate
+npm run dev
+```

@@ -12,6 +12,7 @@ const getUserId = (req: Request): string => {
 
   return userId
 }
+
 export const createStudent = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const payload = createStudentSchema.parse(req.body)

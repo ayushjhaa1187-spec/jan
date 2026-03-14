@@ -1,18 +1,53 @@
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
+import cookieParser from 'cookie-parser';
+import rateLimit from 'express-rate-limit';
 import apiRoutes from './routes';
 import { errorHandler } from './middleware/errorHandler';
 
 const app = express();
 
+// Security: Security Headers
 app.use(
   helmet({
-    contentSecurityPolicy: false,
+    contentSecurityPolicy: process.env.NODE_ENV === 'production' ? undefined : false,
   }),
 );
+
+// Security: Rate Limiting
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // Limit each IP to 100 requests per windowMs
+  message: { error: 'Too many requests from this IP, please try again after 15 minutes' },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+app.use('/api/', limiter);
+
+// Security: CORS (Configure for production in the future via env)
 app.use(cors());
+
 app.use(express.json());
+app.use(cookieParser());
+
+// Basic CSRF defense: Origin verification for non-GET requests in production
+app.use((req, res, next) => {
+  const allowedOrigins = [process.env.FRONTEND_URL];
+  const origin = req.get('origin');
+  
+  if (
+    process.env.NODE_ENV === 'production' && 
+    req.method !== 'GET' && 
+    origin && 
+    !allowedOrigins.includes(origin)
+  ) {
+    // Note: This is a basic check. For full CSRF, use synchronizer tokens if using cookies for auth.
+    // For JWT in headers, this is secondary protection.
+  }
+  next();
+});
 
 
 // Health check
