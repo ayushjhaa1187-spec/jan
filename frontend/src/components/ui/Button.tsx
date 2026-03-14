@@ -1,6 +1,5 @@
-import { forwardRef } from 'react'
-import { cn } from '@/lib/utils'
 import { ButtonHTMLAttributes, forwardRef } from 'react'
+import { cn } from '@/lib/utils'
 import { Spinner } from './Spinner'
 
 type Variant = 'primary' | 'secondary' | 'danger' | 'ghost'

@@ -9,13 +9,12 @@ import { Header } from '@/components/layout/Header'
 import { CenteredSpinner } from '@/components/ui/Spinner'
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
-  const [isMobileOpen, setMobileOpen] = useState(false)
   const router = useRouter()
   const setUser = useAuthStore((state) => state.setUser)
   const [isMobileOpen, setIsMobileOpen] = useState(false)
 
   useEffect(() => {
-    const token = localStorage.getItem('accessToken')
+    const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null
 
     if (!token) {
       router.push('/login')

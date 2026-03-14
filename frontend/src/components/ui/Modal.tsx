@@ -3,9 +3,6 @@
 import { ReactNode, useEffect } from 'react'
 import { cn } from '@/lib/utils'
 
-import { useEffect } from 'react'
-import { cn } from '@/lib/utils'
-
 interface Props {
   isOpen: boolean
   onClose: () => void

@@ -32,10 +32,10 @@ export function Sidebar({ isMobileOpen, onClose }: SidebarProps) {
   const logout = useAuthStore((state) => state.logout)
   const pathname = usePathname()
   const router = useRouter()
-  const user = useAuthStore((state) => state.user)
-  const logout = useAuthStore((state) => state.logout)
 
-  const visible = navItems.filter((item) => item.roles.includes('all') || item.roles.includes(user?.role ?? ''))
+  const visible = navItems.filter((item) => 
+    item.roles.includes('all') || item.roles.includes(user?.role ?? '')
+  )
 
   const handleLogout = async () => {
     try {
@@ -44,19 +44,24 @@ export function Sidebar({ isMobileOpen, onClose }: SidebarProps) {
       // ignore backend logout failure
     }
     logout()
+    localStorage.removeItem('accessToken')
+    localStorage.removeItem('refreshToken')
     router.push('/login')
   }
 
   const content = (
     <div className="flex h-full w-64 flex-col bg-[#1a365d] text-white">
-      <div className="flex items-center justify-between border-b border-white/10 px-5 py-4">
+      <div className="flex items-center justify-between border-b border-white/10 px-5 py-6">
         <div>
-          <h1 className="text-lg font-bold">EduTrack</h1>
-          <p className="text-xs text-blue-200">Examination System</p>
+          <h1 className="text-xl font-bold tracking-tight">EduTrack</h1>
+          <p className="text-xs text-blue-300 uppercase mt-0.5">Academic OS</p>
         </div>
-        <button className="lg:hidden" onClick={onClose}><X size={18} /></button>
+        <button className="lg:hidden p-2 hover:bg-white/10 rounded-md" onClick={onClose}>
+          <X size={20} />
+        </button>
       </div>
-      <nav className="flex-1 space-y-1 p-3">
+      
+      <nav className="flex-1 space-y-1 p-4 overflow-y-auto">
         {visible.map((item) => {
           const Icon = item.icon
           const active = pathname === item.href || pathname.startsWith(`${item.href}/`)
@@ -65,17 +70,34 @@ export function Sidebar({ isMobileOpen, onClose }: SidebarProps) {
               key={item.label}
               href={item.href}
               onClick={onClose}
-              className={cn('flex items-center gap-3 rounded-lg px-3 py-2 text-sm', active ? 'bg-[#2b6cb0]' : 'hover:bg-white/10')}
+              className={cn(
+                'flex items-center gap-3 rounded-lg px-4 py-2.5 text-sm font-medium transition-all duration-200', 
+                active 
+                  ? 'bg-[#2b6cb0] text-white shadow-md' 
+                  : 'text-blue-100 hover:bg-white/10 hover:text-white'
+              )}
             >
-              <Icon size={16} />
+              <Icon size={18} className={active ? 'text-white' : 'text-blue-300'} />
               {item.label}
             </Link>
           )
         })}
       </nav>
-      <div className="border-t border-white/10 p-3">
-        <p className="mb-3 text-xs text-blue-200">{user?.name} · {user?.role}</p>
-        <button className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm hover:bg-white/10" onClick={handleLogout}>
+      
+      <div className="border-t border-white/10 p-4 bg-[#162e4f]">
+        <div className="flex items-center gap-3 mb-4 px-2">
+          <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-white font-bold text-xs">
+            {user?.name?.charAt(0) || 'U'}
+          </div>
+          <div className="flex flex-col truncate">
+            <span className="text-sm font-semibold truncate">{user?.name}</span>
+            <span className="text-[10px] text-blue-300 uppercase tracking-wider">{user?.role}</span>
+          </div>
+        </div>
+        <button 
+          className="flex w-full items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium text-red-200 hover:bg-red-900/40 hover:text-white transition-colors" 
+          onClick={handleLogout}
+        >
           <LogOut size={16} /> Logout
         </button>
       </div>
@@ -84,10 +106,12 @@ export function Sidebar({ isMobileOpen, onClose }: SidebarProps) {
 
   return (
     <>
-      <aside className="sticky top-0 hidden h-screen lg:block">{content}</aside>
+      <aside className="sticky top-0 hidden h-screen lg:block shadow-2xl z-20">{content}</aside>
       {isMobileOpen ? (
-        <div className="fixed inset-0 z-50 bg-black/50 lg:hidden" onClick={onClose}>
-          <div className="h-full" onClick={(e) => e.stopPropagation()}>{content}</div>
+        <div className="fixed inset-0 z-[60] bg-black/60 lg:hidden backdrop-blur-sm" onClick={onClose}>
+          <div className="h-full w-64 animate-in slide-in-from-left duration-300" onClick={(e) => e.stopPropagation()}>
+            {content}
+          </div>
         </div>
       ) : null}
     </>

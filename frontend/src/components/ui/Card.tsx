@@ -1,8 +1,16 @@
 import { ReactNode } from 'react'
+import { cn } from '@/lib/utils'
 
-export function Card({ title, actions, children }: { title?: string; actions?: ReactNode; children: ReactNode }) {
+interface CardProps {
+  title?: string;
+  actions?: ReactNode;
+  children: ReactNode;
+  className?: string;
+}
+
+export function Card({ title, actions, children, className }: CardProps) {
   return (
-    <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
+    <div className={cn("rounded-xl border border-gray-200 bg-white p-5 shadow-sm", className)}>
       {title || actions ? (
         <div className="mb-4 flex items-center justify-between">
           <h3 className="text-lg font-semibold text-gray-800">{title}</h3>
