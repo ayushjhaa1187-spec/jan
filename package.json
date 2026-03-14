@@ -1,7 +1,7 @@
 {
-  "name": "multi-event-backend",
-  "version": "1.0.0",
-  "description": "",
+  "name": "edutrack-api",
+  "version": "1.1.0",
+  "description": "Production-grade backend for EduTrack Examination Management System",
   "engines": {
     "node": "20.x"
   },
@@ -10,18 +10,25 @@
     "start": "node dist/server.js",
     "dev": "ts-node-dev --respawn --transpile-only src/server.ts",
     "postinstall": "prisma generate",
-    "test": "set NODE_ENV=test&& jest"
+    "test": "set NODE_ENV=test&& jest",
+    "build": "prisma generate && tsc"
   },
-  "keywords": [],
-  "author": "",
+  "keywords": [
+    "education",
+    "management",
+    "exams"
+  ],
+  "author": "CoCreate",
   "license": "ISC",
   "dependencies": {
     "@google/generative-ai": "^0.24.1",
     "@prisma/client": "^5.11.0",
     "bcryptjs": "^3.0.3",
+    "cookie-parser": "^1.4.6",
     "cors": "^2.8.6",
     "dotenv": "^17.3.1",
     "express": "^5.2.1",
+    "express-rate-limit": "^7.1.5",
     "helmet": "^8.1.0",
     "jsonwebtoken": "^9.0.3",
     "prisma": "^5.11.0",
@@ -33,6 +40,7 @@
   "devDependencies": {
     "@prisma/client": "^5.11.0",
     "@types/bcryptjs": "^2.4.6",
+    "@types/cookie-parser": "^1.4.7",
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.6",
     "@types/jest": "^30.0.0",
