@@ -4,7 +4,7 @@ import helmet from 'helmet';
 import cookieParser from 'cookie-parser';
 import rateLimit from 'express-rate-limit';
 import apiRoutes from './routes';
-import { errorHandler } from './middleware/errorHandler';
+import { errorHandler } from './middlewares/errorHandler';
 
 const app = express();
 
