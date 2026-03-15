@@ -21,8 +21,8 @@ app.use(
 
 // Security: Rate Limiting
 const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // Limit each IP to 100 requests per windowMs
+  windowMs: 15 * 60 * 1000,
+  max: 100,
   message: { error: 'Too many requests from this IP, please try again after 15 minutes' },
   standardHeaders: true,
   legacyHeaders: false,
@@ -30,30 +30,13 @@ const limiter = rateLimit({
 
 app.use('/api/', limiter);
 
-// Security: CORS (Configure for production in the future via env)
+// CORS
 app.use(cors());
 
 app.use(express.json());
 app.use(cookieParser());
 
-// Basic CSRF defense: Origin verification for non-GET requests in production
-app.use((req, res, next) => {
-  const allowedOrigins = [process.env.FRONTEND_URL];
-  const origin = req.get('origin');
-  
-  if (
-    process.env.NODE_ENV === 'production' && 
-    req.method !== 'GET' && 
-    origin && 
-    !allowedOrigins.includes(origin)
-  ) {
-    // Note: This is a basic check. For full CSRF, use synchronizer tokens if using cookies for auth.
-    // For JWT in headers, this is secondary protection.
-  }
-  next();
-});
-
-// Swagger Documentation setup
+// Swagger Documentation
 try {
   const swaggerPath = path.join(process.cwd(), 'swagger.yaml');
   const swaggerDocument = YAML.load(swaggerPath);
@@ -62,7 +45,7 @@ try {
   console.error('Failed to load swagger documentation:', error);
 }
 
-// Static files setup
+// Static files
 const appRoot = process.cwd();
 app.use('/admin_pages', express.static(path.resolve(appRoot, 'admin_pages')));
 app.use('/participant_pages', express.static(path.resolve(appRoot, 'participant_pages')));
@@ -72,37 +55,37 @@ app.use('/public', express.static(path.resolve(appRoot, 'public')));
 app.get('/api/health', async (_req, res) => {
   try {
     await prisma.$queryRaw`SELECT 1`;
-    return res.json({ 
-      status: 'OK', 
-      message: 'API and Database are healthy', 
-      timestamp: new Date().toISOString() 
+    return res.json({
+      status: 'OK',
+      message: 'API and Database are healthy',
+      timestamp: new Date().toISOString(),
     });
   } catch (error) {
-    return res.status(503).json({ 
-      status: 'Error', 
-      message: 'Database connection failed', 
-      timestamp: new Date().toISOString() 
+    return res.status(503).json({
+      status: 'Error',
+      message: 'Database connection failed',
+      timestamp: new Date().toISOString(),
     });
   }
 });
 
-// Health check
-
+// Root endpoint
 app.get('/', (_req, res) => {
   res.json({
     success: true,
     message: 'EduTrack API is running',
-    version: '1.0.0',
+    version: '1.1.1',
     docs: '/api',
-    health: 'OK',
+    health: '/api/health',
   });
 });
 
+// API index — lists all available endpoints
 app.get('/api', (_req, res) => {
   res.json({
     success: true,
     message: 'EduTrack Examination Management System API',
-    version: '1.0.0',
+    version: '1.1.1',
     endpoints: {
       auth: '/api/auth',
       students: '/api/students',
@@ -120,42 +103,10 @@ app.get('/api', (_req, res) => {
   });
 });
 
-
-// Health check
-app.get('/', (_req, res) => {
-  res.json({
-    success: true,
-    message: 'EduTrack API is running',
-    version: '1.0.0',
-    docs: '/api',
-    health: 'OK',
-  });
-});
-
-app.get('/api', (_req, res) => {
-  res.json({
-    success: true,
-    message: 'EduTrack Examination Management System API',
-    version: '1.0.0',
-    endpoints: {
-      auth: '/api/auth',
-      students: '/api/students',
-      classes: '/api/classes',
-      subjects: '/api/subjects',
-      teachers: '/api/teachers',
-      teacherSubjects: '/api/teacher-subjects',
-      exams: '/api/exams',
-      marks: '/api/marks',
-      results: '/api/results',
-      reports: '/api/reports',
-      notifications: '/api/notifications',
-      audit: '/api/audit',
-    },
-  });
-});
-
+// Mount all API routes
 app.use('/api', apiRoutes);
 
+// 404 handler for unknown API routes
 app.use('/api', (req, res) => {
   return res.status(404).json({
     success: false,
@@ -164,13 +115,10 @@ app.use('/api', (req, res) => {
   });
 });
 
+// Error handler middleware
 app.use(errorHandler);
 
-/**
- * CRITICAL: Global error handlers for Vercel serverless
- * These prevent FUNCTION_INVOCATION_FAILED errors by catching unhandled rejections
- * and uncaught exceptions at the process level.
- */
+// Global error handlers for Vercel serverless
 process.on('unhandledRejection', (reason: unknown, promise: Promise<any>) => {
   console.error('[CRITICAL] Unhandled Promise Rejection:', {
     reason,

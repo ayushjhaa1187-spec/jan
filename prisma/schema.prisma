@@ -182,7 +182,7 @@ model Exam {
   description String?
   startDate   DateTime
   endDate     DateTime
-  status      String   @default("UPCOMING") // UPCOMING, ONGOING, COMPLETED
+  status      String   @default("DRAFT") // DRAFT, REVIEW, APPROVED, PUBLISHED
 
   classId     String
   class       Class    @relation(fields: [classId], references: [id])
