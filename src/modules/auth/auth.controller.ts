@@ -3,7 +3,7 @@ import AppError from '../../utils/AppError'
 import { success } from '../../utils/apiResponse'
 import { authService } from './auth.service'
 
-const getUserId = (req: Request): string => {
+const getAuthOpUserId = (req: Request): string => {
   const userId = req.user?.id
   if (!userId) {
     throw new AppError('Unauthorized', 401)
@@ -52,7 +52,7 @@ export const refresh = async (req: Request, res: Response, next: NextFunction) =
 
 export const logout = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    await authService.logout(getUserId(req), req.ip)
+    await authService.logout(getAuthOpUserId(req), req.ip)
     return res.json(success(null, 'Logged out successfully'))
   } catch (error) {
     return next(error)
@@ -61,7 +61,7 @@ export const logout = async (req: Request, res: Response, next: NextFunction) =>
 
 export const me = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const data = await authService.getMe(getUserId(req))
+    const data = await authService.getMe(getAuthOpUserId(req))
     return res.json(success(data))
   } catch (error) {
     return next(error)

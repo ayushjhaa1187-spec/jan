@@ -4,7 +4,7 @@ import { success } from '../../utils/apiResponse'
 import { studentService } from './student.service'
 import { createStudentSchema, transferClassSchema, updateStudentSchema } from './student.validation'
 
-const getUserId = (req: Request): string => {
+const getStudentOpUserId = (req: Request): string => {
   const userId = req.user?.id
   if (!userId) {
     throw new AppError('Unauthorized', 401)
@@ -16,7 +16,7 @@ const getUserId = (req: Request): string => {
 export const createStudent = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const payload = createStudentSchema.parse(req.body)
-    const data = await studentService.createStudent(payload, getUserId(req), req.ip)
+    const data = await studentService.createStudent(payload, getStudentOpUserId(req), req.ip)
     return res.status(201).json(success(data, 'Student created successfully'))
   } catch (error) {
     return next(error)
@@ -50,7 +50,7 @@ export const getStudentById = async (req: Request, res: Response, next: NextFunc
 export const updateStudent = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const payload = updateStudentSchema.parse(req.body)
-    const data = await studentService.updateStudent(String(req.params.id), payload, getUserId(req), req.ip)
+    const data = await studentService.updateStudent(String(req.params.id), payload, getStudentOpUserId(req), req.ip)
     return res.json(success(data, 'Student updated successfully'))
   } catch (error) {
     return next(error)
@@ -59,7 +59,7 @@ export const updateStudent = async (req: Request, res: Response, next: NextFunct
 
 export const deleteStudent = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    await studentService.deleteStudent(String(req.params.id), getUserId(req), req.ip)
+    await studentService.deleteStudent(String(req.params.id), getStudentOpUserId(req), req.ip)
     return res.json(success(null, 'Student deleted successfully'))
   } catch (error) {
     return next(error)
@@ -69,7 +69,7 @@ export const deleteStudent = async (req: Request, res: Response, next: NextFunct
 export const transferStudentClass = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const payload = transferClassSchema.parse(req.body)
-    const data = await studentService.transferClass(String(req.params.id), payload.classId, getUserId(req), req.ip)
+    const data = await studentService.transferClass(String(req.params.id), payload.classId, getStudentOpUserId(req), req.ip)
     return res.json(success(data, 'Student transferred successfully'))
   } catch (error) {
     return next(error)

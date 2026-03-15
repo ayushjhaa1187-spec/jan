@@ -4,7 +4,7 @@ import { success } from '../../utils/apiResponse'
 import { examService } from './exam.service'
 import { createExamSchema, rejectExamSchema, updateExamSchema } from './exam.validation'
 
-const getUserId = (req: Request): string => {
+const getExamOpUserId = (req: Request): string => {
   const userId = req.user?.id
   if (!userId) {
     throw new AppError('Unauthorized', 401)
@@ -16,7 +16,7 @@ const getUserId = (req: Request): string => {
 export const createExam = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const payload = createExamSchema.parse(req.body)
-    const data = await examService.createExam(payload, getUserId(req), req.ip)
+    const data = await examService.createExam(payload, getExamOpUserId(req), req.ip)
     return res.status(201).json(success(data, 'Exam created successfully'))
   } catch (error) {
     return next(error)
@@ -52,7 +52,7 @@ export const getExamById = async (req: Request, res: Response, next: NextFunctio
 export const updateExam = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const payload = updateExamSchema.parse(req.body)
-    const data = await examService.updateExam(String(req.params.id), payload, getUserId(req), req.ip)
+    const data = await examService.updateExam(String(req.params.id), payload, getExamOpUserId(req), req.ip)
     return res.json(success(data, 'Exam updated successfully'))
   } catch (error) {
     return next(error)
@@ -61,7 +61,7 @@ export const updateExam = async (req: Request, res: Response, next: NextFunction
 
 export const deleteExam = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    await examService.deleteExam(String(req.params.id), getUserId(req), req.ip)
+    await examService.deleteExam(String(req.params.id), getExamOpUserId(req), req.ip)
     return res.json(success(null, 'Exam deleted successfully'))
   } catch (error) {
     return next(error)
@@ -70,7 +70,7 @@ export const deleteExam = async (req: Request, res: Response, next: NextFunction
 
 export const submitReview = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const data = await examService.submitReview(String(req.params.id), getUserId(req), req.ip)
+    const data = await examService.submitReview(String(req.params.id), getExamOpUserId(req), req.ip)
     return res.json(success(data, 'Exam submitted for review'))
   } catch (error) {
     return next(error)
@@ -79,7 +79,7 @@ export const submitReview = async (req: Request, res: Response, next: NextFuncti
 
 export const approveExam = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const data = await examService.approveExam(String(req.params.id), getUserId(req), req.ip)
+    const data = await examService.approveExam(String(req.params.id), getExamOpUserId(req), req.ip)
     return res.json(success(data, 'Exam approved successfully'))
   } catch (error) {
     return next(error)
@@ -89,7 +89,7 @@ export const approveExam = async (req: Request, res: Response, next: NextFunctio
 export const rejectExam = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const payload = rejectExamSchema.parse(req.body)
-    const data = await examService.rejectExam(String(req.params.id), payload.reason, getUserId(req), req.ip)
+    const data = await examService.rejectExam(String(req.params.id), payload.reason, getExamOpUserId(req), req.ip)
     return res.json(success(data, 'Exam rejected and moved to draft'))
   } catch (error) {
     return next(error)
@@ -98,7 +98,7 @@ export const rejectExam = async (req: Request, res: Response, next: NextFunction
 
 export const publishExam = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const data = await examService.publishExam(String(req.params.id), getUserId(req), req.ip)
+    const data = await examService.publishExam(String(req.params.id), getExamOpUserId(req), req.ip)
     return res.json(success(data, 'Exam published successfully'))
   } catch (error) {
     return next(error)
