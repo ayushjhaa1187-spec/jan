@@ -12,14 +12,26 @@ import prisma from './utils/prisma';
 
 const app = express();
 
-// Security: Security Headers
+// 1. CORS - MUST BE FIRST
+app.use(cors({
+  origin: '*', 
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'X-Auth-Token'],
+  credentials: true,
+  preflightContinue: false,
+  optionsSuccessStatus: 204
+}));
+app.options('*', cors()); 
+
+// 2. Security Headers
 app.use(
   helmet({
     contentSecurityPolicy: process.env.NODE_ENV === 'production' ? undefined : false,
+    crossOriginResourcePolicy: { policy: "cross-origin" }
   }),
 );
 
-// Security: Rate Limiting
+// 3. Rate Limiting
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 100,
@@ -29,15 +41,6 @@ const limiter = rateLimit({
 });
 
 app.use('/api/', limiter);
-
-// CORS
-app.use(cors({
-  origin: '*', // Allow all for now to unblock, or specify jan-two.vercel.app
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept'],
-  credentials: true
-}));
-app.options('*', cors()); // Enable pre-flight for all routes
 
 app.use(express.json());
 app.use(cookieParser());
@@ -111,6 +114,7 @@ app.get('/api', (_req, res) => {
 
 // Mount all API routes
 app.use('/api', apiRoutes);
+app.use('/', apiRoutes);
 
 // 404 handler for unknown API routes
 app.use('/api', (req, res) => {
