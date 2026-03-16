@@ -114,56 +114,62 @@ export const authService = {
     orgData: { name: string; schoolCode: string; board?: string; address?: string },
     adminData: { name: string; email: string; password: string }
   ) {
-    const existingOrg = await prisma.organization.findUnique({ where: { schoolCode: orgData.schoolCode } })
+    const normalizedSchoolCode = orgData.schoolCode.trim().toUpperCase();
+    const normalizedEmail = adminData.email.trim().toLowerCase();
+
+    // Pre-check outside transaction
+    const existingOrg = await prisma.organization.findUnique({ where: { schoolCode: normalizedSchoolCode } })
     if (existingOrg) {
       throw new AppError('School code already registered', 400)
     }
 
-    const existingUser = await prisma.user.findUnique({ where: { email: adminData.email } })
+    const existingUser = await prisma.user.findUnique({ where: { email: normalizedEmail } })
     if (existingUser) {
       throw new AppError('Email already in use', 400)
     }
 
-    let principalRole = await prisma.role.findUnique({ where: { name: 'Principal' } })
-    if (!principalRole) {
-      principalRole = await prisma.role.create({
-        data: { name: 'Principal', description: 'Institutional Head' }
-      })
-    }
-
     const hashedPassword = await bcrypt.hash(adminData.password, BCRYPT_SALT_ROUNDS)
 
-    const organization = await prisma.organization.create({
-      data: {
-        name: orgData.name,
-        schoolCode: orgData.schoolCode,
-        board: orgData.board,
-        address: orgData.address,
+    return await prisma.$transaction(async (tx) => {
+      let principalRole = await tx.role.findUnique({ where: { name: 'Principal' } })
+      if (!principalRole) {
+        principalRole = await tx.role.create({
+          data: { name: 'Principal', description: 'Institutional Head' }
+        })
       }
-    })
 
-    const user = await prisma.user.create({
-      data: {
-        email: adminData.email,
-        password: hashedPassword,
-        orgId: organization.id,
-        userRoles: {
-          create: {
-            roleId: principalRole.id
-          }
-        },
-        staffProfile: {
-          create: {
-            employeeId: `ADMIN-${orgData.schoolCode}`,
-            firstName: adminData.name,
-            lastName: '',
-            orgId: organization.id
+      const organization = await tx.organization.create({
+        data: {
+          name: orgData.name.trim(),
+          schoolCode: normalizedSchoolCode,
+          board: orgData.board,
+          address: orgData.address,
+        }
+      })
+
+      const user = await tx.user.create({
+        data: {
+          email: normalizedEmail,
+          password: hashedPassword,
+          orgId: organization.id,
+          userRoles: {
+            create: {
+              roleId: principalRole.id
+            }
+          },
+          staffProfile: {
+            create: {
+              employeeId: `ADMIN-${normalizedSchoolCode}`,
+              firstName: adminData.name.trim(),
+              lastName: '',
+              orgId: organization.id
+            }
           }
         }
-      }
-    })
+      })
 
-    return { organization, user: { id: user.id, email: user.email } }
+      return { organization, user: { id: user.id, email: user.email } }
+    });
   },
 
   async login(email: string, password: string, schoolCode?: string, ipAddress?: string) {

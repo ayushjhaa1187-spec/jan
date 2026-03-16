@@ -31,7 +31,13 @@ const limiter = rateLimit({
 app.use('/api/', limiter);
 
 // CORS
-app.use(cors());
+app.use(cors({
+  origin: '*', // Allow all for now to unblock, or specify jan-two.vercel.app
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept'],
+  credentials: true
+}));
+app.options('*', cors()); // Enable pre-flight for all routes
 
 app.use(express.json());
 app.use(cookieParser());
