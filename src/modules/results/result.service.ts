@@ -31,20 +31,25 @@ const determinePassFail = (
 
   return 'PASS'
 }
-
 export const resultService = {
-  async getResults(query: { status?: string; page?: number; limit?: number }) {
+  async getResults(query: { status?: string; page?: number; limit?: number; orgId: string }) {
     const page = query.page && query.page > 0 ? query.page : 1
     const limit = query.limit && query.limit > 0 ? query.limit : 20
     const skip = (page - 1) * limit
 
-    const where = query.status ? { status: query.status } : {}
+    const where = {
+      ...(query.status ? { status: query.status } : {}),
+      orgId: query.orgId
+    }
 
     const [total, data] = await Promise.all([
       prisma.result.count({ where }),
       prisma.result.findMany({
         where,
-        include: { student: { include: { class: true } }, exam: true },
+        include: { 
+          student: { include: { class: true } }, 
+          exam: true 
+        },
         orderBy: { createdAt: 'desc' },
         skip,
         take: limit,
@@ -57,18 +62,25 @@ export const resultService = {
     }
   },
 
-  async getResultsByExam(examId: string) {
-    const exam = await prisma.exam.findUnique({ where: { id: examId }, include: { marks: true } })
+  async getResultsByExam(examId: string, orgId: string) {
+    const exam = await prisma.exam.findFirst({ 
+      where: { id: examId, orgId }, 
+      include: { subjects: { include: { subject: true } } } 
+    })
     if (!exam) {
       throw new AppError('Exam not found', 404)
     }
 
     const students = await prisma.student.findMany({
-      where: { classId: exam.classId },
+      where: { classId: exam.classId, orgId },
       include: { class: true },
     })
+    
     const marks = await prisma.marks.findMany({
-      where: { examId },
+      where: { 
+        examId,
+        orgId
+      },
       include: { subject: true },
     })
 
@@ -105,45 +117,36 @@ export const resultService = {
     return sorted.map((item, index) => ({ ...item, rank: index + 1 }))
   },
 
-  async getSummary(examId: string) {
-    const results = await this.getResultsByExam(examId)
-    const total = results.length
-    const passed = results.filter((item) => item.status === 'PASS').length
-    const failed = results.filter((item) => item.status === 'FAIL').length
-    const incomplete = results.filter((item) => item.status === 'INCOMPLETE').length
-    const averagePercentage =
-      total > 0 ? results.reduce((sum, item) => sum + item.percentage, 0) / total : 0
-    const passRate = total > 0 ? (passed / total) * 100 : 0
+  async getSummary(examId: string, orgId: string) {
+    const exam = await prisma.exam.findFirst({ where: { id: examId, orgId } })
+    if (!exam) throw new AppError('Exam not found', 404)
 
-    // Grade distribution
-    const gradeDistribution: Record<string, number> = {}
-    results.forEach((r) => {
-      gradeDistribution[r.grade] = (gradeDistribution[r.grade] || 0) + 1
+    const data = await this.getResultsByExam(examId, orgId)
+    const counts = { PASS: 0, FAIL: 0, INCOMPLETE: 0 }
+    data.forEach((r) => {
+      counts[r.status]++
     })
 
     return {
-      total,
-      passed,
-      failed,
-      incomplete,
-      averagePercentage: Number(averagePercentage.toFixed(2)),
-      passRate: Number(passRate.toFixed(2)),
-      gradeDistribution,
+      exam: { id: exam.id, name: exam.name },
+      totalStudents: data.length,
+      ...counts,
     }
   },
 
-  async getStudentResult(examId: string, studentId: string) {
-    const [exam, student] = await Promise.all([
-      prisma.exam.findUnique({ where: { id: examId }, include: { class: true } }),
-      prisma.student.findUnique({ where: { id: studentId }, include: { class: true } }),
-    ])
+  async getStudentResult(examId: string, studentId: string, orgId: string) {
+    const exam = await prisma.exam.findFirst({ where: { id: examId, orgId } })
+    if (!exam) throw new AppError('Exam not found', 404)
 
-    if (!exam || !student) {
-      throw new AppError('Result not found', 404)
-    }
+    const student = await prisma.student.findFirst({ where: { id: studentId, orgId }, include: { class: true } })
+    if (!student) throw new AppError('Student not found', 404)
 
     const marks = await prisma.marks.findMany({
-      where: { examId, studentId },
+      where: { 
+        examId, 
+        studentId,
+        orgId
+      },
       include: { subject: true },
       orderBy: { subject: { name: 'asc' } },
     })
@@ -151,61 +154,80 @@ export const resultService = {
     const subjects = marks.map((item) => {
       const percentage = item.maxMarks > 0 ? (item.marks / item.maxMarks) * 100 : 0
       return {
-        subject: { name: item.subject.name, code: item.subject.code },
-        maxMarks: item.maxMarks,
+        subjectName: item.subject.name,
         marks: item.marks,
-        percentage: Number(percentage.toFixed(2)),
+        maxMarks: item.maxMarks,
         grade: gradeFromPercent(percentage),
-        status: percentage >= 35 ? 'PASS' as const : 'FAIL' as const,
+        status: percentage >= 35 ? 'PASS' : 'FAIL',
       }
     })
 
-    const total = subjects.reduce((sum, item) => sum + item.marks, 0)
-    const max = subjects.reduce((sum, item) => sum + item.maxMarks, 0)
-    const percentage = max > 0 ? (total / max) * 100 : 0
-
-    // Overall pass/fail: must pass EVERY subject
-    const result = determinePassFail(marks)
+    const totalObtained = marks.reduce((sum, item) => sum + item.marks, 0)
+    const totalMax = marks.reduce((sum, item) => sum + item.maxMarks, 0)
+    const overallPercentage = totalMax > 0 ? (totalObtained / totalMax) * 100 : 0
 
     return {
-      exam,
-      student,
+      exam: { id: exam.id, name: exam.name },
+      student: {
+        id: student.id,
+        name: `${student.firstName} ${student.lastName}`,
+        enrollmentNo: student.enrollmentNo,
+        class: student.class.name,
+      },
       subjects,
       summary: {
-        total: Number(total.toFixed(2)),
-        max: Number(max.toFixed(2)),
-        percentage: Number(percentage.toFixed(2)),
-        grade: gradeFromPercent(percentage),
-        remarks: result === 'PASS' ? 'Congratulations! Passed all subjects.' : 'Failed in one or more subjects.',
-        result,
+        totalObtained,
+        totalMax,
+        percentage: Number(overallPercentage.toFixed(2)),
+        grade: gradeFromPercent(overallPercentage),
+        status: determinePassFail(marks),
       },
     }
   },
 
-  async generateResults(examId: string, userId: string) {
+  async generateResults(examId: string, userId: string, orgId: string) {
+    const exam = await prisma.exam.findFirst({ where: { id: examId, orgId } })
+    if (!exam) throw new AppError('Exam not found', 404)
+
     // Clear existing results for this exam before regenerating
-    await prisma.result.deleteMany({ where: { examId } })
-    const computed = await this.getResultsByExam(examId)
+    await prisma.result.deleteMany({ where: { examId, orgId } })
+    const computed = await this.getResultsByExam(examId, orgId)
 
     await prisma.result.createMany({
       data: computed.map((item) => ({
-        examId,
         studentId: item.studentId,
-        status: 'DRAFT',
-        remarks: `${item.grade} (${item.percentage}%) - ${item.status}`,
+        examId,
+        orgId,
+        status: item.status,
         createdById: userId,
       })),
-      skipDuplicates: true,
     })
 
-    return { count: computed.length }
+    return { generated: computed.length }
   },
 
-  async publishResults(examId: string) {
-    const updated = await prisma.result.updateMany({
-      where: { examId },
-      data: { status: 'PUBLISHED' },
-    })
-    return { updated: updated.count }
+  async publishResults(examId: string, orgId: string) {
+    const exam = await prisma.exam.findFirst({ where: { id: examId, orgId } })
+    if (!exam) throw new AppError('Exam not found', 404)
+
+    if (exam.status !== 'APPROVED') {
+      throw new AppError('Exam must be in APPROVED status to publish results.', 400)
+    }
+
+    await prisma.$transaction([
+      prisma.result.updateMany({
+        where: { 
+          examId,
+          orgId
+        },
+        data: { status: 'PUBLISHED' },
+      }),
+      prisma.exam.update({
+        where: { id: examId },
+        data: { status: 'PUBLISHED' },
+      }),
+    ])
+
+    return { publishedAt: new Date() }
   },
 }

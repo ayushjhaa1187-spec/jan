@@ -2,12 +2,14 @@ import { Request } from 'express';
 
 export interface AuthTokenPayload {
   userId: string;
+  orgId: string;
   role: string;
   permissions: string[];
 }
 
 export interface AuthenticatedUser {
   id: string;
+  orgId: string;
   email: string;
   isActive: boolean;
   role: string;

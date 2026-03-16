@@ -1,5 +1,5 @@
 import { NextFunction, Request, Response, Router } from 'express';
-import { login, logout, me, refresh } from './auth.controller';
+import { login, logout, me, refresh, register } from './auth.controller';
 import { requireAuth } from './auth.middleware';
 import asyncHandler from '../../utils/asyncHandler';
 
@@ -28,6 +28,7 @@ const authRateLimit = (req: Request, res: Response, next: NextFunction) => {
   return next();
 };
 
+router.post('/register', authRateLimit, asyncHandler(register));
 router.post('/login', authRateLimit, asyncHandler(login));
 router.post('/refresh', authRateLimit, asyncHandler(refresh));
 router.post('/logout', authRateLimit, asyncHandler(logout));

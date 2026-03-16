@@ -11,14 +11,37 @@ generator client {
 // Core Roles & Permissions
 // =======================
 
+model Organization {
+  id         String   @id @default(uuid())
+  name       String
+  schoolCode String   @unique // e.g. "DPSDELHI"
+  address    String?
+  board      String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  users      User[]
+  classes    Class[]
+  subjects   Subject[]
+  students   Student[]
+  teachers   Teacher[]
+  staff      OfficeStaff[]
+  exams      Exam[]
+  marks      Marks[]
+  results    Result[]
+  auditLogs  AuditLog[]
+}
+
 model User {
   id        String   @id @default(uuid())
   email     String   @unique
   password  String
   isActive  Boolean  @default(true)
+  orgId     String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  organization   Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
   userRoles      UserRole[]
   studentProfile Student?
   staffProfile   OfficeStaff?
@@ -90,9 +113,10 @@ model Student {
   lastName     String
   dateOfBirth  DateTime
   gender       String
-
   classId      String
+  orgId        String
 
+  organization Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
   user   User  @relation(fields: [userId], references: [id], onDelete: Cascade)
   class  Class @relation(fields: [classId], references: [id])
   
@@ -110,7 +134,9 @@ model Teacher {
   employeeId   String   @unique
   firstName    String
   lastName     String
+  orgId        String
 
+  organization Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
   user   User  @relation(fields: [userId], references: [id], onDelete: Cascade)
   
   subjects TeacherSubject[]
@@ -125,7 +151,9 @@ model OfficeStaff {
   employeeId   String   @unique
   firstName    String
   lastName     String
+  orgId        String
 
+  organization Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
   user   User  @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   createdAt DateTime @default(now())
@@ -136,7 +164,9 @@ model Class {
   id        String   @id @default(uuid())
   name      String   // e.g., "10th Grade"
   section   String   // e.g., "A"
+  orgId     String
   
+  organization Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
   students  Student[]
   subjects  Subject[]   @relation("ClassSubjects")
   exams     Exam[]
@@ -144,14 +174,16 @@ model Class {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  @@unique([name, section])
+  @@unique([name, section, orgId])
 }
 
 model Subject {
   id        String   @id @default(uuid())
-  code      String   @unique
+  code      String   
   name      String
+  orgId     String
 
+  organization Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
   classes   Class[]  @relation("ClassSubjects")
   teachers  TeacherSubject[]
   exams     ExamSubject[]
@@ -159,6 +191,8 @@ model Subject {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@unique([code, orgId])
 }
 
 model TeacherSubject {
@@ -183,7 +217,9 @@ model Exam {
   startDate   DateTime
   endDate     DateTime
   status      String   @default("DRAFT") // DRAFT, REVIEW, APPROVED, PUBLISHED
+  orgId       String
 
+  organization Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
   classId     String
   class       Class    @relation(fields: [classId], references: [id])
 
@@ -219,10 +255,12 @@ model Marks {
   studentId  String
   subjectId  String
   examId     String
+  orgId      String
   
   marks      Float
   maxMarks   Float    // Usually fixed per ExamSubject, but kept here for easy scale/audit
 
+  organization Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
   student    Student @relation(fields: [studentId], references: [id])
   subject    Subject @relation(fields: [subjectId], references: [id])
   exam       Exam    @relation(fields: [examId], references: [id])
@@ -244,10 +282,12 @@ model Result {
   id        String   @id @default(uuid())
   studentId String
   examId    String
+  orgId     String
   
   status    String   @default("DRAFT") // DRAFT, REVIEW, APPROVED, PUBLISHED
   remarks   String?
 
+  organization Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
   student   Student @relation(fields: [studentId], references: [id])
   exam      Exam    @relation(fields: [examId], references: [id])
 
@@ -284,6 +324,7 @@ model Attendance {
 model AuditLog {
   id        String   @id @default(uuid())
   userId    String?
+  orgId     String?
   action    String
   entity    String   // Make it scalable (e.g. "USER", "EXAM", "MARKS")
   entityId  String?
@@ -291,6 +332,7 @@ model AuditLog {
   ipAddress String?
 
   user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  organization Organization? @relation(fields: [orgId], references: [id], onDelete: SetNull)
 
   createdAt DateTime @default(now())
 }

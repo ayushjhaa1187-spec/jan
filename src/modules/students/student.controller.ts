@@ -16,7 +16,11 @@ const getStudentOpUserId = (req: Request): string => {
 export const createStudent = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const payload = createStudentSchema.parse(req.body)
-    const data = await studentService.createStudent(payload, getStudentOpUserId(req), req.ip)
+    const data = await studentService.createStudent(
+      { ...payload, orgId: req.user!.orgId },
+      getStudentOpUserId(req),
+      req.ip
+    )
     return res.status(201).json(success(data, 'Student created successfully'))
   } catch (error) {
     return next(error)
@@ -26,6 +30,7 @@ export const createStudent = async (req: Request, res: Response, next: NextFunct
 export const getStudents = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const data = await studentService.getStudents({
+      orgId: req.user!.orgId,
       classId: typeof req.query.classId === 'string' ? req.query.classId : undefined,
       search: typeof req.query.search === 'string' ? req.query.search : undefined,
       page: typeof req.query.page === 'string' ? Number(req.query.page) : undefined,

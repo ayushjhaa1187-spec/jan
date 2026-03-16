@@ -45,12 +45,14 @@ export const studentService = {
         firstName: parsedName.firstName,
         lastName: parsedName.lastName,
         class: { connect: { id: data.classId } },
+        organization: { connect: { id: data.orgId } },
         dateOfBirth: new Date('2000-01-01T00:00:00.000Z'),
         gender: 'UNSPECIFIED',
         user: {
           create: {
             email: data.email ?? `${data.adm_no.toLowerCase()}@school.local`,
             password: 'not-used',
+            orgId: data.orgId
           },
         },
       },
@@ -59,6 +61,7 @@ export const studentService = {
 
     void logAudit({
       userId,
+      orgId: data.orgId,
       action: 'CREATE_STUDENT',
       entity: 'Student',
       entityId: created.id,
@@ -78,6 +81,7 @@ export const studentService = {
     const skip = (page - 1) * limit
 
     const where = {
+      orgId: params.orgId,
       ...(params.classId ? { classId: params.classId } : {}),
       ...(params.search
         ? {

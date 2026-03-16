@@ -16,7 +16,11 @@ const getExamOpUserId = (req: Request): string => {
 export const createExam = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const payload = createExamSchema.parse(req.body)
-    const data = await examService.createExam(payload, getExamOpUserId(req), req.ip)
+    const data = await examService.createExam(
+      { ...payload, orgId: req.user!.orgId },
+      getExamOpUserId(req),
+      req.ip
+    )
     return res.status(201).json(success(data, 'Exam created successfully'))
   } catch (error) {
     return next(error)
@@ -26,6 +30,7 @@ export const createExam = async (req: Request, res: Response, next: NextFunction
 export const getExams = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const data = await examService.getExams({
+      orgId: req.user!.orgId,
       classId: typeof req.query.classId === 'string' ? req.query.classId : undefined,
       status: typeof req.query.status === 'string' ? req.query.status.toUpperCase() as 'DRAFT' | 'REVIEW' | 'APPROVED' | 'PUBLISHED' : undefined,
       search: typeof req.query.search === 'string' ? req.query.search : undefined,

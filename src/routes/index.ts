@@ -11,6 +11,7 @@ import resultRoutes from '../modules/results/result.routes'
 import reportRoutes from '../modules/reports/report.routes'
 import notificationRoutes from '../modules/notifications/notification.routes'
 import auditRoutes from '../modules/audit/audit.routes'
+import userRoutes from '../modules/users/user.routes'
 
 const router = Router()
 
@@ -26,5 +27,6 @@ router.use('/results', resultRoutes)
 router.use('/reports', reportRoutes)
 router.use('/notifications', notificationRoutes)
 router.use('/audit', auditRoutes)
+router.use('/users', userRoutes)
 
 export default router

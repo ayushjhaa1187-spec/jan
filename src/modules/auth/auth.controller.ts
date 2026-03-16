@@ -12,16 +12,31 @@ const getAuthOpUserId = (req: Request): string => {
   return userId
 }
 
+export const register = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { organization, admin } = req.body
+    if (!organization || !admin) {
+      throw new AppError('Organization and Admin details are required', 400)
+    }
+
+    const result = await authService.register(organization, admin)
+    return res.status(201).json(success(result, 'Organization registered successfully'))
+  } catch (error) {
+    return next(error)
+  }
+}
+
 export const login = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const email = typeof req.body?.email === 'string' ? req.body.email : ''
     const password = typeof req.body?.password === 'string' ? req.body.password : ''
+    const schoolCode = typeof req.body?.organizationId === 'string' ? req.body.organizationId : undefined
 
     if (!email || !password) {
       throw new AppError('Email and password are required', 400)
     }
 
-    const result = await authService.login(email, password, req.ip)
+    const result = await authService.login(email, password, schoolCode, req.ip)
 
     return res.json(
       success({

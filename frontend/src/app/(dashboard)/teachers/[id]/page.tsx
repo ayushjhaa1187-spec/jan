@@ -48,6 +48,16 @@ interface ClassesResponse {
   data: ClassItem[];
 }
 
+interface SubjectItem {
+  id: string;
+  name: string;
+  code: string;
+}
+
+interface SubjectsResponse {
+  data: SubjectItem[];
+}
+
 export default function TeacherDetailPage() {
   const params = useParams<{ id: string }>()
   const id = params?.id
@@ -67,6 +77,11 @@ export default function TeacherDetailPage() {
   const classes = useQuery<ClassesResponse>({
     queryKey: ['classes'],
     queryFn: async () => (await api.get('/classes')).data
+  })
+
+  const subjects = useQuery<SubjectsResponse>({
+    queryKey: ['subjects'],
+    queryFn: async () => (await api.get('/subjects')).data
   })
 
   const teacherData = teacher.data?.data
@@ -144,11 +159,11 @@ export default function TeacherDetailPage() {
         />
       </Card>
 
-      <Card title="Assign Class Duties">
-        <div className="flex flex-col space-y-2">
-          <label className="text-sm font-medium text-gray-700">Select Class</label>
-          <div className="flex gap-4">
-            <select className="flex-1 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+      <Card title="Assign Teacher">
+        <div className="flex flex-col space-y-4 sm:flex-row sm:space-y-0 sm:space-x-4">
+          <div className="flex-1 flex flex-col space-y-1">
+            <label className="text-sm font-medium text-slate-700">Class</label>
+            <select className="px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 w-full">
               <option value="">Select a class...</option>
               {(classes.data?.data ?? []).map((item) => (
                 <option key={item.id} value={item.id}>
@@ -156,7 +171,22 @@ export default function TeacherDetailPage() {
                 </option>
               ))}
             </select>
-            <button className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition">
+          </div>
+          
+          <div className="flex-1 flex flex-col space-y-1">
+            <label className="text-sm font-medium text-slate-700">Subject</label>
+            <select className="px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 w-full">
+              <option value="">Select a subject...</option>
+              {(subjects.data?.data ?? []).map((item) => (
+                <option key={item.id} value={item.id}>
+                  {item.name} ({item.code})
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="flex items-end">
+            <button className="w-full sm:w-auto px-6 py-2.5 bg-indigo-600 text-white font-medium rounded-lg hover:bg-indigo-700 transition shadow-sm">
               Assign
             </button>
           </div>

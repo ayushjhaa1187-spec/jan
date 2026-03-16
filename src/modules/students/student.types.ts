@@ -4,6 +4,7 @@ export interface CreateStudentInput {
   email?: string;
   phone?: string;
   classId: string;
+  orgId: string;
 }
 
 export interface UpdateStudentInput {
@@ -23,4 +24,5 @@ export interface StudentListQuery {
   search?: string;
   page?: number;
   limit?: number;
+  orgId: string;
 }

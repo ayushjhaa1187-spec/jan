@@ -10,7 +10,7 @@ const sendPdf = (res: Response, filename: string, buffer: Buffer) => {
 
 export const getCharts = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const data = await reportService.getCharts(String(req.params.examId))
+    const data = await reportService.getCharts(String(req.params.examId), req.user!.orgId)
     return res.json(success(data))
   } catch (error) {
     return next(error)

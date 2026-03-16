@@ -59,6 +59,7 @@ export const teacherService = {
         employeeId: payload.employeeId,
         firstName: names.firstName,
         lastName: names.lastName,
+        orgId: payload.orgId,
       },
       include: { user: { select: { id: true, email: true } } },
     });
@@ -76,16 +77,19 @@ export const teacherService = {
     const limit = query.limit && query.limit > 0 ? query.limit : 20;
     const skip = (page - 1) * limit;
 
-    const where = query.search
-      ? {
-          OR: [
-            { firstName: { contains: query.search, mode: 'insensitive' as const } },
-            { lastName: { contains: query.search, mode: 'insensitive' as const } },
-            { employeeId: { contains: query.search, mode: 'insensitive' as const } },
-            { user: { email: { contains: query.search, mode: 'insensitive' as const } } },
-          ],
-        }
-      : {};
+    const where = {
+      orgId: query.orgId,
+      ...(query.search
+        ? {
+            OR: [
+              { firstName: { contains: query.search, mode: 'insensitive' as const } },
+              { lastName: { contains: query.search, mode: 'insensitive' as const } },
+              { employeeId: { contains: query.search, mode: 'insensitive' as const } },
+              { user: { email: { contains: query.search, mode: 'insensitive' as const } } },
+            ],
+          }
+        : {}),
+    };
 
     const [total, data] = await Promise.all([
       prisma.teacher.count({ where }),

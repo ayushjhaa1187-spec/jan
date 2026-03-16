@@ -11,8 +11,14 @@ const rangeLabel = (score: number): string => {
 }
 
 export const reportService = {
-  async getCharts(examId: string) {
-    const marks = await prisma.marks.findMany({ where: { examId }, include: { subject: true, student: true } })
+  async getCharts(examId: string, orgId: string) {
+    const marks = await prisma.marks.findMany({ 
+      where: { 
+        examId,
+        orgId
+      }, 
+      include: { subject: true, student: true } 
+    })
 
     const byStudent = new Map<string, { name: string; total: number; max: number }>()
     const bySubject = new Map<string, { name: string; total: number; count: number }>()

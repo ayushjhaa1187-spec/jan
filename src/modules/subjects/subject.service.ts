@@ -2,8 +2,8 @@ import prisma from '../../utils/prisma';
 import AppError from '../../utils/AppError';
 import { CreateSubjectInput, UpdateSubjectInput } from './subject.types';
 
-const getByIdOrThrow = async (id: string) => {
-  const subject = await prisma.subject.findUnique({ where: { id } });
+const getByIdOrThrow = async (id: string, orgId: string) => {
+  const subject = await prisma.subject.findFirst({ where: { id, orgId } });
   if (!subject) {
     throw new AppError('Subject not found', 404);
   }
@@ -13,31 +13,35 @@ const getByIdOrThrow = async (id: string) => {
 export const subjectService = {
   async createSubject(payload: CreateSubjectInput) {
     const existing = await prisma.subject.findFirst({
-      where: { OR: [{ name: payload.name }, { code: payload.code }] },
+      where: { 
+        orgId: payload.orgId,
+        OR: [{ name: payload.name }, { code: payload.code }] 
+      },
     });
 
     if (existing) {
-      throw new AppError('Subject with this name or code already exists', 409);
+      throw new AppError('Subject with this name or code already exists in your organization', 409);
     }
 
     return prisma.subject.create({
       data: {
         name: payload.name,
         code: payload.code,
+        orgId: payload.orgId
       },
     });
   },
 
-  async getAllSubjects() {
-    return prisma.subject.findMany({ orderBy: { name: 'asc' } });
+  async getAllSubjects(orgId: string) {
+    return prisma.subject.findMany({ where: { orgId }, orderBy: { name: 'asc' } });
   },
 
-  async getSubjectById(id: string) {
-    return getByIdOrThrow(id);
+  async getSubjectById(id: string, orgId: string) {
+    return getByIdOrThrow(id, orgId);
   },
 
-  async updateSubject(id: string, payload: UpdateSubjectInput) {
-    await getByIdOrThrow(id);
+  async updateSubject(id: string, payload: UpdateSubjectInput, orgId: string) {
+    await getByIdOrThrow(id, orgId);
 
     const { maxMarks: _maxMarks, ...data } = payload;
 
@@ -48,8 +52,8 @@ export const subjectService = {
     }
   },
 
-  async deleteSubject(id: string) {
-    await getByIdOrThrow(id);
+  async deleteSubject(id: string, orgId: string) {
+    await getByIdOrThrow(id, orgId);
 
     const marksCount = await prisma.marks.count({ where: { subjectId: id } });
     if (marksCount > 0) {

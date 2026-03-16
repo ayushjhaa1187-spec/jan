@@ -24,7 +24,7 @@ interface AuthUserResponse {
 const normalizePermission = (action: string, resource: string): string =>
   `${action}_${resource}`.toLowerCase()
 
-const buildUserAndPermissions = async (userId: string): Promise<AuthUserResponse> => {
+const buildUserAndPermissions = async (userId: string): Promise<AuthUserResponse & { orgId: string }> => {
   const user = await prisma.user.findUnique({
     where: { id: userId },
     include: {
@@ -72,6 +72,7 @@ const buildUserAndPermissions = async (userId: string): Promise<AuthUserResponse
 
   return {
     id: user.id,
+    orgId: user.orgId,
     name,
     email: user.email,
     role,
@@ -109,11 +110,74 @@ const hasRefreshToken = async (userId: string, refreshToken: string): Promise<bo
 }
 
 export const authService = {
-  async login(email: string, password: string, ipAddress?: string) {
-    const user = await prisma.user.findUnique({ where: { email } })
+  async register(
+    orgData: { name: string; schoolCode: string; board?: string; address?: string },
+    adminData: { name: string; email: string; password: string }
+  ) {
+    const existingOrg = await prisma.organization.findUnique({ where: { schoolCode: orgData.schoolCode } })
+    if (existingOrg) {
+      throw new AppError('School code already registered', 400)
+    }
+
+    const existingUser = await prisma.user.findUnique({ where: { email: adminData.email } })
+    if (existingUser) {
+      throw new AppError('Email already in use', 400)
+    }
+
+    let principalRole = await prisma.role.findUnique({ where: { name: 'Principal' } })
+    if (!principalRole) {
+      principalRole = await prisma.role.create({
+        data: { name: 'Principal', description: 'Institutional Head' }
+      })
+    }
+
+    const hashedPassword = await bcrypt.hash(adminData.password, BCRYPT_SALT_ROUNDS)
+
+    const organization = await prisma.organization.create({
+      data: {
+        name: orgData.name,
+        schoolCode: orgData.schoolCode,
+        board: orgData.board,
+        address: orgData.address,
+      }
+    })
+
+    const user = await prisma.user.create({
+      data: {
+        email: adminData.email,
+        password: hashedPassword,
+        orgId: organization.id,
+        userRoles: {
+          create: {
+            roleId: principalRole.id
+          }
+        },
+        staffProfile: {
+          create: {
+            employeeId: `ADMIN-${orgData.schoolCode}`,
+            firstName: adminData.name,
+            lastName: '',
+            orgId: organization.id
+          }
+        }
+      }
+    })
+
+    return { organization, user: { id: user.id, email: user.email } }
+  },
+
+  async login(email: string, password: string, schoolCode?: string, ipAddress?: string) {
+    const user = await prisma.user.findUnique({ 
+      where: { email },
+      include: { organization: true }
+    })
 
     if (!user) {
       throw new AppError('Invalid credentials', 401)
+    }
+
+    if (schoolCode && user.organization.schoolCode.toUpperCase() !== schoolCode.toUpperCase()) {
+      throw new AppError('User does not belong to this school', 401)
     }
 
     const passwordMatch = await bcrypt.compare(password, user.password)
@@ -129,6 +193,7 @@ export const authService = {
 
     const payload: AuthTokenPayload = {
       userId: authUser.id,
+      orgId: authUser.orgId,
       role: authUser.role,
       permissions: authUser.permissions,
     }
@@ -139,19 +204,13 @@ export const authService = {
 
     void logAudit({
       userId: user.id,
-      action: 'USER_LOGIN',
-      entity: 'User',
-      entityId: user.id,
-      ipAddress,
-    })
-
-    void logAudit({
-      userId: authUser.id,
+      orgId: user.orgId,
       action: 'USER_LOGIN',
       entity: 'AUTH',
-      entityId: authUser.id,
-      details: { email: authUser.email },
-    });
+      entityId: user.id,
+      details: JSON.stringify({ email: user.email, schoolCode: user.organization.schoolCode }),
+      ipAddress,
+    })
 
     return {
       accessToken,
@@ -177,15 +236,9 @@ export const authService = {
     const authUser = await buildUserAndPermissions(decoded.userId)
     const accessToken = signAccessToken({
       userId: authUser.id,
+      orgId: authUser.orgId,
       role: authUser.role,
       permissions: authUser.permissions,
-    })
-
-    void logAudit({
-      userId: decoded.userId,
-      action: 'REFRESH_TOKEN',
-      entity: 'User',
-      entityId: decoded.userId,
     })
 
     return { accessToken }
@@ -193,7 +246,7 @@ export const authService = {
 
   async logout(userId: string, ipAddress?: string): Promise<void> {
     refreshTokenStore.delete(userId)
-
+    
     void logAudit({
       userId,
       action: 'USER_LOGOUT',
@@ -204,24 +257,47 @@ export const authService = {
   },
 
   async getMe(userId: string): Promise<AuthUserResponse> {
-    return buildUserAndPermissions(userId)
+    const data = await buildUserAndPermissions(userId)
+    return data
   },
 
-  async getCurrentUser(userId: string): Promise<{ id: string; email: string; role: string; roles: string[]; permissions: string[]; isActive: boolean } | null> {
+  async getCurrentUser(userId: string) {
     const user = await prisma.user.findUnique({ where: { id: userId } })
-    if (!user) {
-      return null
-    }
-
+    if (!user) return null
     const mapped = await buildUserAndPermissions(userId)
     return {
       id: mapped.id,
+      orgId: mapped.orgId,
       email: mapped.email,
       role: mapped.role,
       roles: [mapped.role],
       permissions: mapped.permissions,
       isActive: user.isActive,
     }
+  },
+
+  async getUsersByOrg(orgId: string) {
+    const users = await prisma.user.findMany({
+      where: { orgId },
+      include: {
+        userRoles: { include: { role: true } },
+        teacherProfile: true,
+        staffProfile: true,
+      }
+    })
+
+    return users.map(u => ({
+      id: u.id,
+      email: u.email,
+      isActive: u.isActive,
+      role: u.userRoles[0]?.role.name || 'User',
+      name: u.teacherProfile 
+        ? `${u.teacherProfile.firstName} ${u.teacherProfile.lastName}`
+        : u.staffProfile 
+          ? `${u.staffProfile.firstName} ${u.staffProfile.lastName}`
+          : u.email.split('@')[0],
+      createdAt: u.createdAt
+    }))
   },
 
   verifyAccessToken(token: string): AuthTokenPayload {

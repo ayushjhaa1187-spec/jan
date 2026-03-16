@@ -5,6 +5,7 @@ export interface CreateExamInput {
   classId: string;
   startDate: string;
   endDate: string;
+  orgId: string;
 }
 
 export interface UpdateExamInput {

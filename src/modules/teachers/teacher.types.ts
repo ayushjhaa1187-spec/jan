@@ -4,6 +4,7 @@ export interface CreateTeacherInput {
   qualification?: string;
   designation?: string;
   phone?: string;
+  orgId: string;
 }
 
 export interface UpdateTeacherInput {
@@ -20,4 +21,5 @@ export interface TeacherListQuery {
   page?: number;
   limit?: number;
   search?: string;
+  orgId: string;
 }

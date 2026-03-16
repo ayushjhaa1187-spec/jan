@@ -27,5 +27,8 @@ export const errorHandler = (
     return res.status(400).json(error('Database operation failed', 400));
   }
 
+  // Log unknown errors for debugging
+  console.error('[SERVER ERROR]:', err);
+
   return res.status(500).json(error('Internal server error', 500));
 };

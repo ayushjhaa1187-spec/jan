@@ -47,6 +47,7 @@ export const examService = {
     const duplicate = await prisma.exam.findFirst({
       where: {
         classId: data.classId,
+        orgId: data.orgId,
         name: data.name,
         startDate: { gte: new Date(new Date(data.startDate).getFullYear(), 0, 1) },
         endDate: { lte: new Date(new Date(data.startDate).getFullYear(), 11, 31, 23, 59, 59, 999) },
@@ -60,6 +61,7 @@ export const examService = {
     const created = await prisma.exam.create({
       data: {
         name: data.name,
+        orgId: data.orgId,
         classId: data.classId,
         startDate: new Date(data.startDate),
         endDate: new Date(data.endDate),
@@ -71,6 +73,7 @@ export const examService = {
 
     void logAudit({
       userId,
+      orgId: data.orgId,
       action: 'CREATE_EXAM',
       entity: 'Exam',
       entityId: created.id,
@@ -81,12 +84,13 @@ export const examService = {
     return created
   },
 
-  async getExams(params: ExamListQuery & { status?: string }) {
+  async getExams(params: ExamListQuery & { status?: string, orgId: string }) {
     const page = params.page && params.page > 0 ? params.page : 1
     const limit = params.limit && params.limit > 0 ? params.limit : 20
     const skip = (page - 1) * limit
 
     const where = {
+      orgId: params.orgId,
       ...(params.classId ? { classId: params.classId } : {}),
       ...(params.status ? { status: params.status } : {}),
       ...(params.search ? { name: { contains: params.search, mode: 'insensitive' as const } } : {}),

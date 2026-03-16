@@ -15,6 +15,7 @@ interface SidebarProps {
 
 const navItems = [
   { label: 'Dashboard', href: '/dashboard', roles: ['all'], icon: Home },
+  { label: 'Users', href: '/users', roles: ['Principal'], icon: UserCheck },
   { label: 'Students', href: '/students', roles: ['Principal', 'OfficeStaff'], icon: Users },
   { label: 'Classes', href: '/classes', roles: ['Principal', 'OfficeStaff'], icon: School },
   { label: 'Subjects', href: '/subjects', roles: ['Principal', 'OfficeStaff'], icon: BookOpen },

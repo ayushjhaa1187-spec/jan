@@ -10,7 +10,10 @@ import {
 export const createTeacher = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const payload = createTeacherSchema.parse(req.body);
-    const data = await teacherService.createTeacher(payload);
+    const data = await teacherService.createTeacher({
+      ...payload,
+      orgId: req.user!.orgId
+    });
     return res.status(201).json(success(data, 'Teacher created successfully'));
   } catch (error) {
     return next(error);
@@ -23,6 +26,7 @@ export const getTeachers = async (req: Request, res: Response, next: NextFunctio
       page: typeof req.query.page === 'string' ? Number(req.query.page) : undefined,
       limit: typeof req.query.limit === 'string' ? Number(req.query.limit) : undefined,
       search: typeof req.query.search === 'string' ? req.query.search : undefined,
+      orgId: req.user!.orgId
     });
 
     return res.json(success(data));
