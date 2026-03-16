@@ -291,7 +291,7 @@ export default function LandingPage() {
         <div className="max-w-7xl mx-auto px-6 relative z-10">
            <div className="text-center mb-32">
               <h2 className="text-5xl lg:text-7xl font-black text-white mb-8 tracking-tighter">Integrates with your ecosystem.</h2>
-              <p className="text-indigo-200 text-xl font-medium max-w-2xl mx-auto">EduTrack doesn't work in isolation. Use our industrial APIs to connect with existing ERPs or LMS platforms.</p>
+              <p className="text-indigo-200 text-xl font-medium max-w-2xl mx-auto">EduTrack doesn&apos;t work in isolation. Use our industrial APIs to connect with existing ERPs or LMS platforms.</p>
            </div>
            
            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
@@ -333,7 +333,7 @@ export default function LandingPage() {
            <div className="grid md:grid-cols-2 gap-12">
               {[
                 { 
-                  quote: "EduTrack didn't just digitize our results; it redefined how we understand student progress. The analytics are game-changing.", 
+                  quote: "EduTrack didn&apos;t just digitize our results; it redefined how we understand student progress. The analytics are game-changing.", 
                   author: "Dr. Elena Vance", 
                   role: "Head of Academic Board", 
                   inst: "Horizon International" 
