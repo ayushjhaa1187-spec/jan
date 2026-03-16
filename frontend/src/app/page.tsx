@@ -246,7 +246,7 @@ export default function LandingPage() {
       <div className="py-20 border-y border-slate-100 bg-white overflow-hidden relative group">
           <div className="absolute left-0 top-0 bottom-0 w-32 bg-gradient-to-r from-white to-transparent z-10" />
           <div className="absolute right-0 top-0 bottom-0 w-32 bg-gradient-to-l from-white to-transparent z-10" />
-          <div className="flex gap-20 items-center animate-scroll whitespace-nowrap">
+          <div className="flex gap-20 items-center animate-marquee whitespace-nowrap">
             {[1,2,3,4,5,6,7,8,9,10].map(i => (
               <div key={i} className="flex items-center gap-4 grayscale opacity-30 hover:grayscale-0 hover:opacity-100 transition-all cursor-pointer group-hover:[animation-play-state:paused]">
                 <div className="w-12 h-12 bg-slate-200 rounded-xl" />
