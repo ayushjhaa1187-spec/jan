@@ -12,9 +12,21 @@ import prisma from './utils/prisma';
 
 const app = express();
 
-// 1. CORS - MUST BE FIRST
+// 1. CORS - PRODUCTION HARDENING
+const allowedOrigins = [
+  'https://jan-two.vercel.app',
+  'http://localhost:3000',
+  process.env.FRONTEND_URL,
+].filter(Boolean) as string[];
+
 app.use(cors({
-  origin: '*', 
+  origin: (origin, callback) => {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'X-Auth-Token'],
   credentials: true,
@@ -23,10 +35,18 @@ app.use(cors({
 }));
 app.options('*', cors()); 
 
-// 2. Security Headers
+// 2. Security Headers (CSP Hardened)
 app.use(
   helmet({
-    contentSecurityPolicy: process.env.NODE_ENV === 'production' ? undefined : false,
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'self'"],
+        scriptSrc: ["'self'", "'unsafe-inline'", "https://*.vercel-scripts.com"],
+        styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
+        imgSrc: ["'self'", "data:", "https:*"],
+        connectSrc: ["'self'", "https:*"],
+      },
+    },
     crossOriginResourcePolicy: { policy: "cross-origin" }
   }),
 );

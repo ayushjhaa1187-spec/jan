@@ -45,7 +45,7 @@ export const getStudents = async (req: Request, res: Response, next: NextFunctio
 
 export const getStudentById = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const data = await studentService.getStudent(String(req.params.id))
+    const data = await studentService.getStudent(String(req.params.id), req.user!.orgId)
     return res.json(success(data))
   } catch (error) {
     return next(error)
@@ -55,7 +55,7 @@ export const getStudentById = async (req: Request, res: Response, next: NextFunc
 export const updateStudent = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const payload = updateStudentSchema.parse(req.body)
-    const data = await studentService.updateStudent(String(req.params.id), payload, getStudentOpUserId(req), req.ip)
+    const data = await studentService.updateStudent(String(req.params.id), payload, getStudentOpUserId(req), req.user!.orgId, req.ip)
     return res.json(success(data, 'Student updated successfully'))
   } catch (error) {
     return next(error)
@@ -64,7 +64,7 @@ export const updateStudent = async (req: Request, res: Response, next: NextFunct
 
 export const deleteStudent = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    await studentService.deleteStudent(String(req.params.id), getStudentOpUserId(req), req.ip)
+    await studentService.deleteStudent(String(req.params.id), getStudentOpUserId(req), req.user!.orgId, req.ip)
     return res.json(success(null, 'Student deleted successfully'))
   } catch (error) {
     return next(error)
@@ -74,7 +74,7 @@ export const deleteStudent = async (req: Request, res: Response, next: NextFunct
 export const transferStudentClass = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const payload = transferClassSchema.parse(req.body)
-    const data = await studentService.transferClass(String(req.params.id), payload.classId, getStudentOpUserId(req), req.ip)
+    const data = await studentService.transferClass(String(req.params.id), payload.classId, getStudentOpUserId(req), req.user!.orgId, req.ip)
     return res.json(success(data, 'Student transferred successfully'))
   } catch (error) {
     return next(error)
@@ -83,7 +83,7 @@ export const transferStudentClass = async (req: Request, res: Response, next: Ne
 
 export const getStudentResults = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const data = await studentService.getStudentResults(String(req.params.id))
+    const data = await studentService.getStudentResults(String(req.params.id), req.user!.orgId)
     return res.json(success(data))
   } catch (error) {
     return next(error)
@@ -92,7 +92,7 @@ export const getStudentResults = async (req: Request, res: Response, next: NextF
 
 export const getStudentMarks = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const data = await studentService.getStudentMarks(String(req.params.id))
+    const data = await studentService.getStudentMarks(String(req.params.id), req.user!.orgId)
     return res.json(success(data))
   } catch (error) {
     return next(error)

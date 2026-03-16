@@ -20,7 +20,7 @@ const paginationSchema = z.object({
 export const getAuditLogs = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const query = listAuditSchema.parse(req.query);
-    const result = await auditService.listAuditLogs(query);
+    const result = await auditService.listAuditLogs({ ...query, orgId: req.user!.orgId });
     return res.json({ success: true, data: result.data, meta: result.meta });
   } catch (error) {
     return next(error);
@@ -29,7 +29,7 @@ export const getAuditLogs = async (req: Request, res: Response, next: NextFuncti
 
 export const getAuditLogById = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const data = await auditService.getAuditById(String(req.params.id));
+    const data = await auditService.getAuditById(String(req.params.id), req.user!.orgId);
     return res.json({ success: true, data });
   } catch (error) {
     return next(error);
@@ -39,7 +39,7 @@ export const getAuditLogById = async (req: Request, res: Response, next: NextFun
 export const getAuditLogsByUser = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const pagination = paginationSchema.parse(req.query);
-    const result = await auditService.getAuditByUser(String(req.params.userId), pagination.page, pagination.limit);
+    const result = await auditService.getAuditByUser(String(req.params.userId), req.user!.orgId, pagination.page, pagination.limit);
     return res.json({ success: true, data: result.data, meta: result.meta });
   } catch (error) {
     return next(error);
@@ -49,7 +49,7 @@ export const getAuditLogsByUser = async (req: Request, res: Response, next: Next
 export const getAuditLogsByEntity = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const pagination = paginationSchema.parse(req.query);
-    const result = await auditService.getAuditByEntity(String(req.params.entity), pagination.page, pagination.limit);
+    const result = await auditService.getAuditByEntity(String(req.params.entity), req.user!.orgId, pagination.page, pagination.limit);
     return res.json({ success: true, data: result.data, meta: result.meta });
   } catch (error) {
     return next(error);

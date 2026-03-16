@@ -20,8 +20,9 @@ const parseDetails = (details: string | null): Record<string, unknown> | null =>
 };
 
 export const auditService = {
-  async listAuditLogs(query: ListAuditQuery) {
+  async listAuditLogs(query: ListAuditQuery & { orgId: string }) {
     const where = {
+      orgId: query.orgId,
       ...(query.userId ? { userId: query.userId } : {}),
       ...(query.action ? { action: query.action } : {}),
       ...(query.entity ? { entity: query.entity } : {}),
@@ -70,9 +71,9 @@ export const auditService = {
     };
   },
 
-  async getAuditById(id: string) {
-    const row = await prisma.auditLog.findUnique({
-      where: { id },
+  async getAuditById(id: string, orgId: string) {
+    const row = await prisma.auditLog.findFirst({
+      where: { id, orgId },
       include: {
         user: { select: { id: true, email: true } },
       },
@@ -94,11 +95,11 @@ export const auditService = {
     };
   },
 
-  async getAuditByUser(userId: string, page: number, limit: number) {
-    return this.listAuditLogs({ userId, page, limit });
+  async getAuditByUser(userId: string, orgId: string, page: number, limit: number) {
+    return this.listAuditLogs({ userId, orgId, page, limit });
   },
 
-  async getAuditByEntity(entity: string, page: number, limit: number) {
-    return this.listAuditLogs({ entity, page, limit });
+  async getAuditByEntity(entity: string, orgId: string, page: number, limit: number) {
+    return this.listAuditLogs({ entity, orgId, page, limit });
   },
 };
