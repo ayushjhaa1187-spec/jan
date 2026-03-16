@@ -1,0 +1,12 @@
+{
+  "organization": {
+    "name": "Test School",
+    "schoolCode": "TESTORG",
+    "board": "CBSE"
+  },
+  "admin": {
+    "name": "Admin User",
+    "email": "admin@test.com",
+    "password": "password123"
+  }
+}
