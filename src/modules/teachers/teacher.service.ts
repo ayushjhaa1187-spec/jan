@@ -13,9 +13,9 @@ const splitFromEmail = (email: string): { firstName: string; lastName: string } 
   return { firstName, lastName: 'Teacher' };
 };
 
-const getTeacherByIdOrThrow = async (id: string) => {
-  const teacher = await prisma.teacher.findUnique({
-    where: { id },
+const getTeacherByIdOrThrow = async (id: string, orgId: string) => {
+  const teacher = await prisma.teacher.findFirst({
+    where: { id, orgId },
     include: {
       user: { select: { id: true, email: true } },
       subjects: {
@@ -28,7 +28,7 @@ const getTeacherByIdOrThrow = async (id: string) => {
   });
 
   if (!teacher) {
-    throw new AppError('Teacher not found', 404);
+    throw new AppError('Teacher not found or access denied', 404);
   }
 
   return teacher;
@@ -36,9 +36,9 @@ const getTeacherByIdOrThrow = async (id: string) => {
 
 export const teacherService = {
   async createTeacher(payload: CreateTeacherInput) {
-    const user = await prisma.user.findUnique({ where: { id: payload.userId } });
+    const user = await prisma.user.findFirst({ where: { id: payload.userId, orgId: payload.orgId } });
     if (!user) {
-      throw new AppError('User not found', 404);
+      throw new AppError('User not found in this organization or access denied', 404);
     }
 
     const existingByUser = await prisma.teacher.findUnique({ where: { userId: payload.userId } });
@@ -113,12 +113,17 @@ export const teacherService = {
     };
   },
 
-  async getTeacherById(id: string) {
-    const teacher = await getTeacherByIdOrThrow(id);
+  async getTeacherById(id: string, orgId: string) {
+    const teacher = await getTeacherByIdOrThrow(id, orgId);
 
-    const classAssignments = await prisma.teacherSubject.findMany({ where: { teacherId: id } });
+    const classAssignments = await prisma.teacherSubject.findMany({ 
+      where: { 
+        teacherId: id,
+        teacher: { orgId } // Explicitly scope via relation
+      } 
+    });
     const classIds = Array.from(new Set(classAssignments.map((item) => item.classId)));
-    const classes = await prisma.class.findMany({ where: { id: { in: classIds } } });
+    const classes = await prisma.class.findMany({ where: { id: { in: classIds }, orgId } });
 
     return {
       ...teacher,
@@ -126,15 +131,20 @@ export const teacherService = {
     };
   },
 
-  async updateTeacher(id: string, _payload: UpdateTeacherInput) {
-    const teacher = await getTeacherByIdOrThrow(id);
+  async updateTeacher(id: string, orgId: string, _payload: UpdateTeacherInput) {
+    const teacher = await getTeacherByIdOrThrow(id, orgId);
     return teacher;
   },
 
-  async deleteTeacher(id: string) {
-    await getTeacherByIdOrThrow(id);
+  async deleteTeacher(id: string, orgId: string) {
+    await getTeacherByIdOrThrow(id, orgId);
 
-    const assignmentCount = await prisma.teacherSubject.count({ where: { teacherId: id } });
+    const assignmentCount = await prisma.teacherSubject.count({ 
+      where: { 
+        teacherId: id,
+        teacher: { orgId }
+      } 
+    });
     if (assignmentCount > 0) {
       throw new AppError('Teacher has subject assignments. Remove them first.', 400);
     }
@@ -142,35 +152,43 @@ export const teacherService = {
     await prisma.teacher.delete({ where: { id } });
   },
 
-  async getTeacherSubjects(id: string) {
-    await getTeacherByIdOrThrow(id);
+  async getTeacherSubjects(id: string, orgId: string) {
+    await getTeacherByIdOrThrow(id, orgId);
     const assignments = await prisma.teacherSubject.findMany({
-      where: { teacherId: id },
+      where: { 
+        teacherId: id,
+        teacher: { orgId }
+      },
       include: { subject: true },
     });
     const classIds = Array.from(new Set(assignments.map((item) => item.classId)));
-    const classes = await prisma.class.findMany({ where: { id: { in: classIds } } });
+    const classes = await prisma.class.findMany({ where: { id: { in: classIds }, orgId } });
     const classMap = new Map(classes.map((item) => [item.id, item]));
     return assignments.map((item) => ({ ...item, class: classMap.get(item.classId) || null }));
   },
 
-  async getTeacherClasses(id: string) {
-    await getTeacherByIdOrThrow(id);
+  async getTeacherClasses(id: string, orgId: string) {
+    await getTeacherByIdOrThrow(id, orgId);
 
-    const assignments = await prisma.teacherSubject.findMany({ where: { teacherId: id } });
+    const assignments = await prisma.teacherSubject.findMany({ 
+      where: { 
+        teacherId: id,
+        teacher: { orgId }
+      } 
+    });
     const classIds = Array.from(new Set(assignments.map((item) => item.classId)));
-    return prisma.class.findMany({ where: { id: { in: classIds } } });
+    return prisma.class.findMany({ where: { id: { in: classIds }, orgId } });
   },
 
-  async assignClassTeacher(id: string, _payload: AssignClassTeacherInput) {
-    await getTeacherByIdOrThrow(id);
+  async assignClassTeacher(id: string, orgId: string, _payload: AssignClassTeacherInput) {
+    await getTeacherByIdOrThrow(id, orgId);
     return {
       warning: 'Class teacher assignment is not supported by current schema.',
     };
   },
 
-  async removeClassTeacher(id: string, _payload: AssignClassTeacherInput) {
-    await getTeacherByIdOrThrow(id);
+  async removeClassTeacher(id: string, orgId: string, _payload: AssignClassTeacherInput) {
+    await getTeacherByIdOrThrow(id, orgId);
     return {
       warning: 'Class teacher assignment is not supported by current schema.',
     };

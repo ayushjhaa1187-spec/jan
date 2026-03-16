@@ -3,6 +3,7 @@ import './globals.css'
 import { Toaster } from 'sonner'
 import { QueryProvider } from '@/components/providers/QueryProvider'
 import { AuthProvider } from '@/components/providers/AuthProvider'
+import { CommandPalette } from '@/components/layout/CommandPalette'
 
 export const metadata: Metadata = {
   title: 'EduTrack - Examination Management System',
@@ -15,7 +16,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body>
         <QueryProvider>
           <AuthProvider>
-            {children}
+            <div className="relative min-h-screen">
+              {children}
+            </div>
+            <CommandPalette />
             <Toaster position="top-right" richColors />
           </AuthProvider>
         </QueryProvider>

@@ -37,7 +37,7 @@ export const getTeachers = async (req: Request, res: Response, next: NextFunctio
 
 export const getTeacherById = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const data = await teacherService.getTeacherById(String(req.params.id));
+    const data = await teacherService.getTeacherById(String(req.params.id), req.user!.orgId);
     return res.json(success(data));
   } catch (error) {
     return next(error);
@@ -47,7 +47,7 @@ export const getTeacherById = async (req: Request, res: Response, next: NextFunc
 export const updateTeacher = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const payload = updateTeacherSchema.parse(req.body);
-    const data = await teacherService.updateTeacher(String(req.params.id), payload);
+    const data = await teacherService.updateTeacher(String(req.params.id), req.user!.orgId, payload);
     return res.json(success(data, 'Teacher updated successfully'));
   } catch (error) {
     return next(error);
@@ -56,7 +56,7 @@ export const updateTeacher = async (req: Request, res: Response, next: NextFunct
 
 export const deleteTeacher = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    await teacherService.deleteTeacher(String(req.params.id));
+    await teacherService.deleteTeacher(String(req.params.id), req.user!.orgId);
     return res.json(success(null, 'Teacher deleted successfully'));
   } catch (error) {
     return next(error);
@@ -65,7 +65,7 @@ export const deleteTeacher = async (req: Request, res: Response, next: NextFunct
 
 export const getTeacherSubjects = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const data = await teacherService.getTeacherSubjects(String(req.params.id));
+    const data = await teacherService.getTeacherSubjects(String(req.params.id), req.user!.orgId);
     return res.json(success(data));
   } catch (error) {
     return next(error);
@@ -74,7 +74,7 @@ export const getTeacherSubjects = async (req: Request, res: Response, next: Next
 
 export const getTeacherClasses = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const data = await teacherService.getTeacherClasses(String(req.params.id));
+    const data = await teacherService.getTeacherClasses(String(req.params.id), req.user!.orgId);
     return res.json(success(data));
   } catch (error) {
     return next(error);
@@ -84,7 +84,7 @@ export const getTeacherClasses = async (req: Request, res: Response, next: NextF
 export const assignClassTeacher = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const payload = assignClassTeacherSchema.parse(req.body);
-    const data = await teacherService.assignClassTeacher(String(req.params.id), payload);
+    const data = await teacherService.assignClassTeacher(String(req.params.id), req.user!.orgId, payload);
     return res.json(success(data, 'Class teacher assignment processed'));
   } catch (error) {
     return next(error);
@@ -94,7 +94,7 @@ export const assignClassTeacher = async (req: Request, res: Response, next: Next
 export const removeClassTeacher = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const payload = assignClassTeacherSchema.parse(req.body);
-    const data = await teacherService.removeClassTeacher(String(req.params.id), payload);
+    const data = await teacherService.removeClassTeacher(String(req.params.id), req.user!.orgId, payload);
     return res.json(success(data, 'Class teacher removal processed'));
   } catch (error) {
     return next(error);

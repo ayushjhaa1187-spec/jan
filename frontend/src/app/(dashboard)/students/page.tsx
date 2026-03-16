@@ -3,9 +3,11 @@
 import Link from 'next/link'
 import { useMemo, useState } from 'react'
 import { motion } from 'framer-motion'
-import { Users, UserPlus, Search, GraduationCap, Filter } from 'lucide-react'
-import { useStudents } from '@/hooks/useStudents'
+import { Users, UserPlus, Search, GraduationCap, Filter, Download } from 'lucide-react'
+import { toast } from 'sonner'
+import { useStudents, useUpdateStudent } from '@/hooks/useStudents'
 import { Table, Column } from '@/components/ui/Table'
+import { EditableCell } from '@/components/ui/EditableCell'
 import { Input } from '@/components/ui/Input'
 import { Pagination } from '@/components/ui/Pagination'
 import { StatCard } from '@/components/ui/Card'
@@ -37,7 +39,9 @@ const item = {
 
 export default function StudentsPage() {
   const [page, setPage] = useState(1);
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const { data, isPending } = useStudents({ page });
+  const updateStudent = useUpdateStudent();
   
   const rows = (data as any)?.data ?? [];
   const meta = (data as any)?.meta ?? { totalPages: 1, total: 0 };
@@ -60,14 +64,22 @@ export default function StudentsPage() {
           const first = (student as any).firstName || (student as any).name || '';
           const last = (student as any).lastName || '';
           const initials = first.charAt(0) + (last?.charAt(0) || '');
+          
           return (
             <div className="flex items-center gap-3">
               <div className="w-8 h-8 rounded-full bg-indigo-50 flex items-center justify-center text-indigo-600 text-[10px] font-black uppercase">
                 {initials || 'S'}
               </div>
-              <span className="font-bold text-slate-900">
-                {`${first} ${last}`.trim() || 'Unnamed'}
-              </span>
+              <EditableCell 
+                value={first}
+                className="text-sm font-bold text-slate-900"
+                onSave={async (newName) => {
+                   await updateStudent.mutateAsync({ 
+                     id: student.id, 
+                     payload: { name: newName } 
+                   })
+                }}
+              />
             </div>
           );
         }
@@ -92,7 +104,7 @@ export default function StudentsPage() {
         )
       }
     ],
-    []
+    [updateStudent]
   );
 
   return (
@@ -133,6 +145,32 @@ export default function StudentsPage() {
             className="pl-12 h-14 rounded-2xl border-slate-200 focus:ring-indigo-500 shadow-sm transition-all"
           />
         </div>
+        <Button 
+          variant="secondary" 
+          className="h-14 rounded-2xl border-slate-200 font-bold px-6 flex gap-2"
+          onClick={() => {
+            if (!rows.length) return;
+            const headers = ['Admission No', 'First Name', 'Last Name', 'Class'];
+            const csvContent = [
+              headers.join(','),
+              ...rows.map((s: any) => [
+                s.enrollmentNo || s.adm_no || '-',
+                s.firstName || s.name || '-',
+                s.lastName || '-',
+                `${s.class?.name || '-' } ${s.class?.section || '-'}`
+              ].join(','))
+            ].join('\n');
+            const blob = new Blob([csvContent], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `students_export_${Date.now()}.csv`;
+            a.click();
+            toast.success('Data exported to CSV');
+          }}
+        >
+           <Download size={18} /> Export CSV
+        </Button>
         <Button variant="secondary" className="h-14 rounded-2xl border-slate-200 font-bold px-6 flex gap-2">
            <Filter size={18} /> Filter List
         </Button>
@@ -144,6 +182,8 @@ export default function StudentsPage() {
           data={rows} 
           loading={isPending} 
           keyExtractor={(student) => student.id} 
+          selectedIds={selectedIds}
+          onSelectChange={setSelectedIds}
         />
       </motion.div>
 

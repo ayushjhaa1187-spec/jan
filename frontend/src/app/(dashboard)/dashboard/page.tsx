@@ -24,7 +24,8 @@ import api from '@/lib/api'
 import { useAuthStore } from '@/store/authStore'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
-import { Card } from '@/components/ui/Card'
+import { Card, StatCard } from '@/components/ui/Card'
+import { CountUp } from '@/components/ui/CountUp'
 
 const container = {
   hidden: { opacity: 0 },
@@ -49,7 +50,9 @@ function PremiumStatCard({ title, value, icon: Icon, color }: { title: string; v
         <div className="flex items-start justify-between relative z-10">
           <div>
             <p className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-1">{title}</p>
-            <h3 className="text-3xl font-black text-slate-900">{value}</h3>
+            <h3 className="text-3xl font-black text-slate-900">
+              {typeof value === 'number' ? <CountUp target={value} /> : value}
+            </h3>
           </div>
           <div className={`p-4 rounded-2xl bg-${color}-50 text-${color}-600 group-hover:scale-110 transition-transform duration-300`}>
             <Icon size={24} />

@@ -1,12 +1,13 @@
 import prisma from '../../utils/prisma';
 
-export const getUsersWithPermission = async (permission: string): Promise<string[]> => {
+export const getUsersWithPermission = async (permission: string, orgId: string): Promise<string[]> => {
   const normalized = permission.toLowerCase();
   const [action, ...resourceParts] = normalized.split('_');
   const resource = resourceParts.join('_').toUpperCase();
 
   const users = await prisma.user.findMany({
     where: {
+      orgId,
       userRoles: {
         some: {
           role: {
@@ -32,6 +33,7 @@ export const createNotification = async (
   userId: string,
   title: string,
   message: string,
+  orgId: string,
 ): Promise<void> => {
   try {
     await prisma.notification.create({
@@ -39,6 +41,7 @@ export const createNotification = async (
         userId,
         title,
         message,
+        orgId,
         type: 'SYSTEM',
       },
     });

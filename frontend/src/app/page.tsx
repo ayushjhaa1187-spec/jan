@@ -259,7 +259,7 @@ export default function LandingPage() {
               "Academic Intelligence",
               "Global Scale"
             ].map((tagline, i) => (
-              <div key={i} className="flex items-center gap-4 grayscale opacity-80 hover:opacity-100 transition-all cursor-pointer group-hover:[animation-play-state:paused] hover:scale-105">
+              <div key={i} className="flex items-center gap-4 opacity-100 transition-all cursor-pointer group-hover:[animation-play-state:paused] hover:scale-105">
                 <div className="w-12 h-12 bg-indigo-600/10 rounded-xl flex items-center justify-center">
                   <Zap className="w-6 h-6 text-indigo-600" />
                 </div>
@@ -279,7 +279,7 @@ export default function LandingPage() {
               "Academic Intelligence",
               "Global Scale"
             ].map((tagline, i) => (
-              <div key={`dup-${i}`} className="flex items-center gap-4 grayscale opacity-80 hover:opacity-100 transition-all cursor-pointer group-hover:[animation-play-state:paused] hover:scale-105">
+              <div key={`dup-${i}`} className="flex items-center gap-4 opacity-100 transition-all cursor-pointer group-hover:[animation-play-state:paused] hover:scale-105">
                 <div className="w-12 h-12 bg-indigo-600/10 rounded-xl flex items-center justify-center">
                   <Zap className="w-6 h-6 text-indigo-600" />
                 </div>

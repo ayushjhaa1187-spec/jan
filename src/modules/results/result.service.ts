@@ -84,8 +84,17 @@ export const resultService = {
       include: { subject: true },
     })
 
+    // PERFORMANCE OPTIMIZATION: Use a Map for O(1) lookup instead of O(M) filter in the loop.
+    // This reduces overall complexity from O(N*M) to O(N+M).
+    const marksByStudent = new Map<string, typeof marks>();
+    marks.forEach(m => {
+      const list = marksByStudent.get(m.studentId) || [];
+      list.push(m);
+      marksByStudent.set(m.studentId, list);
+    });
+
     const resultRows = students.map((student) => {
-      const studentMarks = marks.filter((item) => item.studentId === student.id)
+      const studentMarks = marksByStudent.get(student.id) || [];
       const obtained = studentMarks.reduce((sum, item) => sum + item.marks, 0)
       const maximum = studentMarks.reduce((sum, item) => sum + item.maxMarks, 0)
       const percentage = maximum > 0 ? (obtained / maximum) * 100 : 0

@@ -11,10 +11,10 @@ const splitName = (name: string): { firstName: string; lastName: string } => {
   }
 }
 
-const ensureClassExists = async (classId: string) => {
-  const found = await prisma.class.findUnique({ where: { id: classId } })
+const ensureClassExists = async (classId: string, orgId: string) => {
+  const found = await prisma.class.findFirst({ where: { id: classId, orgId } })
   if (!found) {
-    throw new AppError('Class not found', 404)
+    throw new AppError('Class not found or access denied', 404)
   }
 
   return found
@@ -34,11 +34,16 @@ const getStudentOrThrow = async (id: string, orgId: string) => {
 
 export const studentService = {
   async createStudent(data: CreateStudentInput, userId: string, ipAddress?: string) {
-    await ensureClassExists(data.classId)
+    await ensureClassExists(data.classId, data.orgId)
 
-    const duplicate = await prisma.student.findUnique({ where: { enrollmentNo: data.adm_no } })
+    const duplicate = await prisma.student.findFirst({ 
+      where: { 
+        enrollmentNo: data.adm_no,
+        orgId: data.orgId 
+      } 
+    })
     if (duplicate) {
-      throw new AppError('Student with this admission number already exists', 409)
+      throw new AppError('Student with this admission number already exists in your organization', 409)
     }
 
     const parsedName = splitName(data.name)
@@ -134,11 +139,21 @@ export const studentService = {
     } = {}
 
     if (data.classId) {
-      await ensureClassExists(data.classId)
+      await ensureClassExists(data.classId, orgId)
       updates.classId = data.classId
     }
 
     if (data.adm_no) {
+      const duplicate = await prisma.student.findFirst({
+        where: {
+          enrollmentNo: data.adm_no,
+          orgId,
+          NOT: { id }
+        }
+      })
+      if (duplicate) {
+        throw new AppError('Admission number already in use in your organization', 409)
+      }
       updates.enrollmentNo = data.adm_no
     }
 
@@ -191,7 +206,7 @@ export const studentService = {
 
   async transferClass(id: string, classId: string, userId: string, orgId: string, ipAddress?: string) {
     await getStudentOrThrow(id, orgId)
-    await ensureClassExists(classId)
+    await ensureClassExists(classId, orgId)
 
     const updated = await prisma.student.update({
       where: { id },

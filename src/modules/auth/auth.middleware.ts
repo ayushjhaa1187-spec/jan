@@ -10,13 +10,19 @@ export const requireAuth = async (req: Request, res: Response, next: NextFunctio
 
     const token = authHeader.split(' ')[1];
     const payload = authService.verifyAccessToken(token);
-    const user = await authService.getCurrentUser(payload.userId);
 
-    if (!user || !user.isActive) {
-      return res.status(401).json({ error: 'Unauthorized' });
-    }
+    // SCALE OPTIMIZATION: Use the token payload directly to avoid a DB hit on every request.
+    // In a production-scale distributed system, we trust the signed token for its duration.
+    req.user = {
+      id: payload.userId,
+      orgId: payload.orgId,
+      email: '', // Not needed for most permission/org checks
+      role: payload.role,
+      roles: [payload.role],
+      permissions: payload.permissions,
+      isActive: true, // Assuming active if token is valid; revocation handled via expiry or blacklisting
+    };
 
-    req.user = user;
     return next();
   } catch (error) {
     return res.status(401).json({ error: 'Invalid or expired token' });

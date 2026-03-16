@@ -6,12 +6,17 @@ import { error } from '../utils/apiResponse';
 
 export const errorHandler = (
   err: unknown,
-  _req: Request,
+  req: Request,
   res: Response,
   _next: NextFunction,
 ) => {
+  const requestId = (req as any).requestId;
+
   if (err instanceof AppError) {
-    return res.status(err.statusCode).json(error(err.message, err.statusCode));
+    return res.status(err.statusCode).json({
+      ...error(err.message, err.statusCode),
+      requestId
+    });
   }
 
 
@@ -20,6 +25,7 @@ export const errorHandler = (
   }
 
   if (err instanceof Prisma.PrismaClientKnownRequestError) {
+    require('fs').appendFileSync('error.log', `[PRISMA ERROR]: ${JSON.stringify(err, Object.getOwnPropertyNames(err))}\n`);
     if (err.code === 'P2002') {
       return res.status(409).json(error('Resource already exists', 409));
     }
@@ -28,7 +34,10 @@ export const errorHandler = (
   }
 
   // Log unknown errors for debugging
-  console.error('[SERVER ERROR]:', err);
+  console.error(`[SERVER ERROR][ID: ${requestId}]:`, JSON.stringify(err, Object.getOwnPropertyNames(err)));
 
-  return res.status(500).json(error('Internal server error', 500));
+  return res.status(500).json({
+    ...error('Internal server error', 500),
+    requestId
+  });
 };

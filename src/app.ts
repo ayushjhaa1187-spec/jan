@@ -8,9 +8,13 @@ import swaggerUi from 'swagger-ui-express';
 import YAML from 'yamljs';
 import apiRoutes from './routes';
 import { errorHandler } from './middlewares/errorHandler';
+import { requestMarker } from './middlewares/requestMarker';
 import prisma from './utils/prisma';
 
 const app = express();
+
+// 0. Request Instrumentation (Distributed Tracing)
+app.use(requestMarker);
 
 // 1. CORS - PRODUCTION HARDENING
 const allowedOrigins = [
@@ -51,16 +55,26 @@ app.use(
   }),
 );
 
-// 3. Rate Limiting
-const limiter = rateLimit({
+// 3. Rate Limiting (Tiered)
+const globalLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 100,
-  message: { error: 'Too many requests from this IP, please try again after 15 minutes' },
+  message: { error: 'Too many requests from this IP' },
   standardHeaders: true,
   legacyHeaders: false,
 });
 
-app.use('/api/', limiter);
+const loginLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 5, // 5 attempts per 15 minutes - Brute Force Protection
+  message: { error: 'Too many login attempts, please try again after 15 minutes' },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+app.use('/api/', globalLimiter);
+app.use('/api/auth/login', loginLimiter);
+app.use('/api/auth/register', loginLimiter);
 
 app.use(express.json());
 app.use(cookieParser());
@@ -74,26 +88,40 @@ try {
   console.error('Failed to load swagger documentation:', error);
 }
 
-// Static files
+// Static files - Optimized with Cache-Control for Edge delivery
 const appRoot = process.cwd();
-app.use('/admin_pages', express.static(path.resolve(appRoot, 'admin_pages')));
-app.use('/participant_pages', express.static(path.resolve(appRoot, 'participant_pages')));
-app.use('/public', express.static(path.resolve(appRoot, 'public')));
+const STATIC_CACHE_MAX_AGE = 'public, max-age=31536000, immutable'; // 1 year for versioned/static assets
 
-// Health check endpoint
-app.get('/api/health', async (_req, res) => {
+app.use('/admin_pages', express.static(path.resolve(appRoot, 'admin_pages'), { maxAge: '1y' }));
+app.use('/participant_pages', express.static(path.resolve(appRoot, 'participant_pages'), { maxAge: '1y' }));
+app.use('/public', express.static(path.resolve(appRoot, 'public'), {
+  setHeaders: (res) => {
+    res.setHeader('Cache-Control', STATIC_CACHE_MAX_AGE);
+  }
+}));
+
+// Health check endpoint with Latency Tracking
+app.get('/api/health', async (req, res) => {
+  const start = Date.now();
   try {
     await prisma.$queryRaw`SELECT 1`;
+    const dbLatency = Date.now() - start;
+    
     return res.json({
       status: 'OK',
       message: 'API and Database are healthy',
       timestamp: new Date().toISOString(),
+      requestId: (req as any).requestId,
+      metrics: {
+        dbLatency: `${dbLatency}ms`
+      }
     });
   } catch (error) {
     return res.status(503).json({
       status: 'Error',
       message: 'Database connection failed',
       timestamp: new Date().toISOString(),
+      requestId: (req as any).requestId
     });
   }
 });

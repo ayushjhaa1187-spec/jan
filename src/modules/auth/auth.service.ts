@@ -138,6 +138,35 @@ export const authService = {
         })
       }
 
+      // SEED MANDATORY PERMISSIONS for new institutions
+      const mandatoryPermissions = [
+        { action: 'MANAGE', resource: 'CLASSES' },
+        { action: 'MANAGE', resource: 'STUDENTS' },
+        { action: 'CREATE', resource: 'EXAM' },
+        { action: 'APPROVE', resource: 'EXAM' },
+        { action: 'PUBLISH', resource: 'EXAM' },
+        { action: 'ENTER', resource: 'MARKS' },
+      ]
+
+      for (const p of mandatoryPermissions) {
+        let permission = await tx.permission.findFirst({
+          where: { action: p.action, resource: p.resource }
+        })
+        if (!permission) {
+          permission = await tx.permission.create({ data: p })
+        }
+        
+        // Link to Principal role if not already linked
+        const existingLink = await tx.rolePermission.findFirst({
+          where: { roleId: principalRole.id, permissionId: permission.id }
+        })
+        if (!existingLink) {
+          await tx.rolePermission.create({
+            data: { roleId: principalRole.id, permissionId: permission.id }
+          })
+        }
+      }
+
       const organization = await tx.organization.create({
         data: {
           name: orgData.name.trim(),
@@ -169,7 +198,7 @@ export const authService = {
       })
 
       return { organization, user: { id: user.id, email: user.email } }
-    });
+    }, { timeout: 30000 });
   },
 
   async login(email: string, password: string, schoolCode?: string, ipAddress?: string) {

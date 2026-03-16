@@ -320,9 +320,18 @@ export const marksService = {
 
     const summary: BatchSummary = { successful: 0, failed: 0, errors: [] }
 
+    // PERFORMANCE OPTIMIZATION: Fetch all valid students for this class/org in one go.
+    const validStudents = await prisma.student.findMany({
+      where: { classId: exam.classId, orgId },
+      select: { id: true }
+    });
+    const validStudentIds = new Set(validStudents.map(s => s.id));
+
     for (const entry of data.entries) {
       try {
-        await ensureStudentInClass(entry.studentId, exam.classId, orgId)
+        if (!validStudentIds.has(entry.studentId)) {
+          throw new AppError(`Student ${entry.studentId} does not belong to the exam's class or access denied.`, 400);
+        }
         ensureMarksWithinMax(entry.marks, entry.maxMarks ?? 100)
 
         await upsertMarks(
@@ -441,21 +450,27 @@ export const marksService = {
     permissions: string[],
     ipAddress?: string,
   ): Promise<BatchSummary> {
-    const entries = await Promise.all(
-      rows.map(async (row) => {
-        const student = await prisma.student.findFirst({ where: { enrollmentNo: row.adm_no, orgId } })
-        if (!student) {
-          throw new AppError(`Student admission number not found: ${row.adm_no}`, 404)
-        }
+    // PERFORMANCE OPTIMIZATION: Batch lookup all students by enrollment number in one go.
+    const admissionNumbers = rows.map(r => r.adm_no);
+    const students = await prisma.student.findMany({
+      where: { enrollmentNo: { in: admissionNumbers }, orgId }
+    });
 
-        return {
-          studentId: student.id,
-          marks: row.marks,
-          remarks: row.remarks,
-          maxMarks: 100,
-        }
-      }),
-    )
+    const studentMap = new Map(students.map(s => [s.enrollmentNo, s.id]));
+
+    const entries = rows.map((row) => {
+      const studentId = studentMap.get(row.adm_no);
+      if (!studentId) {
+        throw new AppError(`Student admission number not found: ${row.adm_no}`, 404)
+      }
+
+      return {
+        studentId,
+        marks: row.marks,
+        remarks: row.remarks,
+        maxMarks: 100,
+      }
+    });
 
     return this.bulkCreateMarks({ examId, subjectId, entries }, userId, orgId, permissions, ipAddress)
   },

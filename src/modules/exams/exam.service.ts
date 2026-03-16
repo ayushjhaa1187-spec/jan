@@ -22,19 +22,19 @@ const assertModifiable = (status: string): void => {
   }
 }
 
-const ensureClassExists = async (classId: string) => {
-  const existingClass = await prisma.class.findUnique({ where: { id: classId } })
+const ensureClassExists = async (classId: string, orgId: string) => {
+  const existingClass = await prisma.class.findFirst({ where: { id: classId, orgId } })
   if (!existingClass) {
-    throw new AppError('Class not found', 404)
+    throw new AppError('Class not found or access denied', 404)
   }
 
   return existingClass
 }
 
-const getExamOrThrow = async (id: string) => {
-  const exam = await prisma.exam.findUnique({ where: { id } })
+const getExamOrThrow = async (id: string, orgId: string) => {
+  const exam = await prisma.exam.findFirst({ where: { id, orgId } })
   if (!exam) {
-    throw new AppError('Exam not found', 404)
+    throw new AppError('Exam not found or access denied', 404)
   }
 
   return exam
@@ -42,7 +42,7 @@ const getExamOrThrow = async (id: string) => {
 
 export const examService = {
   async createExam(data: CreateExamInput, userId: string, ipAddress?: string) {
-    await ensureClassExists(data.classId)
+    await ensureClassExists(data.classId, data.orgId)
 
     const duplicate = await prisma.exam.findFirst({
       where: {
@@ -126,9 +126,9 @@ export const examService = {
     }
   },
 
-  async getExam(id: string) {
-    const exam = await prisma.exam.findUnique({
-      where: { id },
+  async getExam(id: string, orgId: string) {
+    const exam = await prisma.exam.findFirst({
+      where: { id, orgId },
       include: {
         class: true,
         createdBy: { select: { id: true, email: true } },
@@ -158,8 +158,8 @@ export const examService = {
     }
   },
 
-  async updateExam(id: string, data: UpdateExamInput, userId: string, ipAddress?: string) {
-    const exam = await getExamOrThrow(id)
+  async updateExam(id: string, data: UpdateExamInput, userId: string, orgId: string, ipAddress?: string) {
+    const exam = await getExamOrThrow(id, orgId)
     assertModifiable(exam.status)
 
     if (exam.status !== 'DRAFT') {
@@ -189,8 +189,8 @@ export const examService = {
     return updated
   },
 
-  async deleteExam(id: string, userId: string, ipAddress?: string) {
-    const exam = await getExamOrThrow(id)
+  async deleteExam(id: string, userId: string, orgId: string, ipAddress?: string) {
+    const exam = await getExamOrThrow(id, orgId)
     assertModifiable(exam.status)
 
     if (exam.status !== 'DRAFT') {
@@ -202,9 +202,19 @@ export const examService = {
     void logAudit({ userId, action: 'DELETE_EXAM', entity: 'Exam', entityId: id, ipAddress })
   },
 
-  async submitReview(id: string, userId: string, ipAddress?: string) {
-    const exam = await getExamOrThrow(id)
+  async submitReview(id: string, userId: string, orgId: string, ipAddress?: string) {
+    const exam = await prisma.exam.findFirst({
+      where: { id, orgId },
+      include: { subjects: true }
+    })
+    if (!exam) throw new AppError('Exam not found or access denied', 404)
+    
     assertTransition(exam.status, 'REVIEW')
+
+    // ABUSE PREVENTION: Only allow submission if subjects are added.
+    if (!exam.subjects || exam.subjects.length === 0) {
+      throw new AppError('Exams must have at least one subject assigned before submission for review.', 400)
+    }
 
     const updated = await prisma.exam.update({
       where: { id },
@@ -213,18 +223,18 @@ export const examService = {
 
     void logAudit({ userId, action: 'SUBMIT_EXAM_REVIEW', entity: 'Exam', entityId: id, ipAddress })
 
-    const approvers = await getUsersWithPermission('approve_exam')
+    const approvers = await getUsersWithPermission('approve_exam', orgId)
     await Promise.all(
       approvers.map((approverId) =>
-        createNotification(approverId, 'Exam Pending Review', `${exam.name} submitted for review`),
+        createNotification(approverId, 'Exam Pending Review', `${exam.name} submitted for review`, orgId),
       ),
     )
 
     return updated
   },
 
-  async approveExam(id: string, userId: string, ipAddress?: string) {
-    const exam = await getExamOrThrow(id)
+  async approveExam(id: string, userId: string, orgId: string, ipAddress?: string) {
+    const exam = await getExamOrThrow(id, orgId)
     assertTransition(exam.status, 'APPROVED')
 
     const updated = await prisma.exam.update({
@@ -236,13 +246,13 @@ export const examService = {
     })
 
     void logAudit({ userId, action: 'APPROVE_EXAM', entity: 'Exam', entityId: id, ipAddress })
-    await createNotification(exam.createdById, 'Exam Approved', `Your exam ${exam.name} has been approved`)
+    await createNotification(exam.createdById, 'Exam Approved', `Your exam ${exam.name} has been approved`, orgId)
 
     return updated
   },
 
-  async rejectExam(id: string, reason: string, userId: string, ipAddress?: string) {
-    const exam = await getExamOrThrow(id)
+  async rejectExam(id: string, reason: string, userId: string, orgId: string, ipAddress?: string) {
+    const exam = await getExamOrThrow(id, orgId)
     assertTransition(exam.status, 'DRAFT')
 
     const updated = await prisma.exam.update({
@@ -262,13 +272,13 @@ export const examService = {
       details: { reason },
     })
 
-    await createNotification(exam.createdById, 'Exam Rejected', `Your exam ${exam.name} was rejected. Reason: ${reason}`)
+    await createNotification(exam.createdById, 'Exam Rejected', `Your exam ${exam.name} was rejected. Reason: ${reason}`, orgId)
 
     return updated
   },
 
-  async publishExam(id: string, userId: string, ipAddress?: string) {
-    const exam = await getExamOrThrow(id)
+  async publishExam(id: string, userId: string, orgId: string, ipAddress?: string) {
+    const exam = await getExamOrThrow(id, orgId)
     assertTransition(exam.status, 'PUBLISHED')
 
     const updated = await prisma.exam.update({
@@ -283,16 +293,19 @@ export const examService = {
     return updated
   },
 
-  async getMarksStatus(id: string) {
-    const exam = await prisma.exam.findUnique({ where: { id }, include: { class: true } })
+  async getMarksStatus(id: string, orgId: string) {
+    const exam = await prisma.exam.findFirst({ where: { id, orgId }, include: { class: true } })
     if (!exam) {
-      throw new AppError('Exam not found', 404)
+      throw new AppError('Exam not found or access denied', 404)
     }
 
     const [students, assignments] = await Promise.all([
-      prisma.student.findMany({ where: { classId: exam.classId } }),
+      prisma.student.findMany({ where: { classId: exam.classId, orgId } }),
       prisma.teacherSubject.findMany({
-        where: { classId: exam.classId },
+        where: { 
+          classId: exam.classId,
+          teacher: { orgId } // Explicitly scope via relation
+        },
         include: { subject: true, teacher: true },
       }),
     ])
@@ -305,6 +318,7 @@ export const examService = {
           where: {
             examId: exam.id,
             subjectId: assignment.subjectId,
+            orgId
           },
         })
 
@@ -330,27 +344,27 @@ export const examService = {
     }
   },
 
-  async getExamStudents(id: string) {
-    const exam = await getExamOrThrow(id)
+  async getExamStudents(id: string, orgId: string) {
+    const exam = await getExamOrThrow(id, orgId)
 
     return prisma.student.findMany({
-      where: { classId: exam.classId },
+      where: { classId: exam.classId, orgId },
       include: { class: true },
       orderBy: [{ firstName: 'asc' }, { lastName: 'asc' }],
     })
   },
 
-  async getClassExams(classId: string, query: ExamClassQuery) {
-    await ensureClassExists(classId)
+  async getClassExams(classId: string, orgId: string, query: ExamClassQuery) {
+    await ensureClassExists(classId, orgId)
 
     const page = query.page && query.page > 0 ? query.page : 1
     const limit = query.limit && query.limit > 0 ? query.limit : 20
     const skip = (page - 1) * limit
 
     const [total, data] = await Promise.all([
-      prisma.exam.count({ where: { classId } }),
+      prisma.exam.count({ where: { classId, orgId } }),
       prisma.exam.findMany({
-        where: { classId },
+        where: { classId, orgId },
         include: { class: true },
         orderBy: { startDate: 'desc' },
         skip,

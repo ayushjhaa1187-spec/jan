@@ -30,6 +30,10 @@ model Organization {
   marks      Marks[]
   results    Result[]
   auditLogs  AuditLog[]
+  teacherSubjects TeacherSubject[]
+  attendances Attendance[]
+  notifications Notification[]
+  sharedReports SharedReport[]
 }
 
 model User {
@@ -126,6 +130,10 @@ model Student {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@index([orgId])
+  @@index([classId])
+  @@index([userId])
 }
 
 model Teacher {
@@ -143,6 +151,9 @@ model Teacher {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@index([orgId])
+  @@index([userId])
 }
 
 model OfficeStaff {
@@ -158,6 +169,9 @@ model OfficeStaff {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@index([orgId])
+  @@index([userId])
 }
 
 model Class {
@@ -175,6 +189,7 @@ model Class {
   updatedAt DateTime @updatedAt
 
   @@unique([name, section, orgId])
+  @@index([orgId])
 }
 
 model Subject {
@@ -193,17 +208,21 @@ model Subject {
   updatedAt DateTime @updatedAt
 
   @@unique([code, orgId])
+  @@index([orgId])
 }
 
 model TeacherSubject {
   teacherId String
   subjectId String
   classId   String // The teacher teaches this subject for a specific class instance
+  orgId     String
   
+  organization Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
   teacher Teacher @relation(fields: [teacherId], references: [id], onDelete: Cascade)
   subject Subject @relation(fields: [subjectId], references: [id], onDelete: Cascade)
   
   @@id([teacherId, subjectId, classId])
+  @@index([orgId])
 }
 
 // =======================
@@ -235,6 +254,9 @@ model Exam {
 
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+
+  @@index([orgId])
+  @@index([classId])
 }
 
 model ExamSubject {
@@ -275,6 +297,9 @@ model Marks {
   updatedAt  DateTime @updatedAt
 
   @@unique([studentId, subjectId, examId])
+  @@index([orgId])
+  @@index([examId])
+  @@index([studentId])
 }
 
 // RESULT WORKFLOW: draft -> review -> approved -> published
@@ -301,6 +326,8 @@ model Result {
   updatedAt DateTime @updatedAt
 
   @@unique([studentId, examId])
+  @@index([orgId])
+  @@index([examId])
 }
 
 // =======================
@@ -312,13 +339,16 @@ model Attendance {
   studentId String
   date      DateTime
   status    String   // PRESENT, ABSENT, LEAVE
+  orgId     String
 
+  organization Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
   student   Student @relation(fields: [studentId], references: [id])
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@unique([studentId, date])
+  @@index([orgId])
 }
 
 model AuditLog {
@@ -335,6 +365,10 @@ model AuditLog {
   organization Organization? @relation(fields: [orgId], references: [id], onDelete: SetNull)
 
   createdAt DateTime @default(now())
+
+  @@index([orgId])
+  @@index([userId])
+  @@index([entity, entityId])
 }
 
 model Notification {
@@ -344,10 +378,15 @@ model Notification {
   message   String
   isRead    Boolean  @default(false)
   type      String   // e.g. "RESULT_PUBLISHED", "ALERT"
+  orgId     String
 
+  organization Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   createdAt DateTime @default(now())
+
+  @@index([orgId])
+  @@index([userId])
 }
 
 model SharedReport {
@@ -356,6 +395,11 @@ model SharedReport {
   fileUrl     String
   reportType  String   // e.g. "PDF", "EXCEL"
   generatedBy String
+  orgId       String
+
+  organization Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
 
   createdAt   DateTime @default(now())
+
+  @@index([orgId])
 }
