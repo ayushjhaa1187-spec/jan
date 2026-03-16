@@ -247,17 +247,43 @@ export default function LandingPage() {
           <div className="absolute left-0 top-0 bottom-0 w-32 bg-gradient-to-r from-white to-transparent z-10" />
           <div className="absolute right-0 top-0 bottom-0 w-32 bg-gradient-to-l from-white to-transparent z-10" />
           <div className="flex gap-20 items-center animate-marquee whitespace-nowrap">
-            {[1,2,3,4,5,6,7,8,9,10].map(i => (
+            {[
+              "Precision Grading",
+              "Audit-Ready Vaults",
+              "Zero-Conflict Sync",
+              "ISO 27001 Secure",
+              "Multi-Tenant Isolation",
+              "Real-time Analytics",
+              "Enterprise Governance",
+              "Automated Reporting",
+              "Academic Intelligence",
+              "Global Scale"
+            ].map((tagline, i) => (
               <div key={i} className="flex items-center gap-4 grayscale opacity-30 hover:grayscale-0 hover:opacity-100 transition-all cursor-pointer group-hover:[animation-play-state:paused]">
-                <div className="w-12 h-12 bg-slate-200 rounded-xl" />
-                <span className="text-2xl font-black text-slate-400">SCHOOL_{i}</span>
+                <div className="w-12 h-12 bg-indigo-600/10 rounded-xl flex items-center justify-center">
+                  <Zap className="w-6 h-6 text-indigo-600" />
+                </div>
+                <span className="text-2xl font-black text-slate-400 uppercase tracking-tighter">{tagline}</span>
               </div>
             ))}
             {/* Duplicate for seamless loop */}
-            {[1,2,3,4,5,6,7,8,9,10].map(i => (
+            {[
+              "Precision Grading",
+              "Audit-Ready Vaults",
+              "Zero-Conflict Sync",
+              "ISO 27001 Secure",
+              "Multi-Tenant Isolation",
+              "Real-time Analytics",
+              "Enterprise Governance",
+              "Automated Reporting",
+              "Academic Intelligence",
+              "Global Scale"
+            ].map((tagline, i) => (
               <div key={`dup-${i}`} className="flex items-center gap-4 grayscale opacity-30 hover:grayscale-0 hover:opacity-100 transition-all cursor-pointer group-hover:[animation-play-state:paused]">
-                <div className="w-12 h-12 bg-slate-200 rounded-xl" />
-                <span className="text-2xl font-black text-slate-400">SCHOOL_{i}</span>
+                <div className="w-12 h-12 bg-indigo-600/10 rounded-xl flex items-center justify-center">
+                  <Zap className="w-6 h-6 text-indigo-600" />
+                </div>
+                <span className="text-2xl font-black text-slate-400 uppercase tracking-tighter">{tagline}</span>
               </div>
             ))}
           </div>
