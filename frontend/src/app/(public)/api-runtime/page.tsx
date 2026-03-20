@@ -11,7 +11,7 @@ export default function APIRuntimePage() {
           <p className="text-slate-500">Node ID: EDU-RT-112-X4</p>
           <p className="text-slate-500">Core Status: READY</p>
           <p className="text-indigo-400 mt-6">curl -X GET "https://api.edutrack.app/v1/ready"</p>
-          <p className="text-slate-400">> {"status": "operational", "latency": "14ms"}</p>
+          <p className="text-slate-400">&gt; {'{ "status": "operational", "latency": "14ms" }'}</p>
         </div>
       </div>
     </div>
