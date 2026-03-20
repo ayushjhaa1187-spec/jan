@@ -100,60 +100,67 @@ export default function RegisterSchool() {
   return (
     <div className="min-h-screen bg-white flex overflow-hidden">
       {/* Left side: Branding & Benefits */}
-      <div className="hidden lg:flex flex-col w-[40%] bg-slate-900 p-16 relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-full h-full opacity-10 pointer-events-none">
-          <div className="absolute top-10 left-10 w-64 h-64 bg-indigo-500 rounded-full blur-[120px]" />
-          <div className="absolute bottom-20 right-20 w-96 h-96 bg-purple-500 rounded-full blur-[150px]" />
+      <div className="hidden lg:flex flex-col w-[42%] bg-slate-950 p-20 relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-full h-full opacity-20 pointer-events-none">
+          <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-indigo-600 rounded-full blur-[150px] -translate-y-1/2 translate-x-1/2" />
+          <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-purple-600 rounded-full blur-[120px] translate-y-1/2 -translate-x-1/2" />
         </div>
 
         <motion.div 
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="flex items-center gap-2 mb-16 relative z-10"
+          className="flex items-center gap-3 mb-24 relative z-10"
         >
-          <div className="bg-indigo-600 p-2.5 rounded-xl shadow-lg">
-            <GraduationCap className="h-6 w-6 text-white" />
+          <div className="bg-indigo-600 p-3 rounded-2xl shadow-2xl shadow-indigo-500/20">
+            <GraduationCap className="h-7 w-7 text-white" />
           </div>
-          <span className="text-2xl font-black text-white tracking-tight">EduTrack<span className="text-indigo-500">.</span></span>
+          <span className="text-3xl font-black text-white tracking-tighter">EduTrack<span className="text-indigo-500">.</span></span>
         </motion.div>
 
-        <div className="relative z-10 mt-auto mb-auto">
+        <div className="relative z-10 flex-1 flex flex-col justify-center">
           <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-[10px] font-bold uppercase tracking-[0.2em] mb-8"
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-[10px] font-black uppercase tracking-[0.3em] mb-10 w-fit"
           >
-            Institution Onboarding
+            System Infrastructure v1.1
           </motion.div>
-          <h1 className="text-5xl font-black text-white mb-8 leading-tight">Bring your school <br /> to the next level.</h1>
+          <h1 className="text-6xl font-black text-white mb-10 leading-[1.1] tracking-tighter">Scale your <br /> academic <br /> governance.</h1>
           
-          <div className="space-y-10 max-w-sm">
-            <BenefitItem title="Automated Grading" desc="Instant calculation based on custom grading scales." />
-            <BenefitItem title="Teacher Portals" desc="Distributed marks entry with final administrative audit." />
-            <BenefitItem title="Branded Reports" desc="Professional PDF report cards with your school logo." />
-            <BenefitItem title="Data Security" desc="Encrypted multi-tenant architecture for total privacy." />
+          <div className="space-y-12 max-w-sm">
+            <BenefitItem title="Military-Grade Security" desc="ISO 27001 compliant multi-tenant encryption silos." />
+            <BenefitItem title="Industrial RAG Pipeline" desc="AI-driven insights from historical student performance data." />
+            <BenefitItem title="Automated Vaulting" desc="Zero-latency result processing and immutable audit logs." />
           </div>
         </div>
 
         <motion.div 
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="mt-auto relative z-10 p-6 rounded-2xl bg-slate-800/50 border border-slate-700/50 backdrop-blur-sm"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mt-auto relative z-10 p-8 rounded-[2.5rem] bg-white/5 border border-white/10 backdrop-blur-xl"
         >
-          <div className="flex gap-1 mb-4">
-            {[1,2,3,4,5].map(i => <Star key={i} className="w-3 h-3 text-indigo-400 fill-indigo-400" />)}
+          <div className="flex gap-1.5 mb-5">
+            {[1,2,3,4,5].map(i => <Star key={i} className="w-3.5 h-3.5 text-indigo-400 fill-indigo-400" />)}
           </div>
-          <p className="text-slate-300 text-sm italic mb-4 font-medium">&quot;The transition was seamless. We managed 1200+ students in our first session without a single glitch.&quot;</p>
-          <div className="text-xs font-bold text-white uppercase tracking-widest">Global Academy Principal</div>
+          <p className="text-slate-300 text-lg italic mb-6 font-medium leading-relaxed">&quot;The absolute benchmark for large-scale institutional management. Zero friction.&quot;</p>
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-500" />
+            <div>
+               <div className="text-xs font-black text-white uppercase tracking-widest">Global Academy Principal</div>
+               <div className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Enterprise Partner</div>
+            </div>
+          </div>
         </motion.div>
       </div>
 
       {/* Right side: Form */}
-      <div className="flex-1 flex items-center justify-center p-8 lg:p-16 bg-slate-50 relative">
+      <div className="flex-1 flex items-center justify-center p-8 lg:p-24 bg-slate-50 relative overflow-y-auto">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,#eff6ff_0%,#ffffff_100%)] opacity-50" />
+        
         <div className="absolute top-0 right-0 p-8 lg:hidden">
             <Link href="/" className="flex items-center gap-2">
                  <GraduationCap className="h-6 w-6 text-indigo-600" />
-                 <span className="text-xl font-black text-slate-900 uppercase">EduTrack</span>
+                 <span className="text-xl font-black text-slate-950 uppercase">EduTrack</span>
             </Link>
         </div>
 
@@ -163,20 +170,23 @@ export default function RegisterSchool() {
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -20 }}
-            className="w-full max-w-xl"
+            className="w-full max-w-xl relative z-10"
           >
-            <div className="mb-10 text-center lg:text-left">
-              <h2 className="text-4xl font-black text-slate-900 mb-2">
-                {step === 1 ? 'Tell us about your school' : 'Setup admin credentials'}
+            <div className="mb-12 text-center lg:text-left">
+              <h2 className="text-5xl font-black text-slate-950 mb-3 tracking-tighter">
+                {step === 1 ? 'Institutional Identity.' : 'Security Configuration.'}
               </h2>
-              <p className="text-slate-500 font-medium">Complete the registration to unlock your dashboard.</p>
-              <div className="flex gap-2 mt-6 justify-center lg:justify-start">
-                 <div className={`h-1.5 w-12 rounded-full transition-all duration-300 ${step === 1 ? 'bg-indigo-600' : 'bg-indigo-200'}`} />
-                 <div className={`h-1.5 w-12 rounded-full transition-all duration-300 ${step === 2 ? 'bg-indigo-600' : 'bg-indigo-200'}`} />
+              <p className="text-slate-400 font-bold text-xs uppercase tracking-[0.2em]">Deploying to Production Cluster v1.1.0</p>
+              
+              <div className="flex gap-3 mt-8 justify-center lg:justify-start">
+                 <div className={`h-1 w-16 rounded-full transition-all duration-500 ${step === 1 ? 'bg-indigo-600' : 'bg-slate-200'}`} />
+                 <div className={`h-1 w-16 rounded-full transition-all duration-500 ${step === 2 ? 'bg-indigo-600' : 'bg-slate-200'}`} />
               </div>
             </div>
 
-            <div className="bg-white p-10 rounded-[2.5rem] shadow-2xl shadow-slate-200/60 border border-white">
+            <div className="bg-white/80 backdrop-blur-2xl p-12 rounded-[3.5rem] shadow-2xl shadow-slate-200/50 border border-white relative overflow-hidden">
+               <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-indigo-500 to-purple-600 opacity-50" />
+
               {step === 1 ? (
                 <form onSubmit={schoolForm.handleSubmit(onSchoolSubmit)} className="space-y-6">
                   <Input
@@ -229,9 +239,14 @@ export default function RegisterSchool() {
                     {...schoolForm.register('phone')}
                   />
 
-                  <div className="pt-4">
-                    <Button type="submit" className="w-full py-7 bg-indigo-600 hover:bg-indigo-700 rounded-2xl font-bold text-lg text-white shadow-xl shadow-indigo-100 flex items-center justify-center gap-3 active:scale-[0.98] transition-all">
-                      Continue to Next Step <ArrowRight className="h-5 w-5" />
+                  <div className="pt-6">
+                    <Button 
+                      type="submit" 
+                      whileTap={{ scale: 0.97 }}
+                      whileHover={{ y: -2 }}
+                      className="w-full py-8 bg-slate-950 hover:bg-slate-900 rounded-[2rem] font-black text-sm uppercase tracking-widest text-white shadow-2xl shadow-slate-200 flex items-center justify-center gap-3 transition-all"
+                    >
+                      Authenticate and Continue <ArrowRight className="h-4 w-4" />
                     </Button>
                   </div>
                 </form>
@@ -281,17 +296,23 @@ export default function RegisterSchool() {
                     />
                   </div>
 
-                  <div className="pt-4 flex gap-4">
+                  <div className="pt-6 flex gap-4">
                     <Button 
                       type="button" 
                       variant="secondary" 
                       onClick={() => setStep(1)}
-                      className="px-6 rounded-2xl border-slate-200"
+                      className="px-8 rounded-[1.5rem] border-slate-200"
                     >
                       <ArrowLeft className="h-5 w-5 font-black text-slate-400" />
                     </Button>
-                    <Button type="submit" loading={loading} className="w-full py-7 bg-indigo-600 hover:bg-indigo-700 rounded-2xl font-bold text-lg text-white shadow-xl shadow-indigo-100 active:scale-[0.98] transition-all">
-                      Complete Registration
+                    <Button 
+                      type="submit" 
+                      loading={loading} 
+                      whileTap={{ scale: 0.97 }}
+                      whileHover={{ y: -2 }}
+                      className="w-full py-8 bg-slate-950 hover:bg-slate-900 rounded-[2rem] font-black text-sm uppercase tracking-widest text-white shadow-2xl shadow-slate-200 transition-all"
+                    >
+                      Complete Infrastructure Setup
                     </Button>
                   </div>
                 </form>

@@ -81,8 +81,10 @@ function LoginForm() {
     <motion.div 
       initial={{ opacity: 0, x: 20 }}
       animate={{ opacity: 1, x: 0 }}
-      className="w-full max-w-md bg-white/80 backdrop-blur-xl rounded-[2rem] shadow-2xl shadow-indigo-100 p-10 border border-white"
+      className="w-full max-w-md bg-white/70 backdrop-blur-2xl rounded-[3rem] shadow-2xl shadow-slate-200/50 p-12 border border-white/50 relative overflow-hidden"
     >
+      <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-indigo-500 via-purple-500 to-indigo-500" />
+
       <div className="flex flex-col items-center justify-center gap-2 mb-10">
         <motion.div 
           whileHover={{ rotate: 10, scale: 1.1 }}
@@ -90,7 +92,7 @@ function LoginForm() {
         >
           <GraduationCap className="w-8 h-8 text-white" />
         </motion.div>
-        <h1 className="text-4xl font-black text-slate-900 tracking-tighter">EduTrack<span className="text-indigo-600">.</span></h1>
+        <h1 className="text-4xl font-black text-slate-950 tracking-tighter">EduTrack<span className="text-indigo-600">.</span></h1>
         
         <AnimatePresence mode="wait">
           {step === 1 && (
@@ -99,9 +101,9 @@ function LoginForm() {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
-              className="text-slate-500 font-medium"
+              className="text-slate-400 font-bold text-[10px] uppercase tracking-[0.2em] mt-2"
             >
-              Enter school credentials to begin
+              Institutional Gateway v1.1
             </motion.p>
           )}
           {step === 2 && (
@@ -110,11 +112,11 @@ function LoginForm() {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
-              className="bg-indigo-50 border border-indigo-100 px-4 py-2 rounded-xl mt-2 flex items-center gap-2 w-full justify-center"
+              className="bg-slate-950 px-4 py-2 rounded-xl mt-4 flex items-center gap-2 w-full justify-center shadow-lg"
             >
-              <Building className="w-4 h-4 text-indigo-600" />
-              <span className="text-sm font-bold text-indigo-900">
-                {mode === 'independent' ? 'Independent Educator' : `School: ${schoolCode}`}
+              <Building className="w-3.5 h-3.5 text-indigo-400" />
+              <span className="text-[10px] font-black uppercase tracking-widest text-white">
+                {mode === 'independent' ? 'Independent Educator' : `ORG: ${schoolCode}`}
               </span>
             </motion.div>
           )}
@@ -141,9 +143,11 @@ function LoginForm() {
             
             <Button 
               type="submit" 
-              className="w-full py-6 bg-indigo-600 hover:bg-indigo-700 rounded-xl transition-all flex items-center justify-center gap-2 text-white font-bold text-lg shadow-lg shadow-indigo-100 active:scale-95" 
+              whileTap={{ scale: 0.96 }}
+              whileHover={{ y: -2 }}
+              className="w-full py-7 bg-slate-950 hover:bg-slate-900 rounded-2xl transition-all flex items-center justify-center gap-3 text-white font-black text-sm uppercase tracking-widest shadow-2xl shadow-slate-200/50" 
             >
-              Continue <ArrowRight className="w-5 h-5" />
+              Initialize Session <ArrowRight className="w-4 h-4" />
             </Button>
 
             <div className="text-center pt-8 border-t border-slate-100 mt-6">
@@ -215,10 +219,12 @@ function LoginForm() {
               )}
               <Button 
                 type="submit" 
-                className="w-full py-6 bg-indigo-600 hover:bg-indigo-700 rounded-xl font-bold text-lg text-white shadow-lg shadow-indigo-100 active:scale-95" 
+                whileTap={{ scale: 0.96 }}
+                whileHover={{ y: -2 }}
+                className="w-full py-7 bg-slate-950 hover:bg-slate-900 rounded-2xl font-black text-sm uppercase tracking-widest text-white shadow-2xl shadow-slate-200/50" 
                 loading={loading}
               >
-                Sign In
+                Authenticate User
               </Button>
             </div>
           </motion.form>
@@ -250,36 +256,38 @@ function Benefits() {
             <motion.div 
               key={i}
               initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
               transition={{ delay: 0.2 + (i * 0.1) }}
-              className="flex gap-5"
+              className="flex gap-6 group"
             >
-              <div className="bg-white p-3 rounded-2xl shadow-xl shadow-slate-200/50 border border-slate-50 h-fit">
-                <item.icon className="w-6 h-6 text-indigo-600" />
+              <div className="bg-white p-4 rounded-[1.5rem] shadow-2xl shadow-slate-100 border border-slate-50 h-fit group-hover:scale-110 group-hover:bg-slate-950 group-hover:text-white transition-all duration-300">
+                <item.icon className="w-6 h-6 text-indigo-600 group-hover:text-indigo-400" />
               </div>
               <div>
-                <h4 className="font-bold text-slate-900 mb-1">{item.title}</h4>
-                <p className="text-slate-500 text-sm leading-relaxed font-medium">{item.desc}</p>
+                <h4 className="font-black text-slate-950 mb-1 tracking-tight">{item.title}</h4>
+                <p className="text-slate-400 text-sm leading-relaxed font-bold uppercase tracking-tight opacity-80">{item.desc}</p>
               </div>
             </motion.div>
           ))}
         </div>
 
         <motion.div 
-           initial={{ opacity: 0 }}
-           animate={{ opacity: 1 }}
+           initial={{ opacity: 0, scale: 0.9 }}
+           whileInView={{ opacity: 1, scale: 1 }}
+           viewport={{ once: true }}
            transition={{ delay: 0.6 }}
-           className="mt-16 p-6 rounded-3xl bg-indigo-600 text-white relative overflow-hidden"
+           className="mt-16 p-10 rounded-[2.5rem] bg-slate-950 text-white relative overflow-hidden shadow-2xl shadow-indigo-100"
         >
-          <div className="absolute top-0 right-0 p-4 opacity-20">
-            <Star className="w-12 h-12 fill-white" />
+          <div className="absolute top-0 right-0 p-6 opacity-10">
+            <Star className="w-16 h-16 fill-white" />
           </div>
-          <p className="font-bold text-lg mb-4 italic">&quot;EduTrack has reduced our result processing time by over 80%. It is indispensable.&quot;</p>
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-indigo-400" />
+          <p className="font-black text-xl mb-6 italic leading-relaxed tracking-tight relative z-10">&quot;The absolute benchmark for academic governance and information security.&quot;</p>
+          <div className="flex items-center gap-4 relative z-10">
+            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-500 shadow-xl" />
             <div>
-              <div className="font-bold text-sm">Sr. Principal Mehta</div>
-              <div className="text-xs text-indigo-200">Global International School</div>
+              <div className="font-black text-sm uppercase tracking-widest text-white">Sr. Principal Mehta</div>
+              <div className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em]">Global International School</div>
             </div>
           </div>
         </motion.div>
@@ -290,10 +298,11 @@ function Benefits() {
 
 export default function LoginPage() {
   return (
-    <div className="min-h-screen bg-[#f8fafc] flex overflow-hidden relative">
-      {/* Background patterns */}
-      <div className="absolute top-0 right-0 w-1/2 h-full bg-slate-100/50 -skew-x-12 translate-x-32 -z-10" />
-      <div className="absolute top-1/4 left-1/4 w-[500px] h-[500px] bg-indigo-100/30 rounded-full blur-[120px] -z-10" />
+    <div className="min-h-screen bg-white flex overflow-hidden relative">
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,#f8fafc_0%,#ffffff_100%)]" />
+      <div className="absolute top-0 right-0 w-1/2 h-full bg-slate-50/50 -skew-x-12 translate-x-32 -z-10" />
+      <div className="absolute top-1/4 left-1/4 w-[600px] h-[600px] bg-indigo-50/50 rounded-full blur-[120px] -z-10" />
+
 
       <div className="flex-1 flex flex-col lg:flex-row max-w-7xl mx-auto w-full px-6 py-12 lg:py-0 gap-20">
         <Benefits />

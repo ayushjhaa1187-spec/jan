@@ -33,11 +33,12 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   }, [router, setUser])
 
   return (
-    <div className="flex min-h-screen bg-gray-50">
+    <div className="flex min-h-screen bg-white relative">
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,#f8fafc_0%,#ffffff_100%)] pointer-events-none" />
       <Sidebar isMobileOpen={isMobileOpen} onClose={() => setIsMobileOpen(false)} />
-      <div className="flex-1">
+      <div className="flex-1 relative z-10">
         <Header onMenuToggle={() => setIsMobileOpen((prev) => !prev)} />
-        <main className="p-6">{children}</main>
+        <main className="p-10">{children}</main>
       </div>
     </div>
   )

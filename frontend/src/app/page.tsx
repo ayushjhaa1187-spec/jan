@@ -57,15 +57,15 @@ function FeatureCard({ icon: Icon, title, desc, color }: { icon: any; title: str
   return (
     <motion.div 
       variants={fadeInUp}
-      whileHover={{ y: -10 }}
-      className="group p-10 rounded-[2.5rem] bg-white border border-slate-100 hover:border-indigo-100 hover:shadow-2xl hover:shadow-indigo-50 transition-all duration-500 relative overflow-hidden"
+      whileHover={{ y: -12, scale: 1.02 }}
+      className="group p-12 rounded-[3rem] bg-white border border-slate-100 hover:border-indigo-100 hover:shadow-[0_30px_60px_-15px_rgba(79,70,229,0.15)] transition-all duration-500 relative overflow-hidden"
     >
-      <div className={`absolute top-0 right-0 w-32 h-32 bg-${color}-500/5 rounded-full -translate-y-8 translate-x-8 blur-3xl group-hover:scale-150 transition-transform duration-700`} />
-      <div className={`w-16 h-16 rounded-2xl flex items-center justify-center mb-8 bg-${color}-50 text-${color}-600 group-hover:scale-110 transition-transform duration-300 relative z-10`}>
+      <div className={`absolute top-0 right-0 w-40 h-40 bg-${color}-500/5 rounded-full -translate-y-10 translate-x-10 blur-[80px] group-hover:scale-150 transition-transform duration-700`} />
+      <div className={`w-16 h-16 rounded-2xl flex items-center justify-center mb-8 bg-${color}-50 text-${color}-600 group-hover:bg-${color}-600 group-hover:text-white transition-all duration-500 relative z-10 shadow-sm`}>
         <Icon className="h-8 w-8" />
       </div>
-      <h3 className="text-2xl font-black text-slate-900 mb-4 relative z-10">{title}</h3>
-      <p className="text-slate-500 leading-relaxed font-medium relative z-10">{desc}</p>
+      <h3 className="text-2xl font-black text-slate-950 mb-4 relative z-10 tracking-tight">{title}</h3>
+      <p className="text-slate-400 leading-relaxed font-bold uppercase text-[10px] tracking-widest relative z-10 opacity-70">{desc}</p>
     </motion.div>
   )
 }
@@ -81,65 +81,64 @@ export default function LandingPage() {
     <div ref={containerRef} className="min-h-screen bg-slate-50 flex flex-col selection:bg-indigo-600 selection:text-white overflow-x-hidden pt-20">
       
       {/* Dynamic Navigation */}
-      <nav className="fixed top-0 w-full z-[100] bg-white/70 backdrop-blur-2xl border-b border-slate-200/50">
+      <nav className="fixed top-0 w-full z-[100] bg-white/60 backdrop-blur-3xl border-b border-slate-200/50">
         <div className="max-w-7xl mx-auto px-6 h-24 flex items-center justify-between">
           <motion.div 
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             className="flex items-center gap-3"
           >
-            <div className="bg-indigo-600 p-2.5 rounded-2xl shadow-xl shadow-indigo-100 hover:rotate-6 transition-transform">
+            <div className="bg-slate-950 p-2.5 rounded-2xl shadow-2xl shadow-slate-200 hover:rotate-6 transition-transform">
               <GraduationCap className="h-7 w-7 text-white" />
             </div>
-            <span className="text-2xl font-black text-slate-900 tracking-tighter">EduTrack<span className="text-indigo-600">.</span></span>
+            <span className="text-2xl font-black text-slate-950 tracking-tighter">EduTrack<span className="text-indigo-600">.</span></span>
           </motion.div>
           
-          <div className="hidden md:flex items-center gap-10">
+          <div className="hidden lg:flex items-center gap-12">
              {['Features', 'Governance', 'Security', 'Enterprise'].map((item) => (
-                <Link key={item} href={`#${item.toLowerCase()}`} className="text-sm font-bold text-slate-500 hover:text-indigo-600 transition-colors uppercase tracking-widest">{item}</Link>
+                <Link key={item} href={`#${item.toLowerCase()}`} className="text-[10px] font-black text-slate-400 hover:text-slate-950 transition-colors uppercase tracking-[0.2em]">{item}</Link>
              ))}
           </div>
 
           <motion.div 
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
-            className="flex items-center gap-4"
+            className="flex items-center gap-6"
           >
-            <Link href="/login" className="text-sm font-black text-slate-500 hover:text-indigo-600 px-6 py-2 transition-colors uppercase tracking-widest hidden sm:block">
-              Log In
+            <Link href="/login" className="text-[10px] font-black text-slate-400 hover:text-slate-950 transition-colors uppercase tracking-[0.2em] hidden sm:block">
+              Admin Gateway
             </Link>
             <Link 
               href="/register" 
-              className="group relative inline-flex items-center justify-center px-8 py-4 font-black text-white bg-slate-900 rounded-2xl overflow-hidden shadow-2xl hover:shadow-indigo-100 transition-all active:scale-95"
+              className="group relative inline-flex items-center justify-center px-8 py-3.5 font-black text-[10px] uppercase tracking-[0.2em] text-white bg-slate-950 rounded-2xl overflow-hidden shadow-2xl hover:shadow-indigo-100 transition-all active:scale-95"
             >
-              <div className="absolute inset-0 w-3 bg-gradient-to-r from-indigo-500 to-indigo-600 transition-all duration-[400ms] ease-out group-hover:w-full" />
-              <span className="relative z-10 flex items-center gap-2">Get Started <ChevronRight size={18} /></span>
+              <span className="relative z-10 flex items-center gap-2">Initialize Deployment <ChevronRight size={14} /></span>
             </Link>
           </motion.div>
         </div>
       </nav>
 
       {/* Hero Section v2 */}
-      <section className="relative pt-24 pb-32 lg:pt-40 lg:pb-48">
-        <div className="absolute top-0 inset-0 -z-10 bg-[radial-gradient(40%_40%_at_50%_40%,rgba(79,70,229,0.08)_0%,rgba(255,255,255,0)_100%)]" />
+      <section className="relative pt-32 pb-40 lg:pt-48 lg:pb-56">
+        <div className="absolute top-0 inset-0 -z-10 bg-[radial-gradient(circle_at_50%_30%,#eff6ff_0%,#ffffff_100%)] opacity-70" />
         <div className="max-w-7xl mx-auto px-6 text-center">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
-            className="inline-flex items-center gap-3 px-6 py-2 rounded-full bg-white border border-slate-100 shadow-xl shadow-slate-200/50 mb-12"
+            className="inline-flex items-center gap-4 px-6 py-2 rounded-full bg-white/80 backdrop-blur-xl border border-slate-200 shadow-2xl shadow-slate-100 mb-16"
           >
-            <div className="flex -space-x-2">
-               {[1,2,3,4].map(i => <div key={i} className="w-6 h-6 rounded-full border-2 border-white bg-slate-200" />)}
+            <div className="flex -space-x-3">
+               {[1,2,3,4].map(i => <div key={i} className="w-8 h-8 rounded-full border-2 border-white bg-gradient-to-br from-indigo-500 to-purple-500 shadow-sm" />)}
             </div>
-            <span className="text-sm font-bold text-slate-500 tracking-tight">Joined by <span className="text-slate-900">1,200+</span> global institutions</span>
+            <span className="text-xs font-black text-slate-950 tracking-[0.1em] uppercase">Authored by <span className="text-indigo-600">1,200+</span> Global Boards</span>
           </motion.div>
 
           <motion.h1 
-            initial={{ opacity: 0, y: 30 }}
+            initial={{ opacity: 0, y: 40 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] as any }}
-            className="text-7xl lg:text-[9.5rem] font-black text-slate-900 tracking-tighter leading-[0.8] mb-12"
+            transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] as any }}
+            className="text-7xl lg:text-[11rem] font-black text-slate-950 tracking-[calc(-0.04em)] leading-[0.8] mb-16"
           >
             Academic <br />
             <span className="text-indigo-600">Operating System.</span>
@@ -148,28 +147,28 @@ export default function LandingPage() {
           <motion.p 
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ delay: 0.5, duration: 1 }}
-            className="text-xl lg:text-3xl text-slate-400 font-medium max-w-4xl mx-auto leading-relaxed mb-16"
+            transition={{ delay: 0.6, duration: 1 }}
+            className="text-xl lg:text-3xl text-slate-400 font-bold max-w-5xl mx-auto leading-relaxed mb-20 uppercase tracking-tight"
           >
-            Next-generation governance for schools that demand precision. <br /> 
-            Automated grading, deep analytics, and military-grade security.
+            Industrial governance for institutions that demand <br /> 
+            absolute precision and zero-latency performance.
           </motion.p>
 
           <motion.div 
-            initial={{ opacity: 0, scale: 0.8 }}
+            initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: 0.8 }}
-            className="flex flex-col sm:flex-row items-center justify-center gap-6"
+            className="flex flex-col sm:flex-row items-center justify-center gap-8"
           >
             <Link 
               href="/register" 
-              className="w-full sm:w-auto px-12 py-7 bg-indigo-600 text-white rounded-[2rem] font-black text-xl shadow-2xl shadow-indigo-200 hover:shadow-indigo-300 transition-all hover:-translate-y-1 active:scale-95 flex items-center justify-center gap-3"
+              className="w-full sm:w-auto px-16 py-8 bg-slate-950 text-white rounded-[2.5rem] font-black text-sm uppercase tracking-[0.2em] shadow-[0_20px_50px_rgba(15,23,42,0.3)] hover:shadow-indigo-200/50 transition-all hover:-translate-y-1.5 active:scale-95 flex items-center justify-center gap-4"
             >
-              Deploy Institution <ArrowRight size={24} />
+              Deploy Infrastructure <ArrowRight size={20} />
             </Link>
             <Link 
               href="/login?mode=independent" 
-              className="w-full sm:w-auto px-12 py-7 bg-white border-2 border-slate-100 text-slate-900 rounded-[2rem] font-black text-xl hover:border-indigo-600 transition-all active:scale-95 shadow-lg shadow-slate-100"
+              className="w-full sm:w-auto px-16 py-8 bg-white/70 backdrop-blur-xl border border-slate-200 text-slate-950 rounded-[2.5rem] font-black text-sm uppercase tracking-[0.2em] hover:bg-white hover:border-indigo-600 transition-all active:scale-95 shadow-xl shadow-slate-100"
             >
               Independent Mode
             </Link>

@@ -12,6 +12,7 @@ import { Table, Column } from '@/components/ui/Table'
 import { Modal } from '@/components/ui/Modal'
 import { Input } from '@/components/ui/Input'
 import { Button } from '@/components/ui/Button'
+import { Plus, ArrowRight } from 'lucide-react'
 
 const schema = z.object({
   code: z.string().min(2, 'Subject code is required (e.g. MATH101)'),
@@ -105,27 +106,69 @@ export default function SubjectsPage() {
   const rows: SubjectRow[] = subjects.data?.data ?? []
 
   return (
-    <div className="space-y-6">
-      <Card
-        title="Subject Management"
-        actions={
-          <Button
-            onClick={() => {
-              form.reset({ code: '', name: '' })
-              setOpen(true)
-            }}
-          >
-            Add Subject
-          </Button>
-        }
-      >
-        <Table
-          columns={columns}
-          data={rows}
-          loading={subjects.isLoading}
-          keyExtractor={(r) => r.id}
-          emptyMessage="No subjects found. Add your first subject above."
-        />
+    <div className="space-y-12">
+      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-8">
+        <div>
+           <h1 className="text-6xl font-black text-slate-950 tracking-tighter mb-4 leading-none uppercase">Curriculum <br /> <span className="text-indigo-600">Infrastructure.</span></h1>
+           <p className="text-slate-400 font-bold text-xs uppercase tracking-[0.2em]">Institutional Subject Catalog & Governance</p>
+        </div>
+        <Button 
+          whileHover={{ y: -4 }}
+          whileTap={{ scale: 0.96 }}
+          className="py-10 px-12 bg-slate-950 hover:bg-slate-900 rounded-[2.5rem] font-black uppercase tracking-[0.2em] text-sm text-white shadow-2xl shadow-slate-200 flex items-center gap-4 transition-all"
+          onClick={() => {
+            form.reset({ code: '', name: '' })
+            setOpen(true)
+          }}
+        >
+          <Plus size={22} className="text-indigo-400" />
+          Initialize New Subject
+        </Button>
+      </div>
+
+      <Card className="rounded-[3.5rem] border-white shadow-2xl shadow-slate-200/50 relative overflow-hidden">
+        <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-indigo-500 to-purple-600 opacity-30" />
+        <div className="bg-white/50 backdrop-blur-3xl rounded-[2.5rem] border border-slate-100 overflow-hidden">
+          <Table
+            columns={[
+              { 
+                key: 'code', 
+                label: 'Protocol Code',
+                render: (r) => <span className="font-mono font-bold text-slate-500 bg-slate-100 px-3 py-1 rounded-lg text-[10px] uppercase">{r.code}</span>
+              },
+              { 
+                key: 'name', 
+                label: 'Cognitive Domain',
+                render: (r) => <span className="font-black text-slate-950 uppercase tracking-tight text-xs">{r.name}</span>
+              },
+              {
+                key: 'actions',
+                label: 'Governance',
+                render: (row) => (
+                  <div className="flex gap-3">
+                    <Button
+                      size="sm"
+                      variant="secondary"
+                      onClick={() => {
+                        setEditing(row)
+                        form.reset({ code: row.code, name: row.name })
+                      }}
+                    >
+                      Config
+                    </Button>
+                    <Button size="sm" variant="danger" onClick={() => setDeleting(row)}>
+                      Purge
+                    </Button>
+                  </div>
+                ),
+              },
+            ]}
+            data={rows}
+            loading={subjects.isLoading}
+            keyExtractor={(r) => r.id}
+            emptyMessage="No subject protocols found in the current cluster."
+          />
+        </div>
       </Card>
 
       {/* Create / Edit Modal */}

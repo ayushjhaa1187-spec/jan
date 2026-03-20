@@ -51,18 +51,22 @@ export function Sidebar({ isMobileOpen, onClose }: SidebarProps) {
   }
 
   const content = (
-    <div className="flex h-full w-64 flex-col bg-[#1a365d] text-white">
-      <div className="flex items-center justify-between border-b border-white/10 px-5 py-6">
+    <div className="flex h-full w-64 flex-col bg-slate-950 text-white border-r border-white/5 relative overflow-hidden">
+      <div className="absolute top-0 right-0 w-full h-full opacity-10 pointer-events-none">
+        <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500 rounded-full blur-[80px]" />
+      </div>
+
+      <div className="flex items-center justify-between border-b border-white/5 px-6 py-8 relative z-10">
         <div>
-          <h1 className="text-xl font-bold tracking-tight">EduTrack</h1>
-          <p className="text-xs text-blue-300 uppercase mt-0.5">Academic OS</p>
+          <h1 className="text-2xl font-black tracking-tighter text-white">EduTrack<span className="text-indigo-500">.</span></h1>
+          <p className="text-[10px] font-black text-indigo-400 uppercase tracking-[0.2em] mt-1">Infrastructure v1.1</p>
         </div>
-        <button className="lg:hidden p-2 hover:bg-white/10 rounded-md" onClick={onClose}>
+        <button className="lg:hidden p-2 hover:bg-white/10 rounded-xl transition-colors" onClick={onClose}>
           <X size={20} />
         </button>
       </div>
       
-      <nav className="flex-1 space-y-1 p-4 overflow-y-auto">
+      <nav className="flex-1 space-y-1 p-5 overflow-y-auto relative z-10">
         {visible.map((item) => {
           const Icon = item.icon
           const active = pathname === item.href || pathname.startsWith(`${item.href}/`)
@@ -72,34 +76,34 @@ export function Sidebar({ isMobileOpen, onClose }: SidebarProps) {
               href={item.href}
               onClick={onClose}
               className={cn(
-                'flex items-center gap-3 rounded-lg px-4 py-2.5 text-sm font-medium transition-all duration-200', 
+                'flex items-center gap-3 rounded-2xl px-5 py-3 text-[11px] font-black uppercase tracking-widest transition-all duration-300 group', 
                 active 
-                  ? 'bg-[#2b6cb0] text-white shadow-md' 
-                  : 'text-blue-100 hover:bg-white/10 hover:text-white'
+                  ? 'bg-white text-slate-950 shadow-2xl shadow-white/10' 
+                  : 'text-slate-400 hover:bg-white/5 hover:text-white'
               )}
             >
-              <Icon size={18} className={active ? 'text-white' : 'text-blue-300'} />
+              <Icon size={16} className={cn('transition-colors group-hover:scale-110', active ? 'text-indigo-600' : 'text-slate-500 group-hover:text-indigo-400')} />
               {item.label}
             </Link>
           )
         })}
       </nav>
       
-      <div className="border-t border-white/10 p-4 bg-[#162e4f]">
-        <div className="flex items-center gap-3 mb-4 px-2">
-          <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-white font-bold text-xs">
+      <div className="border-t border-white/5 p-6 bg-slate-900/50 backdrop-blur-xl relative z-10">
+        <div className="flex items-center gap-4 mb-6 px-1">
+          <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-black text-sm shadow-xl">
             {user?.name?.charAt(0) || 'U'}
           </div>
           <div className="flex flex-col truncate">
-            <span className="text-sm font-semibold truncate">{user?.name}</span>
-            <span className="text-[10px] text-blue-300 uppercase tracking-wider">{user?.role}</span>
+            <span className="text-xs font-black truncate text-white uppercase tracking-widest leading-none mb-1">{user?.name}</span>
+            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">{user?.role}</span>
           </div>
         </div>
         <button 
-          className="flex w-full items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium text-red-200 hover:bg-red-900/40 hover:text-white transition-colors" 
+          className="flex w-full items-center justify-center gap-2 rounded-[1.2rem] bg-white/5 border border-white/5 py-3 text-[10px] font-black uppercase tracking-[0.2em] text-red-400 hover:bg-red-500 hover:text-white transition-all duration-300 group active:scale-95" 
           onClick={handleLogout}
         >
-          <LogOut size={16} /> Logout
+          <LogOut size={14} className="group-hover:-translate-x-1 transition-transform" /> Sign Out
         </button>
       </div>
     </div>

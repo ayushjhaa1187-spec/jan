@@ -112,17 +112,21 @@ export default function StudentsPage() {
       variants={container}
       initial="hidden"
       animate="show"
-      className="space-y-10"
+      className="space-y-12"
     >
-      <motion.div variants={item} className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+      <motion.div variants={item} className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-8">
         <div>
-           <h1 className="text-4xl font-black text-slate-900 tracking-tight mb-2">Academic Directory</h1>
-           <p className="text-slate-500 font-medium">Manage and audit the complete student lifecycle across all classes.</p>
+           <h1 className="text-6xl font-black text-slate-950 tracking-tighter mb-4 leading-none uppercase">Academic <br /> <span className="text-indigo-600">Infrastructure.</span></h1>
+           <p className="text-slate-400 font-bold text-xs uppercase tracking-[0.2em]">Live Directory & Cluster Governance v1.02</p>
         </div>
         <Link href="/students/new">
-          <Button className="py-6 px-8 bg-indigo-600 hover:bg-indigo-700 rounded-2xl font-bold flex items-center gap-3 shadow-xl shadow-indigo-100 transition-all active:scale-95">
-            <UserPlus size={20} />
-            Register New Student
+          <Button 
+            whileHover={{ y: -4 }}
+            whileTap={{ scale: 0.96 }}
+            className="py-10 px-12 bg-slate-950 hover:bg-slate-900 rounded-[2.5rem] font-black uppercase tracking-[0.2em] text-sm text-white shadow-2xl shadow-slate-200 flex items-center gap-4 transition-all"
+          >
+            <UserPlus size={22} className="text-indigo-400" />
+            Initialize Student Record
           </Button>
         </Link>
       </motion.div>
@@ -137,46 +141,51 @@ export default function StudentsPage() {
          </div>
       </div>
       
-      <motion.div variants={item} className="flex flex-col sm:flex-row gap-4">
-        <div className="relative flex-1">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+      <motion.div variants={item} className="flex flex-col xl:flex-row gap-6">
+        <div className="relative flex-1 group">
+          <div className="absolute inset-y-0 left-6 flex items-center pointer-events-none transition-transform group-focus-within:scale-110">
+            <Search className="text-slate-400" size={20} />
+          </div>
           <Input 
-            placeholder="Search by name, admission ID, or grade..." 
-            className="pl-12 h-14 rounded-2xl border-slate-200 focus:ring-indigo-500 shadow-sm transition-all"
+            placeholder="OMNI-SEARCH CLUSTER: NAME, ADMISSION_ID, OR GRADE_LEVEL..." 
+            className="pl-16 h-20 rounded-[2.2rem] border-slate-200 bg-white/50 backdrop-blur-xl focus:bg-white focus:border-indigo-500 transition-all font-black text-[10px] uppercase tracking-widest placeholder:text-slate-300"
           />
         </div>
-        <Button 
-          variant="secondary" 
-          className="h-14 rounded-2xl border-slate-200 font-bold px-6 flex gap-2"
-          onClick={() => {
-            if (!rows.length) return;
-            const headers = ['Admission No', 'First Name', 'Last Name', 'Class'];
-            const csvContent = [
-              headers.join(','),
-              ...rows.map((s: any) => [
-                s.enrollmentNo || s.adm_no || '-',
-                s.firstName || s.name || '-',
-                s.lastName || '-',
-                `${s.class?.name || '-' } ${s.class?.section || '-'}`
-              ].join(','))
-            ].join('\n');
-            const blob = new Blob([csvContent], { type: 'text/csv' });
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `students_export_${Date.now()}.csv`;
-            a.click();
-            toast.success('Data exported to CSV');
-          }}
-        >
-           <Download size={18} /> Export CSV
-        </Button>
-        <Button variant="secondary" className="h-14 rounded-2xl border-slate-200 font-bold px-6 flex gap-2">
-           <Filter size={18} /> Filter List
-        </Button>
+        <div className="flex gap-4">
+          <Button 
+            variant="secondary" 
+            className="h-20 rounded-[2rem] border-slate-200 font-black px-10 flex gap-3 text-[10px] uppercase tracking-widest bg-white hover:bg-slate-50 transition-all"
+            onClick={() => {
+              if (!rows.length) return;
+              const headers = ['Admission No', 'First Name', 'Last Name', 'Class'];
+              const csvContent = [
+                headers.join(','),
+                ...rows.map((s: any) => [
+                  s.enrollmentNo || s.adm_no || '-',
+                  s.firstName || s.name || '-',
+                  s.lastName || '-',
+                  `${s.class?.name || '-' } ${s.class?.section || '-'}`
+                ].join(','))
+              ].join('\n');
+              const blob = new Blob([csvContent], { type: 'text/csv' });
+              const url = window.URL.createObjectURL(blob);
+              const a = document.createElement('a');
+              a.href = url;
+              a.download = `students_export_${Date.now()}.csv`;
+              a.click();
+              toast.success('Governance Data Exported');
+            }}
+          >
+             <Download size={18} className="text-indigo-600" /> Export CSV
+          </Button>
+          <Button variant="secondary" className="h-20 rounded-[2rem] border-slate-200 font-black px-10 flex gap-3 text-[10px] uppercase tracking-widest bg-white hover:bg-slate-50 transition-all">
+             <Filter size={18} className="text-indigo-600" /> Filter Cluster
+          </Button>
+        </div>
       </motion.div>
       
-      <motion.div variants={item} className="bg-white rounded-[2.5rem] shadow-2xl shadow-slate-200/50 border border-slate-100 overflow-hidden">
+      <motion.div variants={item} className="bg-white/80 backdrop-blur-3xl rounded-[3.5rem] shadow-2xl shadow-slate-200/50 border border-white overflow-hidden relative">
+        <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-indigo-500 to-purple-600 opacity-30" />
         <Table 
           columns={columns} 
           data={rows} 

@@ -16,21 +16,25 @@ interface ButtonProps extends Omit<HTMLMotionProps<'button'>, 'children'> {
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
   ({ variant = 'primary', size = 'md', loading = false, className, children, disabled, ...props }, ref) => {
     const variantClass = {
-      primary: 'bg-[#1a365d] text-white hover:bg-[#2b6cb0] shadow-lg shadow-indigo-100',
-      secondary: 'border border-gray-300 bg-white text-gray-700 hover:bg-gray-50',
-      danger: 'bg-red-600 text-white hover:bg-red-700 shadow-lg shadow-rose-100',
-      ghost: 'bg-transparent text-gray-700 hover:bg-gray-100'
+      primary: 'bg-slate-950 text-white hover:bg-slate-900 shadow-2xl shadow-slate-200/50 uppercase tracking-[0.2em] font-black',
+      secondary: 'border border-slate-200 bg-white text-slate-950 hover:bg-slate-50 shadow-sm uppercase tracking-widest font-black',
+      danger: 'bg-rose-500 text-white hover:bg-rose-600 shadow-2xl shadow-rose-100 uppercase tracking-widest font-black',
+      ghost: 'bg-transparent text-slate-500 hover:bg-slate-50 hover:text-slate-950 uppercase tracking-widest font-black'
     }
-    const sizeClass = { sm: 'h-8 px-3 text-sm', md: 'h-10 px-4 text-sm', lg: 'h-12 px-6 text-base' }
+    const sizeClass = { 
+      sm: 'h-10 px-5 text-[9px]', 
+      md: 'h-12 px-6 text-[10px]', 
+      lg: 'h-14 px-10 text-[11px]' 
+    }
 
     return (
       <motion.button
         ref={ref as any}
-        whileHover={!disabled && !loading ? { scale: 1.02, y: -1 } : undefined}
-        whileTap={!disabled && !loading ? { scale: 0.98 } : undefined}
+        whileHover={!disabled && !loading ? { scale: 1.02, y: -2 } : undefined}
+        whileTap={!disabled && !loading ? { scale: 0.96 } : undefined}
         disabled={disabled || loading}
         className={cn(
-          'inline-flex items-center justify-center gap-2 rounded-xl font-bold transition-colors disabled:opacity-60 cursor-pointer',
+          'inline-flex items-center justify-center gap-3 rounded-[1.2rem] transition-all duration-300 disabled:opacity-50 cursor-pointer border-none outline-none',
           variantClass[variant],
           sizeClass[size],
           className
