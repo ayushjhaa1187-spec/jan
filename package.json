@@ -1,6 +1,6 @@
 {
   "name": "edutrack-api",
-  "version": "1.1.1",
+  "version": "1.1.2",
   "description": "Production-grade backend for EduTrack Examination Management System",
   "engines": {
     "node": "20.x"
