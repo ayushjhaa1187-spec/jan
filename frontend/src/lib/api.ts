@@ -7,10 +7,8 @@ interface RetriableConfig {
 
 const getBaseURL = () => {
   if (typeof window !== 'undefined') {
-    // Force relative path on production/preview to avoid CORS and stale URL issues
-    if (window.location.hostname.includes('vercel.app') || window.location.hostname === 'localhost') {
-       return '/api-proxy';
-    }
+    // Relative path works on Vercel because the backend is in the same project root
+    return '/api';
   }
   return process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
 };

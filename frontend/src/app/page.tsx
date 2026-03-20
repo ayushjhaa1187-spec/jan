@@ -439,20 +439,20 @@ export default function LandingPage() {
             <div>
               <h5 className="font-black text-slate-900 uppercase tracking-widest text-sm mb-8">Infrastructure</h5>
               <div className="flex flex-col gap-5 text-slate-500 font-bold">
-                <Link href="#" className="hover:text-indigo-600 transition-colors">Governance Model</Link>
-                <Link href="#" className="hover:text-indigo-600 transition-colors">Result Engine</Link>
-                <Link href="#" className="hover:text-indigo-600 transition-colors">Audit Vault</Link>
-                <Link href="#" className="hover:text-indigo-600 transition-colors">API Runtime</Link>
+                <Link href="/governance" className="hover:text-indigo-600 transition-colors">Governance Model</Link>
+                <Link href="/result-engine" className="hover:text-indigo-600 transition-colors">Result Engine</Link>
+                <Link href="/audit-vault" className="hover:text-indigo-600 transition-colors">Audit Vault</Link>
+                <Link href="/api-runtime" className="hover:text-indigo-600 transition-colors">API Runtime</Link>
               </div>
             </div>
 
             <div>
               <h5 className="font-black text-slate-900 uppercase tracking-widest text-sm mb-8">Ecosystem</h5>
               <div className="flex flex-col gap-5 text-slate-500 font-bold">
-                <Link href="#" className="hover:text-indigo-600 transition-colors">Integrations</Link>
-                <Link href="#" className="hover:text-indigo-600 transition-colors">Partnerships</Link>
-                <Link href="#" className="hover:text-indigo-600 transition-colors">Developers</Link>
-                <Link href="#" className="hover:text-indigo-600 transition-colors">Marketplace</Link>
+                <Link href="/integrations" className="hover:text-indigo-600 transition-colors">Integrations</Link>
+                <Link href="/partnerships" className="hover:text-indigo-600 transition-colors">Partnerships</Link>
+                <Link href="/developers" className="hover:text-indigo-600 transition-colors">Developers</Link>
+                <Link href="/marketplace" className="hover:text-indigo-600 transition-colors">Marketplace</Link>
               </div>
             </div>
 
