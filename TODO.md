@@ -15,4 +15,6 @@
 - [x] 2.2 Fix Sign-In Modal to call API properly - ✅ Calls /api/auth/login
 - [x] 2.3 Remove "Full Name" from Sign-In Modal - ✅ Login-only modal
 - [x] 2.4 Fix the Register Link - ✅ Points to /register.html
+- [x] 2.5 Synchronize Database Schema - ✅ Ran `prisma db push` and verified columns
+- [x] 2.6 Fix API Routing/Proxy - ✅ Updated `frontend/src/lib/api.ts` to use relative `/api` paths
 

@@ -7,10 +7,10 @@ interface RetriableConfig {
 
 const getBaseURL = () => {
   if (typeof window !== 'undefined') {
-    // This must match the rewrite in next.config.ts
-    return '/api-proxy';
+    // Relative to current host
+    return '/api';
   }
-  return process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api-proxy';
+  return process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
 };
 
 const api = axios.create({
