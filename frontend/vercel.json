@@ -1,0 +1,14 @@
+{
+  "version": 2,
+  "functions": {
+    "api/index.js": {
+      "memory": 1024,
+      "maxDuration": 25,
+      "includeFiles": "{dist/**,src/backend/swagger.yaml,public/**,prisma/schema.prisma,node_modules/.prisma/client/**,node_modules/@prisma/client/**}"
+    }
+  },
+  "rewrites": [
+    { "source": "/api/(.*)", "destination": "/api/index.js" },
+    { "source": "/api", "destination": "/api/index.js" }
+  ]
+}

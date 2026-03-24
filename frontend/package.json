@@ -4,7 +4,8 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "prisma generate && tsc -p tsconfig.json --module commonjs --noEmit false --outDir dist && next build",
+    "postinstall": "prisma generate",
     "start": "next start",
     "lint": "next lint"
   },

@@ -1,0 +1,406 @@
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// =======================
+// Core Roles & Permissions
+// =======================
+
+model Organization {
+  id         String   @id @default(uuid())
+  name       String
+  schoolCode String   @unique // e.g. "DPSDELHI"
+  address    String?
+  board      String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  users      User[]
+  classes    Class[]
+  subjects   Subject[]
+  students   Student[]
+  teachers   Teacher[]
+  staff      OfficeStaff[]
+  exams      Exam[]
+  marks      Marks[]
+  results    Result[]
+  auditLogs  AuditLog[]
+  teacherSubjects TeacherSubject[]
+  attendances Attendance[]
+  notifications Notification[]
+  sharedReports SharedReport[]
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  isActive  Boolean  @default(true)
+  orgId     String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  organization   Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  userRoles      UserRole[]
+  studentProfile Student?
+  staffProfile   OfficeStaff?
+  teacherProfile Teacher?
+  auditLogs      AuditLog[]
+  notifications  Notification[]
+
+  createdExams   Exam[]   @relation("ExamCreator")
+  updatedExams   Exam[]   @relation("ExamUpdater")
+  
+  marksEntered   Marks[]   @relation("MarksEnteredBy")
+  marksUpdated   Marks[]   @relation("MarksUpdatedBy")
+
+  resultsCreated Result[] @relation("ResultCreatedBy")
+  resultsUpdated Result[] @relation("ResultUpdatedBy")
+}
+
+model Role {
+  id          String   @id @default(uuid())
+  name        String   @unique // 'Principal', 'ExamDepartment', 'Teacher', 'OfficeStaff', 'Student'
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  permissions RolePermission[]
+  users       UserRole[]
+}
+
+model Permission {
+  id          String   @id @default(uuid())
+  action      String   // e.g., 'CREATE_EXAM', 'ENTER_MARKS'
+  resource    String   // e.g., 'EXAM', 'MARKS'
+  description String?
+  createdAt   DateTime @default(now())
+
+  roles RolePermission[]
+  @@unique([action, resource])
+}
+
+model RolePermission {
+  roleId       String
+  permissionId String
+
+  role       Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@id([roleId, permissionId])
+}
+
+model UserRole {
+  userId String
+  roleId String
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role Role @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  @@id([userId, roleId])
+}
+
+// =======================
+// School Entities
+// =======================
+
+model Student {
+  id           String   @id @default(uuid())
+  userId       String   @unique
+  enrollmentNo String   @unique
+  firstName    String
+  lastName     String
+  dateOfBirth  DateTime
+  gender       String
+  classId      String
+  orgId        String
+
+  organization Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  user   User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  class  Class @relation(fields: [classId], references: [id])
+  
+  marks       Marks[]
+  results     Result[]
+  attendances Attendance[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([orgId])
+  @@index([classId])
+  @@index([userId])
+}
+
+model Teacher {
+  id           String   @id @default(uuid())
+  userId       String   @unique
+  employeeId   String   @unique
+  firstName    String
+  lastName     String
+  orgId        String
+
+  organization Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  user   User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  subjects TeacherSubject[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([orgId])
+  @@index([userId])
+}
+
+model OfficeStaff {
+  id           String   @id @default(uuid())
+  userId       String   @unique
+  employeeId   String   @unique
+  firstName    String
+  lastName     String
+  orgId        String
+
+  organization Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  user   User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([orgId])
+  @@index([userId])
+}
+
+model Class {
+  id        String   @id @default(uuid())
+  name      String   // e.g., "10th Grade"
+  section   String   // e.g., "A"
+  orgId     String
+  
+  organization Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  students  Student[]
+  subjects  Subject[]   @relation("ClassSubjects")
+  exams     Exam[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([name, section, orgId])
+  @@index([orgId])
+}
+
+model Subject {
+  id        String   @id @default(uuid())
+  code      String   
+  name      String
+  orgId     String
+
+  organization Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  classes   Class[]  @relation("ClassSubjects")
+  teachers  TeacherSubject[]
+  exams     ExamSubject[]
+  marks     Marks[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([code, orgId])
+  @@index([orgId])
+}
+
+model TeacherSubject {
+  teacherId String
+  subjectId String
+  classId   String // The teacher teaches this subject for a specific class instance
+  orgId     String
+  
+  organization Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  teacher Teacher @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+  subject Subject @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  
+  @@id([teacherId, subjectId, classId])
+  @@index([orgId])
+}
+
+// =======================
+// Exam System
+// =======================
+
+model Exam {
+  id          String   @id @default(uuid())
+  name        String   // "Mid Term 2026"
+  description String?
+  startDate   DateTime
+  endDate     DateTime
+  status      String   @default("DRAFT") // DRAFT, REVIEW, APPROVED, PUBLISHED
+  orgId       String
+
+  organization Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  classId     String
+  class       Class    @relation(fields: [classId], references: [id])
+
+  subjects    ExamSubject[]
+  marks       Marks[]
+  results     Result[]
+
+  createdById String
+  createdBy   User     @relation("ExamCreator", fields: [createdById], references: [id])
+
+  updatedById String?
+  updatedBy   User?    @relation("ExamUpdater", fields: [updatedById], references: [id])
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([orgId])
+  @@index([classId])
+}
+
+model ExamSubject {
+  examId    String
+  subjectId String
+  date      DateTime
+  startTime DateTime
+  endTime   DateTime
+
+  exam      Exam    @relation(fields: [examId], references: [id], onDelete: Cascade)
+  subject   Subject @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+
+  @@id([examId, subjectId])
+}
+
+model Marks {
+  id         String   @id @default(uuid())
+  studentId  String
+  subjectId  String
+  examId     String
+  orgId      String
+  
+  marks      Float
+  maxMarks   Float    // Usually fixed per ExamSubject, but kept here for easy scale/audit
+
+  organization Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  student    Student @relation(fields: [studentId], references: [id])
+  subject    Subject @relation(fields: [subjectId], references: [id])
+  exam       Exam    @relation(fields: [examId], references: [id])
+
+  enteredById String
+  enteredBy   User   @relation("MarksEnteredBy", fields: [enteredById], references: [id])
+
+  updatedById String?
+  updatedBy   User?  @relation("MarksUpdatedBy", fields: [updatedById], references: [id])
+
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@unique([studentId, subjectId, examId])
+  @@index([orgId])
+  @@index([examId])
+  @@index([studentId])
+}
+
+// RESULT WORKFLOW: draft -> review -> approved -> published
+model Result {
+  id        String   @id @default(uuid())
+  studentId String
+  examId    String
+  orgId     String
+  
+  status    String   @default("DRAFT") // DRAFT, REVIEW, APPROVED, PUBLISHED
+  remarks   String?
+
+  organization Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  student   Student @relation(fields: [studentId], references: [id])
+  exam      Exam    @relation(fields: [examId], references: [id])
+
+  createdById String
+  createdBy   User     @relation("ResultCreatedBy", fields: [createdById], references: [id])
+
+  updatedById String?
+  updatedBy   User?    @relation("ResultUpdatedBy", fields: [updatedById], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([studentId, examId])
+  @@index([orgId])
+  @@index([examId])
+}
+
+// =======================
+// Ops / Miscellaneous
+// =======================
+
+model Attendance {
+  id        String   @id @default(uuid())
+  studentId String
+  date      DateTime
+  status    String   // PRESENT, ABSENT, LEAVE
+  orgId     String
+
+  organization Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  student   Student @relation(fields: [studentId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([studentId, date])
+  @@index([orgId])
+}
+
+model AuditLog {
+  id        String   @id @default(uuid())
+  userId    String?
+  orgId     String?
+  action    String
+  entity    String   // Make it scalable (e.g. "USER", "EXAM", "MARKS")
+  entityId  String?
+  details   String?  // JSON stringified payload
+  ipAddress String?
+
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  organization Organization? @relation(fields: [orgId], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now())
+
+  @@index([orgId])
+  @@index([userId])
+  @@index([entity, entityId])
+}
+
+model Notification {
+  id        String   @id @default(uuid())
+  userId    String
+  title     String
+  message   String
+  isRead    Boolean  @default(false)
+  type      String   // e.g. "RESULT_PUBLISHED", "ALERT"
+  orgId     String
+
+  organization Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@index([orgId])
+  @@index([userId])
+}
+
+model SharedReport {
+  id          String   @id @default(uuid())
+  title       String
+  fileUrl     String
+  reportType  String   // e.g. "PDF", "EXCEL"
+  generatedBy String
+  orgId       String
+
+  organization Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+
+  createdAt   DateTime @default(now())
+
+  @@index([orgId])
+}
