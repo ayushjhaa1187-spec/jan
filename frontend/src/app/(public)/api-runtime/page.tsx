@@ -6,11 +6,11 @@ export default function APIRuntimePage() {
         <h1 className="text-8xl font-black tracking-tighter mb-8 leading-none uppercase">API <br /> Runtime.</h1>
         <p className="text-slate-400 font-bold text-xl uppercase tracking-[0.2em]">Distributed Academic Operating Protocol</p>
         <div className="mt-12 bg-[#0d1117] p-12 rounded-[2.5rem] border border-white/5 font-mono text-sm shadow-2xl">
-          <p className="text-emerald-400 mb-2">// EduTrack Runtime System 2026.4</p>
+          <p className="text-emerald-400 mb-2">{'// EduTrack Runtime System 2026.4'}</p>
           <p className="text-indigo-400">INITIALIZING CLUSTER HANDSHAKE...</p>
           <p className="text-slate-500">Node ID: EDU-RT-112-X4</p>
           <p className="text-slate-500">Core Status: READY</p>
-          <p className="text-indigo-400 mt-6">curl -X GET "https://api.edutrack.app/v1/ready"</p>
+          <p className="text-indigo-400 mt-6">{'curl -X GET "https://api.edutrack.app/v1/ready"'}</p>
           <p className="text-slate-400">&gt; {'{ "status": "operational", "latency": "14ms" }'}</p>
         </div>
       </div>

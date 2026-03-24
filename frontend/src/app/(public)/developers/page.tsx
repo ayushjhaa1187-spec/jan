@@ -11,7 +11,7 @@ export default function DevelopersPage() {
               <div className="w-8 h-1 bg-white/20 rounded-full" />
            </div>
            <p className="text-emerald-400 mb-4">$ npm install @edutrack/sdk-core</p>
-           <p className="text-slate-400 mb-8">// Initializing secure auth handshake</p>
+           <p className="text-slate-400 mb-8">{'// Initializing secure auth handshake'}</p>
            <p className="text-indigo-400">const sdk = new EduTrack({'{ apiKey: process.env.EDU_KEY }'});</p>
         </div>
       </div>
