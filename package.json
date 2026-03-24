@@ -11,7 +11,7 @@
     "dev": "ts-node-dev --respawn --transpile-only src/server.ts",
     "postinstall": "prisma generate",
     "test": "cross-env NODE_ENV=test jest",
-    "build": "prisma generate && tsc"
+    "build": "prisma generate && tsc && cd frontend && npm run build"
   },
   "keywords": [
     "education",
@@ -65,5 +65,8 @@
   },
   "prisma": {
     "seed": "ts-node prisma/seed.ts"
-  }
+  },
+  "workspaces": [
+    "frontend"
+  ]
 }
