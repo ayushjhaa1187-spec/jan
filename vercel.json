@@ -1,18 +1,18 @@
 {
   "version": 2,
   "functions": {
-    "api/index.js": {
+    "api/index.cjs": {
       "memory": 1024,
       "maxDuration": 25,
       "includeFiles": "{dist/**,swagger.yaml,public/**,admin_pages/**,participant_pages/**,prisma/schema.prisma,node_modules/.prisma/client/**,node_modules/@prisma/client/**}"
     }
   },
   "rewrites": [
-    { "source": "/api/(.*)", "destination": "/api/index.js" },
-    { "source": "/api-docs", "destination": "/api/index.js" },
-    { "source": "/admin_pages/(.*)", "destination": "/api/index.js" },
-    { "source": "/participant_pages/(.*)", "destination": "/api/index.js" },
-    { "source": "/public/(.*)", "destination": "/api/index.js" },
-    { "source": "/(.*)", "destination": "/api/index.js" }
+    { "source": "/api/(.*)", "destination": "/api/index.cjs" },
+    { "source": "/api-docs", "destination": "/api/index.cjs" },
+    { "source": "/admin_pages/(.*)", "destination": "/api/index.cjs" },
+    { "source": "/participant_pages/(.*)", "destination": "/api/index.cjs" },
+    { "source": "/public/(.*)", "destination": "/api/index.cjs" },
+    { "source": "/(.*)", "destination": "/api/index.cjs" }
   ]
 }
