@@ -7,10 +7,10 @@ interface RetriableConfig {
 
 const getBaseURL = () => {
   if (typeof window !== 'undefined') {
-    // Relative path works on Vercel because the backend is in the same project root
-    return '/api';
+    // This must match the rewrite in next.config.ts
+    return '/api-proxy';
   }
-  return process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+  return process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api-proxy';
 };
 
 const api = axios.create({
@@ -36,7 +36,7 @@ api.interceptors.response.use(
       try {
         const refreshToken = localStorage.getItem('refreshToken')
         const { data } = await axios.post(
-          `${process.env.NEXT_PUBLIC_API_URL}/auth/refresh`,
+          `${getBaseURL()}/auth/refresh`,
           { refreshToken }
         ) as { data: { data: { accessToken: string } } }
         localStorage.setItem('accessToken', data.data.accessToken)

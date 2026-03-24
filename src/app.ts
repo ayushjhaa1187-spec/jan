@@ -101,7 +101,7 @@ app.use('/public', express.static(path.resolve(appRoot, 'public'), {
 }));
 
 // Health check endpoint with Latency Tracking
-app.get('/api/health', async (req, res) => {
+app.get(['/api/health', '/health'], async (req, res) => {
   const start = Date.now();
   try {
     await prisma.$queryRaw`SELECT 1`;
@@ -162,6 +162,7 @@ app.get('/api', (_req, res) => {
 
 // Mount all API routes
 app.use('/api', apiRoutes);
+app.use('/api-proxy', apiRoutes);
 app.use('/', apiRoutes);
 
 // 404 handler for unknown API routes
